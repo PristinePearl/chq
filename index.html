@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>CHEQUE DEPOSIT FORM</title>
+  <link rel="icon"
+        href="https://www.pristinepearlpharma.in/images/alt-logo.png"
+        type="image/png">
+  <!-- Load Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Load Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  
+  <!-- Load Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Custom Tailwind Configuration for modern colors and shadows
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                },
+                colors: {
+                    'primary-indigo': '#4F46E5', // Modern Indigo
+                    'primary-dark': '#3730A3',  // Darker Indigo
+                    'secondary-green': '#059669', // Emerald for Add/Success
+                    'upload-red': '#DC2626', // Red for Upload/Warning
+                    'app-bg': '#F9FAFB', // Light background
+                    'card-bg': '#ffffff',
+                    'input-bg': '#F8F9FA', // Subtle input background
+                },
+                boxShadow: {
+                    // Soft, deep shadow for a modern floating effect
+                    '3xl': '0 20px 50px rgba(0, 0, 0, 0.1)',
+                }
+            }
+        }
+    }
+  </script>
+
+  <style>
+    /* Base styles to apply Inter font */
+    body {
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    }
+    /* Mandatory: UPPERCASE INPUT STYLES for specific fields */
+    input[type="text"],
+    textarea,
+    input[name*="chqNumber"],
+    input[name*="invoiceDetails"],
+    input[name*="remarks"] {
+      text-transform: uppercase;
+    }
+    /* Style for the select arrow */
+    select {
+        /* Remove default arrow */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        /* Add custom arrow using background image */
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="%234F46E5" viewBox="0 0 16 16"><path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592c.86 0 1.32 1.013.754 1.658L8.753 11.14a.92.92 0 0 1-1.506 0z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 0.65rem center; /* Adjusted for smaller input */
+        padding-right: 2rem; /* Reduced space for the icon */
+    }
+
+    /* Table Specific Styles for better sticky header */
+    .table-container {
+        max-height: 450px;
+        overflow-y: auto;
+        border: 1px solid #E5E7EB; /* Subtle light border */
+        border-radius: 0.75rem;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    /* Align value input to the right and highlight */
+    .item-row input[name*="chqValue"] {
+      text-align: right;
+      font-weight: 700;
+      color: #DC2626; /* upload-red */
+      background: #FEF2F2; /* Light red background */
+    }
+  </style>
+</head>
+<body class="bg-app-bg p-4 sm:p-8 min-h-screen font-sans antialiased">
+  
+  <div class="container mx-auto">
+    <div class="bg-card-bg shadow-3xl rounded-2xl p-6 sm:p-10 max-w-7xl mx-auto">
+      <!-- MAIN HEADER -->
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-primary-dark border-b-2 border-gray-100 pb-4 mb-8 flex items-center justify-center tracking-wider">
+          <img src="https://www.pristinepearlpharma.in/images/alt-logo.png" 
+               alt="Pristine Pearl Pharma Logo" 
+               class="h-8 sm:h-10 w-auto mr-4 rounded-full p-0.5 bg-gray-50">
+          CHEQUE DEPOSIT FORM
+      </h1>
+
+      <!-- HEADER FIELDS GROUP - IMPROVED DENSITY -->
+      <div class="p-4 sm:p-6 border border-gray-200 rounded-xl bg-input-bg mb-8">
+          <!-- TIGHTER GRID GAP -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-x-4 gap-y-3">
+            
+            <div class="input-group">
+              <!-- SMALLER LABEL AND MARGIN -->
+              <label for="receivedFrom" class="block text-xs font-medium text-primary-indigo mb-1 uppercase tracking-wider">Received From</label>
+              <!-- SMALLER INPUT PADDING -->
+              <input id="receivedFrom" type="text" value="" required 
+                     class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-white focus:ring-primary-indigo focus:border-primary-indigo transition duration-150 text-sm">
+            </div>
+            
+            <div class="input-group">
+              <label for="receivedDate" class="block text-xs font-medium text-primary-indigo mb-1 uppercase tracking-wider">Received Date</label>
+              <input id="receivedDate" type="date" value="" required
+                     class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-white focus:ring-primary-indigo focus:border-primary-indigo transition duration-150 text-sm">
+            </div>
+            
+            <div class="input-group">
+              <label for="partyName" class="block text-xs font-medium text-primary-indigo mb-1 uppercase tracking-wider">Party Name</label>
+              <input id="partyName" type="text" value="" required
+                     class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-white focus:ring-primary-indigo focus:border-primary-indigo transition duration-150 text-sm">
+            </div>
+            
+            <div class="input-group">
+              <label for="bankName" class="block text-xs font-medium text-primary-indigo mb-1 uppercase tracking-wider">Bank Name</label>
+              <input id="bankName" type="text" value="" required
+                     class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-white focus:ring-primary-indigo focus:border-primary-indigo transition duration-150 text-sm">
+            </div>
+            
+            <div class="input-group">
+              <label for="branch" class="block text-xs font-medium text-primary-indigo mb-1 uppercase tracking-wider">Branch</label>
+              <input id="branch" type="text" value="" required
+                     class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-white focus:ring-primary-indigo focus:border-primary-indigo transition duration-150 text-sm">
+            </div>
+            
+            <div class="input-group">
+              <label for="state" class="block text-xs font-medium text-primary-indigo mb-1 uppercase tracking-wider">State</label>
+              <select id="state" required
+                      class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-white focus:ring-primary-indigo focus:border-primary-indigo transition duration-150 text-sm">
+                <option value="" disabled selected class="text-gray-400">-- Select State --</option>
+                <option value="TN">TN</option>
+                <option value="KL">KL</option>
+                <option value="KA">KA</option>
+                <option value="JK">JK</option>
+                <option value="GOA">GOA</option>
+              </select>
+            </div>
+          </div>
+      </div>
+
+      <!-- CHEQUE DETAILS SECTION -->
+      <h2 class="text-xl font-bold text-primary-indigo border-b border-gray-200 pb-2 mb-4 mt-6 uppercase tracking-wider">Cheque Details</h2>
+
+      <div class="table-container shadow-md">
+          <table class="min-w-full">
+            <thead class="bg-input-bg">
+              <tr>
+                <th style="width: 5%;" class="p-3 text-left text-xs font-semibold text-primary-dark uppercase tracking-wider">#</th>
+                <th style="width: 12%;" class="p-3 text-left text-xs font-semibold text-primary-dark uppercase tracking-wider">Chq Date</th>
+                <th style="width: 15%;" class="p-3 text-left text-xs font-semibold text-primary-dark uppercase tracking-wider">Chq Number</th>
+                <th style="width: 12%;" class="p-3 text-left text-xs font-semibold text-primary-dark uppercase tracking-wider">Chq Value (₹)</th>
+                <th style="width: 12%;" class="p-3 text-left text-xs font-semibold text-primary-dark uppercase tracking-wider">Deposited Bank</th>
+                <th style="width: 12%;" class="p-3 text-left text-xs font-semibold text-primary-dark uppercase tracking-wider">Deposited Date</th>
+                <th style="width: 18%;" class="p-3 text-left text-xs font-semibold text-primary-dark uppercase tracking-wider">Invoice Details</th>
+                <th style="width: 10%;" class="p-3 text-left text-xs font-semibold text-primary-dark uppercase tracking-wider">Remarks</th>
+                <th style="width: 4%;" class="p-3 text-center text-xs font-semibold text-primary-dark uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+            <tbody id="itemsTable" class="divide-y divide-gray-100">
+            </tbody>
+          </table>
+      </div>
+
+      <!-- TOTAL VALUE CONTAINER -->
+      <div class="total-value-container flex justify-end items-center bg-gray-50 p-4 border-t-2 border-primary-indigo rounded-b-xl shadow-inner">
+          <span class="text-md font-bold text-primary-dark uppercase tracking-wider">TOTAL CHEQUE VALUE:</span> 
+          <strong id="totalValueDisplay" class="text-2xl font-extrabold text-upload-red ml-4">₹ 0.00</strong>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions flex flex-col sm:flex-row justify-between items-center mt-8 space-y-4 sm:space-y-0">
+        
+        <div class="left-actions flex gap-4">
+          <button id="addRowBtn" type="button" class="px-6 py-3 rounded-xl font-semibold text-white bg-secondary-green hover:bg-opacity-90 transition duration-200 shadow-lg shadow-secondary-green/30">
+            <i class="fa-solid fa-plus"></i> Add Cheque Row
+          </button>
+        </div>
+        
+        <div class="right-actions flex items-center gap-4">
+          <button id="reportBtn" type="button" class="px-6 py-3 rounded-xl font-semibold text-white bg-primary-indigo hover:bg-opacity-90 transition duration-200 shadow-lg shadow-primary-indigo/30">
+            <i class="fa-solid fa-file-lines"></i> View Report
+          </button>
+          <span id="statusMessage" class="status-message text-md font-medium text-secondary-green"></span>
+          <button id="submitToSheet" type="button" class="px-6 py-3 rounded-xl font-semibold text-white bg-upload-red hover:bg-opacity-90 transition duration-200 shadow-lg shadow-upload-red/30">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Custom Modal UI (REPLACING ALERT/PROMPT) -->
+  <div id="customModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 hidden transition-opacity duration-300 flex items-center justify-center opacity-0" aria-modal="true" role="dialog">
+    <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 max-w-sm transform transition-transform duration-300 scale-95">
+      <h3 id="modalTitle" class="text-xl font-bold mb-4 text-primary-dark">Notification</h3>
+      <p id="modalBody" class="text-gray-600 mb-6"></p>
+
+      <!-- Password Input Group (Hidden by default) -->
+      <div id="passwordGroup" class="mb-6 hidden">
+          <label for="modalPassword" class="block text-sm font-medium text-gray-700 mb-2">Report Password:</label>
+          <input type="password" id="modalPassword" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-150" placeholder="Enter password" autocomplete="off">
+      </div>
+      
+      <div class="flex justify-end space-x-3">
+          <button id="modalCloseBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150 font-medium">Close</button>
+          <button id="modalConfirmBtn" class="px-4 py-2 bg-primary-indigo text-white rounded-lg hover:bg-primary-indigo/90 transition duration-150 hidden font-medium">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------------------------------------------------
+    // --- 1. CONFIGURATION (UPDATE THIS) -----------------------------------
+    // ----------------------------------------------------------------------
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwm958-Re69z1XtGQ-_h_QY0mJSkHVF7nsh6HBxb7B7VLgEf8Yap-k3VsdmThXM0zeFfQ/exec';
+    const SECRET_PASSWORD = 'pearl#chq'; // ⭐ Report password
+
+    // ----------------------------------------------------------------------
+    // --- 2. DOM ELEMENTS --------------------------------------------------
+    // ----------------------------------------------------------------------
+    const itemsTableBody = document.getElementById('itemsTable');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const submitBtn = document.getElementById('submitToSheet');
+    const statusMessage = document.getElementById('statusMessage');
+    const totalValueDisplay = document.getElementById('totalValueDisplay');
+    const reportBtn = document.getElementById('reportBtn');
+
+    // Header field elements
+    const receivedFromEl = document.getElementById('receivedFrom');
+    const receivedDateEl = document.getElementById('receivedDate');
+    const partyNameEl = document.getElementById('partyName');
+    const bankNameEl = document.getElementById('bankName');
+    const branchEl = document.getElementById('branch');
+    const stateEl = document.getElementById('state');
+
+    // Modal elements
+    const customModal = document.getElementById('customModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+    const passwordGroup = document.getElementById('passwordGroup');
+    const modalPasswordInput = document.getElementById('modalPassword');
+
+
+    let rowCount = 0;
+
+    // ----------------------------------------------------------------------
+    // --- 3. MODAL UTILITY FUNCTIONS (Replaces alert() and prompt()) -------
+    // ----------------------------------------------------------------------
+
+    /**
+     * Hides the custom modal.
+     */
+    function hideModal() {
+        customModal.classList.add('opacity-0');
+        customModal.classList.add('scale-95');
+        setTimeout(() => {
+            customModal.classList.add('hidden');
+        }, 300); // Match transition duration
+        passwordGroup.classList.add('hidden');
+        modalConfirmBtn.classList.add('hidden');
+        modalPasswordInput.value = '';
+        modalConfirmBtn.onclick = null;
+        modalPasswordInput.onkeyup = null;
+    }
+    
+    /**
+     * Shows a generic message modal (replaces alert()).
+     * @param {string} title The title of the modal.
+     * @param {string} message The body text.
+     * @param {string} color The Tailwind color class for the title (e.g., 'text-red-600').
+     */
+    function showCustomMessage(title, message, color = 'text-primary-dark') {
+        modalTitle.textContent = title;
+        modalTitle.className = `text-xl font-bold mb-4 ${color}`;
+        modalBody.textContent = message;
+        passwordGroup.classList.add('hidden');
+        modalConfirmBtn.classList.add('hidden');
+        modalCloseBtn.textContent = 'Close';
+
+        customModal.classList.remove('hidden');
+        setTimeout(() => {
+            customModal.classList.remove('opacity-0');
+            customModal.querySelector('.transform').classList.remove('scale-95');
+        }, 10);
+        
+        modalCloseBtn.onclick = hideModal;
+    }
+
+
+    /**
+     * Shows the password prompt modal (replaces prompt()).
+     */
+    function showPasswordModal() {
+        modalTitle.textContent = 'Report Access';
+        modalTitle.className = 'text-xl font-bold mb-4 text-primary-indigo';
+        modalBody.textContent = 'Please enter the secret password to view the report.';
+        
+        passwordGroup.classList.remove('hidden');
+        modalConfirmBtn.classList.remove('hidden');
+        modalCloseBtn.textContent = 'Cancel';
+
+        customModal.classList.remove('hidden');
+        setTimeout(() => {
+            customModal.classList.remove('opacity-0');
+            customModal.querySelector('.transform').classList.remove('scale-95');
+            modalPasswordInput.focus();
+        }, 10);
+
+        modalCloseBtn.onclick = hideModal;
+
+        modalConfirmBtn.onclick = () => {
+            // ⭐ FIX: Added .trim() to ensure no leading/trailing whitespace breaks the comparison
+            const userPassword = modalPasswordInput.value.trim();
+            hideModal();
+            if (userPassword === SECRET_PASSWORD) {
+                // Opens the report.html file in a new tab
+                window.open('report.html', '_blank'); 
+            } else {
+                showCustomMessage('Access Denied', 'Incorrect Password. Please try again.', 'text-upload-red');
+            }
+        };
+
+        // Allow Enter key to confirm
+        modalPasswordInput.onkeyup = function(event) {
+            if (event.key === 'Enter') {
+                modalConfirmBtn.click();
+            }
+        };
+    }
+
+
+    // ----------------------------------------------------------------------
+    // --- 4. CORE FORM LOGIC FUNCTIONS -------------------------------------
+    // ----------------------------------------------------------------------
+    
+    /**
+     * Converts date string from YYYY-MM-DD (from <input type="date">) to DD/MM/YYYY for submission.
+     */
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return dateString;
+    }
+
+    /**
+     * Function to convert input value to uppercase on every input event.
+     */
+    function toUpperCase(event) {
+        if (event.target.type !== 'number' && event.target.type !== 'date') {
+            event.target.value = event.target.value.toUpperCase();
+        }
+    }
+
+
+    /**
+     * Adds a new row to the Cheque Details table.
+     */
+    function newRow() {
+      rowCount++;
+      const newRow = document.createElement('tr');
+      newRow.classList.add('item-row', 'hover:bg-gray-50', 'transition');
+      newRow.id = `row-${rowCount}`;
+
+      // Table row template using Tailwind classes for inputs
+      const rowContent = `
+        <td class="p-3 text-center text-sm text-gray-700">${rowCount}</td>
+        <td class="p-1"><input type="date" name="chqDate" required class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-sm"></td>
+        <td class="p-1">
+          <input type="text"
+                 name="chqNumber"
+                 placeholder="CHEQUE NO."
+                 required
+                 maxlength="15"
+                 pattern="[0-9]*"
+                 title="Cheque number should be numeric (0-9)"
+                 class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-sm">
+        </td>
+        <td class="p-1"><input type="number" name="chqValue" placeholder="0.00" min="0" step="0.01" value="0.00" required oninput="updateGrandTotal()" class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-sm"></td>
+        <td class="p-1">
+          <select name="depositedBank" required class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-sm">
+            <option value="" disabled selected>-- SELECT BANK --</option>
+            <option value="DBS">DBS</option>
+            <option value="ICICI">ICICI</option>
+          </select>
+        </td>
+        <td class="p-1"><input type="date" name="depositedDate" class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-sm"></td>
+        <td class="p-1"><input type="text" name="invoiceDetails" placeholder="INV-001, INV-002..." class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-sm"></td>
+        <td class="p-1"><input type="text" name="remarks" placeholder="NOTES" class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-sm"></td>
+        <td class="p-1 text-center">
+          <button type="button" class="px-2 py-1 text-xs text-white bg-upload-red hover:bg-red-700 rounded-md transition duration-150" onclick="removeRow(this)">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </td>
+      `;
+
+      newRow.innerHTML = rowContent;
+      itemsTableBody.appendChild(newRow);
+
+      // Add the event listener to the new row's text inputs for uppercase conversion
+      newRow.querySelectorAll('input[type="text"], textarea').forEach(input => {
+          input.addEventListener('input', toUpperCase);
+      });
+
+      // Focus on the first input field of the new row
+      newRow.querySelector('input[name="chqDate"]').focus();
+    }
+
+    /**
+     * Removes a row from the table and updates the row count and total.
+     */
+    function removeRow(button) {
+      const row = button.closest('tr');
+      row.remove();
+      updateGrandTotal();
+      reindexRows();
+    }
+
+    /**
+     * Reindexes the row numbers (# column) after a row is deleted.
+     */
+    function reindexRows() {
+      const rows = itemsTableBody.querySelectorAll('.item-row');
+      rows.forEach((row, index) => {
+        const rowNumberCell = row.querySelector('td:first-child');
+        rowNumberCell.textContent = index + 1;
+      });
+      rowCount = rows.length;
+    }
+
+    /**
+     * Calculates the sum of all cheque values.
+     */
+    function updateGrandTotal() {
+      let totalValue = 0;
+      const chqValueInputs = itemsTableBody.querySelectorAll('input[name="chqValue"]');
+
+      chqValueInputs.forEach(input => {
+        const value = parseFloat(input.value) || 0;
+        totalValue += value;
+      });
+
+      totalValueDisplay.textContent = '₹ ' + totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /**
+     * Collects all form data into a structured array of objects.
+     */
+    function collectData() {
+        const receivedFrom = receivedFromEl.value.trim();
+        const receivedDate = receivedDateEl.value;
+        const partyName = partyNameEl.value.trim();
+        const bankName = bankNameEl.value.trim();
+        const branch = branchEl.value.trim();
+        const state = stateEl.value;
+
+        if (!receivedFrom || !receivedDate || !partyName || !bankName || !branch || !state) {
+            statusMessage.textContent = '';
+            showCustomMessage('Validation Error', 'Please fill all required header fields (Received From, Party Name, Bank, Branch, State, Date).', 'text-upload-red');
+            return null;
+        }
+
+        const items = [];
+        const rows = itemsTableBody.querySelectorAll('.item-row');
+
+        if (rows.length === 0) {
+            statusMessage.textContent = '';
+            showCustomMessage('Validation Error', 'Please add at least one cheque entry.', 'text-upload-red');
+            return null;
+        }
+
+        const formattedReceivedDate = formatDate(receivedDate);
+
+        let allItemsValid = true;
+        rows.forEach(row => {
+            const chqDate = row.querySelector('input[name="chqDate"]').value;
+            const chqNumber = row.querySelector('input[name="chqNumber"]').value.trim();
+            const chqValue = parseFloat(row.querySelector('input[name="chqValue"]').value) || 0;
+            const depositedBank = row.querySelector('select[name="depositedBank"]').value;
+            const depositedDate = row.querySelector('input[name="depositedDate"]').value;
+            const invoiceDetails = row.querySelector('input[name="invoiceDetails"]').value.trim();
+            const remarks = row.querySelector('input[name="remarks"]').value.trim();
+
+            if (!chqDate || !chqNumber || chqValue <= 0 || !depositedBank) {
+                allItemsValid = false;
+            }
+
+            items.push({
+                timestamp: new Date().toLocaleString(),
+                receivedFrom: receivedFrom,
+                receivedDate: formattedReceivedDate,
+                partyName: partyName,
+                bankName: bankName,
+                branch: branch,
+                state: state,
+                chqDate: formatDate(chqDate),
+                chqNumber: chqNumber,
+                chqValue: chqValue,
+                depositedBank: depositedBank,
+                depositedDate: formatDate(depositedDate),
+                invoiceDetails: invoiceDetails,
+                remarks: remarks
+            });
+        });
+
+        if (!allItemsValid) {
+            statusMessage.textContent = '';
+            showCustomMessage('Validation Error', 'Please fill all required fields in the cheque table (Date, Number, Value, Deposited Bank) and ensure Value is greater than 0.', 'text-upload-red');
+            return null;
+        }
+
+        return items;
+    }
+
+    /**
+     * Submits the collected data to the Google Sheet via the App Script URL.
+     */
+    function submitDataToSheet() {
+        if (SCRIPT_URL === 'YOUR_GOOGLE_APP_SCRIPT_URL_HERE') {
+            showCustomMessage('Configuration Error', 'Please update the SCRIPT_URL variable in the JavaScript section with your actual Google App Script URL before uploading.', 'text-upload-red');
+            statusMessage.textContent = 'Configuration Error.';
+            return;
+        }
+
+        const data = collectData();
+        if (!data) return;
+
+        statusMessage.textContent = 'Submitting data...';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ data: data }),
+        })
+        .then(() => {
+            statusMessage.textContent = 'Data uploaded successfully! ✅';
+            
+            // Clear the form after successful submission
+            setTimeout(() => {
+                 receivedFromEl.value = '';
+                 receivedDateEl.value = '';
+                 partyNameEl.value = '';
+                 bankNameEl.value = '';
+                 branchEl.value = '';
+                 stateEl.value = '';
+                 itemsTableBody.innerHTML = '';
+                 updateGrandTotal();
+                 newRow();
+                 submitBtn.disabled = false;
+                 submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                 statusMessage.textContent = '';
+            }, 3000);
+        })
+        .catch(error => {
+            console.error('Submission failed:', error);
+            showCustomMessage('Submission Error', 'Submission failed. Check console or App Script URL. (Check Network Tab for details)', 'text-upload-red');
+            statusMessage.textContent = 'Submission Failed.';
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
+    }
+
+
+    // ----------------------------------------------------------------------
+    // --- 5. EVENT LISTENERS AND INITIALIZATION ----------------------------
+    // ----------------------------------------------------------------------
+
+    // Header field IDs for uppercase conversion
+    const headerInputIds = ['receivedFrom', 'partyName', 'bankName', 'branch'];
+    headerInputIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', toUpperCase);
+        }
+    });
+
+    addRowBtn.addEventListener('click', newRow);
+    submitBtn.addEventListener('click', submitDataToSheet);
+    
+    // MODIFIED: Event listener for the report button to show the custom password modal
+    reportBtn.addEventListener('click', showPasswordModal);
+
+    // Initial setup
+    window.addEventListener('DOMContentLoaded', () => {
+      // Set received date to today by default
+      const today = new Date();
+      receivedDateEl.value = today.toISOString().split('T')[0];
+
+      // Add the first cheque row
+      newRow();
+    });
+
+  </script>
+</body>
+</html>

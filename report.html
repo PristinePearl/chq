@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cheque Details Viewer - Pristine</title>
- <link rel="icon" 
+    <link rel="icon" 
         href="https://www.pristinepearlpharma.in/images/alt-logo.png" 
         type="image/png">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -646,192 +646,197 @@
 </head>
 <body>
     <div class="main-container">
-<div class="left-panel">
-    <div class="header">
-        <div class="header-content">
-            <img src="https://www.pristinepearlpharma.in/images/alt-logo.png" alt="PRISTINE PEARL PHARMA Logo" class="company-logo">
-        <h1>PRISTINE CHEQUE VIEWER</h1>
+        <div class="left-panel">
+            <div class="header">
+                <div class="header-content">
+                    <img src="https://www.pristinepearlpharma.in/images/alt-logo.png" alt="PRISTINE PEARL PHARMA Logo" class="company-logo">
+                    <h1>PRISTINE CHEQUE VIEWER</h1>
+                </div>
+            </div>
+                    
+            <div class="tabs">
+                <button class="tab-button active" onclick="openTab(event, 'chqSearch')">🔍 Single Cheque Search</button>
+                <button class="tab-button" onclick="openTab(event, 'partyDate')">📜 Party/Date Report</button>
+                <button class="tab-button" onclick="openTab(event, 'todayDeposits')">💰 Deposits Report</button>
+                <button class="tab-button" onclick="openTab(event, 'bankValue')">🏦 Blank Chq Report</button> 
+                <button class="tab-button" onclick="openTab(event, 'depositStatus')">✅ Deposit Status Report</button>
+                <button class="tab-button" onclick="openTab(event, 'graphicalReports')">📊 Graphical Reports</button>
+                <button class="tab-button" onclick="openTab(event, 'aiAnalysis')">📈 AI & Trend Analysis</button> 
+            </div>
+
+            <div class="search-section">
+
+                <div id="chqSearch" class="tab-content active">
+                    <form class="search-form" id="searchForm">
+                        <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Individual Cheque Search</h3>
+                        <div class="form-group" style="display: none;">
+                            <label for="sheetId">Google Sheet ID:</label>
+                            <input type="text" id="sheetId" placeholder="Enter Google Sheet ID" value="1ck0r4BqC4zI_1Jx0sP757ybStdYRENPOb7XNiFIXeCI" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ChqNumber">Cheque Number:</label>
+                            <input type="text" id="ChqNumber" placeholder="Enter Cheque Number" required oninput="this.value = this.value.toUpperCase()">
+                        </div>
+                        <button type="submit" class="btn">Search</button>
+                        <button type="button" class="btn btn-secondary" id="exportBtn" style="display: none;">EXPORT (Single Cheque)</button>
+                    </form>
+                </div>
+
+
+                <div id="partyDate" class="tab-content">
+                    <form class="search-form" id="partyDateForm">
+                         <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Party / Date Report (Dates Optional)</h3>
+                        <div class="form-group">
+                            <label for="fromDate">From Date (Cheque Date):</label>
+                            <input type="date" id="fromDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="toDate">To Date (Cheque Date):</label>
+                            <input type="date" id="toDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="partySelect">Party Name:</label>
+                            <select id="partySelect">
+                                <option value="">All Parties</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">Go</button>
+                        <button type="button" class="btn btn-secondary" id="exportAllBtn" style="display: none;">EXPORT ALL</button>
+                    </form>
+                </div>
+
+                <div id="todayDeposits" class="tab-content">
+                    <form class="search-form" id="todayDepositsForm">
+                        <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Deposits Report with Date Range</h3>
+                        <div class="form-group">
+                            <label for="depositFromDate">From Date (Deposited Date):</label>
+                            <input type="date" id="depositFromDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="depositToDate">To Date (Deposited Date):</label>
+                            <input type="date" id="depositToDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="depositedBankTodaySelect">Our Deposited Bank (Optional):</label>
+                            <select id="depositedBankTodaySelect">
+                                <option value="">All Deposited Banks</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">Generate Deposits Report</button>
+                        <button type="button" class="btn btn-secondary" id="exportTodayBtn" style="display: none;">EXPORT REPORT</button>
+                    </form>
+                </div>
+
+                <div id="bankValue" class="tab-content">
+                    <form class="search-form" id="bankValueForm">
+                        <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Blank Cheque Report</h3> 
+                        <div class="form-group">
+                            <label for="bankSelect">Party's Bank Name (Optional):</label>
+                            <select id="bankSelect">
+                                <option value="">All Banks</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">Generate Blank Chq Report</button> 
+                        <button type="button" class="btn btn-secondary" id="exportBankBtn" style="display: none;">EXPORT REPORT</button>
+                    </form>
+                </div>
+
+
+                <div id="depositStatus" class="tab-content">
+                    <form class="search-form" id="depositForm">
+                        <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Deposit Status Report (Exception Report)</h3>
+                        <div class="form-group">
+                            <label for="depositStatusSelect">Deposit Status:</label>
+                            <select id="depositStatusSelect" required>
+                                <option value="">Select Status</option>
+                                <option value="Deposited">Deposited (Cleared)</option>
+                                <option value="Pending">Pending (Not Deposited)</option>
+                                <option value="Returned">Returned (Has Return Date, Not Represented)</option>
+                                <option value="Represented">Represented (Has Represent Date)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="remarksKeyword">Remarks Keyword (e.g., BOUNCE, CLEAR):</label>
+                            <input type="text" id="remarksKeyword" placeholder="Optional Keyword">
+                        </div>
+                        <div class="form-group">
+                            <label for="depositedBankSelect">Our Deposited Bank (Optional):</label>
+                            <select id="depositedBankSelect">
+                                <option value="">All Deposited Banks</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">Generate Deposit Report</button>
+                        <button type="button" class="btn btn-secondary" id="exportDepositBtn" style="display: none;">EXPORT REPORT</button>
+                    </form>
+                </div>
+
+
+                <div id="graphicalReports" class="tab-content">
+                    <form class="search-form" id="chartReportForm">
+                        <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Value by Party & State (Dates Optional)</h3>
+                         <div class="form-group">
+                            <label for="chartFromDate">From Date (Deposited Date):</label>
+                            <input type="date" id="chartFromDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="chartToDate">To Date (Deposited Date):</label>
+                            <input type="date" id="chartToDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="chartStateSelect">State (Optional):</label>
+                            <select id="chartStateSelect">
+                                <option value="">All States</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="chartPartySelect">Party Name (Optional):</label>
+                            <select id="chartPartySelect">
+                                <option value="">All Parties</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Chart Display Type:</label>
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <input type="radio" id="chartTypeBarParty" name="partyChartType" value="bar" checked>
+                                <label for="chartTypeBarParty" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Bar</label>
+                                <input type="radio" id="chartTypeLineParty" name="partyChartType" value="line">
+                                <label for="chartTypeLineParty" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Line</label>
+                                <input type="radio" id="chartTypeDoughnutParty" name="partyChartType" value="doughnut">
+                                <label for="chartTypeDoughnutParty" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Doughnut</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Generate Charts</button>
+                        <button type="button" class="btn btn-secondary" id="exportChartBtn" style="display: none;">EXPORT RAW DATA</button>
+                    </form>
+                </div>
+
+                <div id="aiAnalysis" class="tab-content">
+                    <form class="search-form" id="aiAnalysisForm">
+                        <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">AI & Trend Analysis Report (Dates Optional)</h3>
+                         <div class="form-group">
+                            <label for="aiFromDate">From Date (Deposited Date):</label>
+                            <input type="date" id="aiFromDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="aiToDate">To Date (Deposited Date):</label>
+                            <input type="date" id="aiToDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Monthly Trend Chart Type:</label>
+                            <div style="display: flex; gap: 20px; align-items: center;">
+                                <input type="radio" id="chartTypeBarAI" name="trendChartType" value="bar" checked>
+                                <label for="chartTypeBarAI" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Bar</label>
+                                <input type="radio" id="chartTypeLineAI" name="trendChartType" value="line">
+                                <label for="chartTypeLineAI" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Line</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Generate AI Report</button>
+                        <button type="button" class="btn btn-secondary" id="exportAIReportBtn" style="display: none;">EXPORT RAW DATA</button>
+                    </form>
+                </div>
+
+            </div>
         </div>
-    </div>
-            
-    <div class="tabs">
-        <button class="tab-button active" onclick="openTab(event, 'chqSearch')">🔍 Single Cheque Search</button>
-        <button class="tab-button" onclick="openTab(event, 'partyDate')">📜 Party/Date Report</button>
-        <button class="tab-button" onclick="openTab(event, 'todayDeposits')">💰 Today Deposits</button>
-        <button class="tab-button" onclick="openTab(event, 'bankValue')">🏦 Blank Chq Report</button> 
-        <button class="tab-button" onclick="openTab(event, 'depositStatus')">✅ Deposit Status Report</button>
-        <button class="tab-button" onclick="openTab(event, 'graphicalReports')">📊 Graphical Reports</button>
-        <button class="tab-button" onclick="openTab(event, 'aiAnalysis')">📈 AI & Trend Analysis</button> 
-    </div>
-
-    <div class="search-section">
-
-        <div id="chqSearch" class="tab-content active">
-            <form class="search-form" id="searchForm">
-                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Individual Cheque Search</h3>
-                <div class="form-group" style="display: none;">
-                    <label for="sheetId">Google Sheet ID:</label>
-                    <input type="text" id="sheetId" placeholder="Enter Google Sheet ID" value="1ck0r4BqC4zI_1Jx0sP757ybStdYRENPOb7XNiFIXeCI" required>
-                </div>
-                <div class="form-group">
-                    <label for="ChqNumber">Cheque Number:</label>
-                    <input type="text" id="ChqNumber" placeholder="Enter Cheque Number" required oninput="this.value = this.value.toUpperCase()">
-                </div>
-                <button type="submit" class="btn">Search</button>
-                <button type="button" class="btn btn-secondary" id="exportBtn" style="display: none;">EXPORT (Single Cheque)</button>
-            </form>
-        </div>
-
-
-        <div id="partyDate" class="tab-content">
-            <form class="search-form" id="partyDateForm">
-                 <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Party / Date Report (Dates Optional)</h3>
-                <div class="form-group">
-                    <label for="fromDate">From Date (Cheque Date):</label>
-                    <input type="date" id="fromDate">
-                </div>
-                <div class="form-group">
-                    <label for="toDate">To Date (Cheque Date):</label>
-                    <input type="date" id="toDate">
-                </div>
-                <div class="form-group">
-                    <label for="partySelect">Party Name:</label>
-                    <select id="partySelect">
-                        <option value="">All Parties</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn">Go</button>
-                <button type="button" class="btn btn-secondary" id="exportAllBtn" style="display: none;">EXPORT ALL</button>
-            </form>
-        </div>
-
-        <div id="todayDeposits" class="tab-content">
-            <form class="search-form" id="todayDepositsForm">
-                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Today's Deposits</h3>
-                <div class="form-group">
-                    <label for="depositDate">Deposit Date (Defaults to Today):</label>
-                    <input type="date" id="depositDate">
-                </div>
-                <div class="form-group">
-                    <label for="depositedBankTodaySelect">Our Deposited Bank (Optional):</label>
-                    <select id="depositedBankTodaySelect">
-                        <option value="">All Deposited Banks</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn">Generate Today Deposits</button>
-                <button type="button" class="btn btn-secondary" id="exportTodayBtn" style="display: none;">EXPORT REPORT</button>
-            </form>
-        </div>
-        <div id="bankValue" class="tab-content">
-            <form class="search-form" id="bankValueForm">
-                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Blank Cheque Report</h3> 
-                <div class="form-group">
-                    <label for="bankSelect">Party's Bank Name (Optional):</label>
-                    <select id="bankSelect">
-                        <option value="">All Banks</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn">Generate Blank Chq Report</button> 
-                <button type="button" class="btn btn-secondary" id="exportBankBtn" style="display: none;">EXPORT REPORT</button>
-            </form>
-        </div>
-
-
-        <div id="depositStatus" class="tab-content">
-            <form class="search-form" id="depositForm">
-                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Deposit Status Report (Exception Report)</h3>
-                <div class="form-group">
-                    <label for="depositStatusSelect">Deposit Status:</label>
-                    <select id="depositStatusSelect" required>
-                        <option value="">Select Status</option>
-                        <option value="Deposited">Deposited (Cleared)</option>
-                        <option value="Pending">Pending (Not Deposited)</option>
-                        <option value="Returned">Returned (Has Return Date, Not Represented)</option>
-                        <option value="Represented">Represented (Has Represent Date)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="remarksKeyword">Remarks Keyword (e.g., BOUNCE, CLEAR):</label>
-                    <input type="text" id="remarksKeyword" placeholder="Optional Keyword">
-                </div>
-                <div class="form-group">
-                    <label for="depositedBankSelect">Our Deposited Bank (Optional):</label>
-                    <select id="depositedBankSelect">
-                        <option value="">All Deposited Banks</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn">Generate Deposit Report</button>
-                <button type="button" class="btn btn-secondary" id="exportDepositBtn" style="display: none;">EXPORT REPORT</button>
-            </form>
-        </div>
-
-
-        <div id="graphicalReports" class="tab-content">
-            <form class="search-form" id="chartReportForm">
-                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Value by Party & State (Dates Optional)</h3>
-                 <div class="form-group">
-                    <label for="chartFromDate">From Date (Deposited Date):</label>
-                    <input type="date" id="chartFromDate">
-                </div>
-                <div class="form-group">
-                    <label for="chartToDate">To Date (Deposited Date):</label>
-                    <input type="date" id="chartToDate">
-                </div>
-                <div class="form-group">
-                    <label for="chartStateSelect">State (Optional):</label>
-                    <select id="chartStateSelect">
-                        <option value="">All States</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="chartPartySelect">Party Name (Optional):</label>
-                    <select id="chartPartySelect">
-                        <option value="">All Parties</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Chart Display Type:</label>
-                    <div style="display: flex; gap: 15px; align-items: center;">
-                        <input type="radio" id="chartTypeBarParty" name="partyChartType" value="bar" checked>
-                        <label for="chartTypeBarParty" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Bar</label>
-                        <input type="radio" id="chartTypeLineParty" name="partyChartType" value="line">
-                        <label for="chartTypeLineParty" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Line</label>
-                        <input type="radio" id="chartTypeDoughnutParty" name="partyChartType" value="doughnut">
-                        <label for="chartTypeDoughnutParty" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Doughnut</label>
-                    </div>
-                </div>
-                <button type="submit" class="btn">Generate Charts</button>
-                <button type="button" class="btn btn-secondary" id="exportChartBtn" style="display: none;">EXPORT RAW DATA</button>
-            </form>
-        </div>
-
-        <div id="aiAnalysis" class="tab-content">
-            <form class="search-form" id="aiAnalysisForm">
-                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">AI & Trend Analysis Report (Dates Optional)</h3>
-                 <div class="form-group">
-                    <label for="aiFromDate">From Date (Deposited Date):</label>
-                    <input type="date" id="aiFromDate">
-                </div>
-                <div class="form-group">
-                    <label for="aiToDate">To Date (Deposited Date):</label>
-                    <input type="date" id="aiToDate">
-                </div>
-                <div class="form-group">
-                    <label>Monthly Trend Chart Type:</label>
-                    <div style="display: flex; gap: 20px; align-items: center;">
-                        <input type="radio" id="chartTypeBarAI" name="trendChartType" value="bar" checked>
-                        <label for="chartTypeBarAI" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Bar</label>
-                        <input type="radio" id="chartTypeLineAI" name="trendChartType" value="line">
-                        <label for="chartTypeLineAI" style="font-weight: normal; margin-top: 0; font-size: 0.9rem; margin-left: -12px;">Line</label>
-                    </div>
-                </div>
-                <button type="submit" class="btn">Generate AI Report</button>
-                <button type="button" class="btn btn-secondary" id="exportAIReportBtn" style="display: none;">EXPORT RAW DATA</button>
-            </form>
-        </div>
-
-    </div>
-</div>
 
         <div class="right-panel">
             <div class="results-section" id="resultsSection">
@@ -899,11 +904,12 @@
             hideAllExportButtons();
             destroyCharts();
 
-            // NEW: Set default date for 'Today Deposits' tab
+            // Set default date for 'Today Deposits' tab
             if (tabName === 'todayDeposits') {
                 const today = new Date();
                 const todayFormatted = today.toISOString().split('T')[0];
-                document.getElementById('depositDate').value = todayFormatted;
+                document.getElementById('depositFromDate').value = todayFormatted;
+                document.getElementById('depositToDate').value = todayFormatted;
             }
         }
 
@@ -1763,57 +1769,132 @@
             exportToCSV(lastFilterResults, 'party_date_report');
         });
 
-        // 3. Today Deposits Report
+        // 3. Today Deposits Report (Updated with date range and expandable cards)
         document.getElementById('todayDepositsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             showLoading();
             
             const sheetId = document.getElementById('sheetId').value.trim();
-            const depositDate = document.getElementById('depositDate').value;
+            const fromDate = document.getElementById('depositFromDate').value;
+            const toDate = document.getElementById('depositToDate').value;
             const depositedBank = document.getElementById('depositedBankTodaySelect').value;
 
-            if (!depositDate) {
-                 showError("Please select a Deposit Date.");
-                 return;
+            if (!fromDate || !toDate) {
+                showError("Please select both From Date and To Date.");
+                return;
             }
 
             try {
                 const data = await fetchSheetData(sheetId);
                 
-                // Filter by Deposited Date and Deposited Bank
-                // Note: The date filter uses the Deposited Date column ('Deposited Date')
-                const filteredData = filterChequeData(data, depositDate, depositDate, 'Deposited Date', null, null, depositedBank, null, null);
+                // Filter by Deposited Date range and Deposited Bank
+                const filteredData = filterChequeData(data, fromDate, toDate, 'Deposited Date', null, null, depositedBank, null, null);
                 
                 const resultsSection = document.getElementById('resultsSection');
                 
                 if (filteredData.length > 0) {
-                     lastFilterResults = filteredData;
-                     let totalValue = 0;
-                     filteredData.forEach(row => {
-                         const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
-                         totalValue += parseFloat(valueStr);
-                     });
-                     
-                     // Generate a simple table for the results
-                     let tableHtml = `<h3 style="font-size: 1.1rem; margin-bottom: 10px; color: #1f2937;">Deposits on ${depositDate} (${filteredData.length} Cheques)</h3>`;
-                     
-                     // Simplify data for the table view
-                     const simplifiedData = filteredData.map(row => ({
-                         'Chq No.': row['Chq Number'],
-                         'Chq Date': row['Chq Date'],
-                         'Party Name': row['Party Name'],
-                         'Chq Value (₹)': row['Chq Value (₹)'],
-                         'Deposited Bank': row['Deposited Bank (Our Bank)'],
-                         'Remarks': row['Remarks']
-                     }));
+                    lastFilterResults = filteredData;
+                    
+                    // Group data by Deposited Date
+                    const groupedByDate = {};
+                    let grandTotalValue = 0;
+                    let grandTotalCount = 0;
 
-                     tableHtml += createSimpleTableHtml(simplifiedData, 'Today Deposits');
+                    filteredData.forEach(row => {
+                        const depositDate = formatFieldValue(row['Deposited Date'], 'No Date');
+                        if (!groupedByDate[depositDate]) {
+                            groupedByDate[depositDate] = [];
+                        }
+                        groupedByDate[depositDate].push(row);
+                    });
 
-                     resultsSection.innerHTML = tableHtml;
-                     document.getElementById('exportTodayBtn').style.display = 'block';
+                    // Sort dates in descending order (most recent first)
+                    const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+                        if (a === 'No Date') return 1;
+                        if (b === 'No Date') return -1;
+                        return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'));
+                    });
+
+                    let html = `<div class="result-card" style="margin-bottom: 20px; border-left: 5px solid #4f46e5; padding: 15px;">
+                        <h2 style="font-size: 1.1rem; color: #4f46e5;">DEPOSITS REPORT SUMMARY</h2>
+                        <p style="font-size: 0.9rem; margin-top: 5px; color: #1f2937;">
+                            Date Range: <strong>${fromDate} to ${toDate}</strong> | 
+                            Total Days: <strong>${sortedDates.length}</strong> | 
+                            Total Cheques: <strong>${filteredData.length}</strong>
+                        </p>
+                    </div>`;
+
+                    // Create expandable cards for each date
+                    sortedDates.forEach((date, dateIndex) => {
+                        const dateData = groupedByDate[date];
+                        let dateTotalValue = 0;
+                        let dateChequeCount = dateData.length;
+
+                        // Calculate total value for this date
+                        dateData.forEach(row => {
+                            const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
+                            dateTotalValue += parseFloat(valueStr);
+                        });
+
+                        grandTotalValue += dateTotalValue;
+                        grandTotalCount += dateChequeCount;
+
+                        const dateId = `date-${dateIndex}`;
+                        const dateDisplay = date === 'No Date' ? 'No Deposit Date' : date;
+                        
+                        html += `
+                            <div class="summary-card" id="card-${dateId}">
+                                <div class="summary-header" onclick="toggleDetails('details-${dateId}', this.querySelector('.summary-toggle-btn'))">
+                                    <div class="summary-header-item" style="flex: 2;">
+                                        <div class="field-label">Deposit Date</div>
+                                        <div class="field-value" style="font-weight: 700; color: #3730a3;">${dateDisplay}</div>
+                                    </div>
+                                    <div class="summary-header-item" style="flex: 1;">
+                                        <div class="field-label">Cheque Count</div>
+                                        <div class="field-value">${dateChequeCount} Cheques</div>
+                                    </div>
+                                    <div class="summary-header-item chq-val" style="flex: 0 0 180px;">
+                                        <div class="field-label">Total Value</div>
+                                        <div class="field-value">₹${dateTotalValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
+                                    </div>
+                                    <button class="summary-toggle-btn" type="button"></button>
+                                </div>
+                                <div class="summary-details" id="details-${dateId}">
+                                    <div style="margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 6px;">
+                                        <h4 style="color: #374151; margin-bottom: 10px;">Cheque Details for ${dateDisplay}</h4>
+                                        ${generateDateChequeTable(dateData)}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // Add grand total summary
+                    html += `
+                        <div class="result-card" style="margin-top: 20px; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 2px solid #059669; padding: 15px;">
+                            <h2 style="font-size: 1.1rem; color: #059669;">GRAND TOTAL SUMMARY</h2>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                                <div>
+                                    <div class="field-label">Total Days</div>
+                                    <div class="field-value" style="font-size: 1.1rem; font-weight: 700;">${sortedDates.length} Days</div>
+                                </div>
+                                <div>
+                                    <div class="field-label">Total Cheques</div>
+                                    <div class="field-value" style="font-size: 1.1rem; font-weight: 700;">${grandTotalCount} Cheques</div>
+                                </div>
+                                <div>
+                                    <div class="field-label">Grand Total Value</div>
+                                    <div class="field-value" style="font-size: 1.3rem; font-weight: 700; color: #059669;">₹${grandTotalValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    resultsSection.innerHTML = html;
+                    document.getElementById('exportTodayBtn').style.display = 'block';
                 } else {
-                     resultsSection.innerHTML = `<div class="no-results">No deposits found for the date <strong>${depositDate}</strong> matching the criteria.</div>`;
-                     document.getElementById('exportTodayBtn').style.display = 'none';
+                    resultsSection.innerHTML = `<div class="no-results">No deposits found for the date range <strong>${fromDate} to ${toDate}</strong> matching the criteria.</div>`;
+                    document.getElementById('exportTodayBtn').style.display = 'none';
                 }
                 
             } catch (err) {
@@ -1821,8 +1902,27 @@
             }
         });
 
+        // Helper function to generate cheque table for a specific date
+        function generateDateChequeTable(dateData) {
+            if (!dateData || dateData.length === 0) {
+                return '<div class="no-results">No cheque data available.</div>';
+            }
+            
+            const simplifiedData = dateData.map(row => ({
+                'Chq No.': row['Chq Number'],
+                'Chq Date': row['Chq Date'],
+                'Party Name': row['Party Name'],
+                'Party Bank': row['Bank Name (Party)'],
+                'Chq Value (₹)': row['Chq Value (₹)'],
+                'Our Bank': row['Deposited Bank (Our Bank)'],
+                'Remarks': formatFieldValue(row['Remarks'], '-')
+            }));
+
+            return createSimpleTableHtml(simplifiedData, 'Cheque Details');
+        }
+
         document.getElementById('exportTodayBtn').addEventListener('click', function() {
-            exportToCSV(lastFilterResults, 'today_deposits_report');
+            exportToCSV(lastFilterResults, 'deposits_report');
         });
 
         // 4. Blank Cheque Report
@@ -2251,6 +2351,12 @@
             // Set default chart type for AI Analysis and Graphical
             document.getElementById('chartTypeBarAI').checked = true;
             document.getElementById('chartTypeBarParty').checked = true;
+            
+            // Set default dates for Today Deposits tab
+            const today = new Date();
+            const todayFormatted = today.toISOString().split('T')[0];
+            document.getElementById('depositFromDate').value = todayFormatted;
+            document.getElementById('depositToDate').value = todayFormatted;
         });
     </script>
 </body>

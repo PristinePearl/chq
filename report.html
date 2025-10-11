@@ -657,7 +657,7 @@
     <div class="tabs">
         <button class="tab-button active" onclick="openTab(event, 'chqSearch')">🔍 Single Cheque Search</button>
         <button class="tab-button" onclick="openTab(event, 'partyDate')">📜 Party/Date Report</button>
-        <button class="tab-button" onclick="openTab(event, 'todayDeposits')">💰 Deposits Report</button>
+        <button class="tab-button" onclick="openTab(event, 'todayDeposits')">💰 Today Deposits</button>
         <button class="tab-button" onclick="openTab(event, 'bankValue')">🏦 Blank Chq Report</button> 
         <button class="tab-button" onclick="openTab(event, 'depositStatus')">✅ Deposit Status Report</button>
         <button class="tab-button" onclick="openTab(event, 'graphicalReports')">📊 Graphical Reports</button>
@@ -707,14 +707,10 @@
 
         <div id="todayDeposits" class="tab-content">
             <form class="search-form" id="todayDepositsForm">
-                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Deposits Report (Date Range Filter)</h3>
+                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Today's Deposits</h3>
                 <div class="form-group">
-                    <label for="depositFromDate">From Date (Deposited Date):</label>
-                    <input type="date" id="depositFromDate">
-                </div>
-                <div class="form-group">
-                    <label for="depositToDate">To Date (Deposited Date):</label>
-                    <input type="date" id="depositToDate">
+                    <label for="depositDate">Deposit Date (Defaults to Today):</label>
+                    <input type="date" id="depositDate">
                 </div>
                 <div class="form-group">
                     <label for="depositedBankTodaySelect">Our Deposited Bank (Optional):</label>
@@ -722,7 +718,7 @@
                         <option value="">All Deposited Banks</option>
                     </select>
                 </div>
-                <button type="submit" class="btn">Generate Deposits Report</button>
+                <button type="submit" class="btn">Generate Today Deposits</button>
                 <button type="button" class="btn btn-secondary" id="exportTodayBtn" style="display: none;">EXPORT REPORT</button>
             </form>
         </div>
@@ -903,7 +899,12 @@
             hideAllExportButtons();
             destroyCharts();
 
-            // NOTE: The default date setting for 'todayDeposits' is removed as it is now a date range report.
+            // NEW: Set default date for 'Today Deposits' tab
+            if (tabName === 'todayDeposits') {
+                const today = new Date();
+                const todayFormatted = today.toISOString().split('T')[0];
+                document.getElementById('depositDate').value = todayFormatted;
+            }
         }
 
         // --- Core Data Fetching Functions ---
@@ -1065,8 +1066,8 @@
             } else if (row['Return Date']) {
                 depositStatus = 'RETURNED';
                 statusColor = '#ef4444'; // Red for Returned
-            } 
-            
+            }
+
             // USE THE NEW formatFieldValue() HELPER FOR ALL OPTIONAL/BLANK FIELDS
             const chqDate = formatFieldValue(row['Chq Date'], '-');
             const bankName = formatFieldValue(row['Bank Name (Party)'], '-');
@@ -1081,9 +1082,9 @@
             const receivedFrom = formatFieldValue(row['Received From'], '-');
             const receivedDate = formatFieldValue(row['Received Date'], '-');
             const invoiceDetails = formatFieldValue(row['Invoice Details'], '-');
-
+            
             return `
-                <div class="document-sections">
+                 <div class="document-sections">
                     <div class="section">
                         <div class="section-header">Cheque & Value Details</div>
                         <div class="section-content">
@@ -1107,7 +1108,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <div class="section">
                         <div class="section-header">Deposit & Return/Represent Details</div>
                         <div class="section-content">
@@ -1139,8 +1139,7 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="section">
+                     <div class="section">
                         <div class="section-header">Entry & Invoice Details</div>
                         <div class="section-content">
                             <div class="section-grid">
@@ -1162,10 +1161,12 @@
                 </div>
             `;
         }
-        
+
+
         // New function to generate HTML for a single cheque card (used by Single Search)
         function generateCheckCardHtml(row) {
             const chqValue = (parseFloat(row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"")) || 0).toFixed(2);
+            
             let depositStatus = 'PENDING';
             let statusColor = '#f59e0b';
             
@@ -1178,7 +1179,7 @@
             } else if (row['Return Date']) {
                 depositStatus = 'RETURNED';
                 statusColor = '#ef4444'; // Red for Returned
-            } 
+            }
             
             const html = `
                 <div class="result-card">
@@ -1195,120 +1196,469 @@
 
         // New function to generate HTML for the collapsible Party/Date Report
         function generatePartyDateReportCard(row) {
-            const chqValue = (parseFloat(row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"")) || 0).toFixed(2);
-            // Sanitize Chq Number for use as a valid HTML ID
-            const chqNumberId = row['Chq Number'].replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+             const chqValue = (parseFloat(row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"")) || 0).toFixed(2);
             
-            // Generate a unique ID for each card element (important for toggleDetails)
-            const uniqueId = `${chqNumberId}-${Math.floor(Math.random() * 100000)}`;
-
+            // Sanitize Chq Number for use as a valid HTML ID
+            const chqNumberId = row['Chq Number'].replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, ''); 
+            
             const summaryHtml = `
-                <div class="summary-card" id="card-${uniqueId}">
-                    <div class="summary-header" onclick="toggleDetails('details-${uniqueId}', this.querySelector('.summary-toggle-btn'))">
-                         <div class="summary-header-item" style="flex: 0 0 100px;">
-                            <div class="field-label">Deposited Date</div>
-                            <div class="field-value">${formatFieldValue(row['Deposited Date'], '-')}</div>
+                <div class="summary-card" id="card-${chqNumberId}">
+                    <div class="summary-header" onclick="toggleDetails('details-${chqNumberId}', this.querySelector('.summary-toggle-btn'))">
+                        <div class="summary-header-item" style="flex: 0 0 100px;">
+                            <div class="field-label">Cheque Date</div>
+                            <div class="field-value">${formatFieldValue(row['Chq Date'], '-')}</div>
                         </div>
-                        <div class="summary-header-item" style="flex: 3;">
+                         <div class="summary-header-item" style="flex: 3;">
                             <div class="field-label">Party Name</div>
                             <div class="field-value">${formatFieldValue(row['Party Name'], 'N/A')}</div>
                         </div>
                         <div class="summary-header-item" style="flex: 2;">
-                            <div class="field-label">Party Bank</div>
+                            <div class="field-label">Bank Name</div>
                             <div class="field-value">${formatFieldValue(row['Bank Name (Party)'], 'N/A')}</div>
                         </div>
                         <div class="summary-header-item" style="flex: 1; text-align: right;">
-                            <div class="field-label">Cheque No.</div>
+                             <div class="field-label">Cheque No.</div>
                             <div class="field-value">${formatFieldValue(row['Chq Number'], '-')}</div>
                         </div>
                         <div class="summary-header-item chq-val" style="flex: 0 0 120px;">
                             <div class="field-label">Cheque Value (₹)</div>
-                            <div class="field-value">₹${new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(chqValue)}</div>
+                            <div class="field-value">₹${chqValue}</div>
                         </div>
                         <button class="summary-toggle-btn" type="button"></button>
                     </div>
-                    <div class="summary-details" id="details-${uniqueId}">
+                    <div class="summary-details" id="details-${chqNumberId}">
                         ${getChequeDocumentSectionsHtml(row)}
                     </div>
                 </div>
             `;
             return summaryHtml;
         }
+
         
-        // MODIFIED/NEW: Function to render the Deposits Report with collapsible cards
-        function renderTodayDepositsReport(filteredData) {
-            const resultsSection = document.getElementById('resultsSection');
-            resultsSection.innerHTML = ''; 
-            
-            if (filteredData.length === 0) {
-                resultsSection.innerHTML = '<div class="no-results">No deposits found for the selected criteria.</div>';
-                document.getElementById('exportTodayBtn').style.display = 'none';
-                lastFilterResults = [];
-                return;
-            }
-
-            // Calculate Summary
-            const totalValue = filteredData.reduce((sum, row) => {
-                const value = parseFloat(row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"")) || 0;
-                return sum + value;
-            }, 0).toFixed(2);
-            
-            const formattedTotal = new Intl.NumberFormat('en-IN', { 
-                style: 'currency', 
-                currency: 'INR',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(totalValue).replace('₹', ''); // Remove default currency symbol to match style
-
-            resultsSection.innerHTML += `
-                <div class="kpi-container" style="margin: 10px 0 20px 0; padding: 15px; border: none; box-shadow: none; background: #f8fafc;">
-                    <div class="kpi-card kpi-total" style="flex: 1 1 300px;">
-                        <h4>Total Deposit Value</h4>
-                        <div class="value">₹${formattedTotal}</div>
-                        <div class="sub-value">${filteredData.length} Cheques Deposited in Range</div>
-                    </div>
-                </div>
-            `;
-            
-            // Render Collapsible Cards
-            filteredData.forEach(row => {
-                resultsSection.innerHTML += generatePartyDateReportCard(row);
-            });
-            
-            document.getElementById('exportTodayBtn').style.display = 'block';
-            lastFilterResults = filteredData;
-        }
-        // END MODIFIED/NEW
-
         // Function to create a simple table from an array of objects
         function createSimpleTableHtml(data, tableName) {
-            if (!data || data.length === 0) {
+             if (!data || data.length === 0) {
                 return `<div class="no-results">No data available for ${tableName}.</div>`;
             }
+            
             const headers = Object.keys(data[0]);
             let tableHtml = `<div class="product-table-container">`;
             tableHtml += `<table class="product-table"><thead><tr>`;
+            
             headers.forEach(header => {
                 tableHtml += `<th>${header}</th>`;
             });
             tableHtml += `</tr></thead><tbody>`;
+            
             data.forEach(row => {
                 tableHtml += `<tr>`;
                 headers.forEach(header => {
-                    let value = row[header] || '-';
-                    if (header.includes('Value')) {
-                         const floatVal = parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
-                         value = `₹${new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(floatVal)}`;
-                    }
+                    let value = formatFieldValue(row[header], '-');
+                    
+                    // Special formatting for value columns
+                    if (header.toLowerCase().includes('value') || header.toLowerCase().includes('amount') || header.toLowerCase().includes('total')) {
+                        // Attempt to format as currency if it looks like a number
+                        const numValue = parseFloat(String(row[header]).replace(/[^0-9.-]+/g,""));
+                        if (!isNaN(numValue)) {
+                             value = numValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ","); // Format to 2 decimal places and add commas
+                             tableHtml += `<td style="text-align: right; font-weight: 600; color: #059669;">₹${value}</td>`;
+                             return; // Skip default td
+                        }
+                    } 
+                    
                     tableHtml += `<td>${value}</td>`;
                 });
                 tableHtml += `</tr>`;
             });
+            
             tableHtml += `</tbody></table></div>`;
             return tableHtml;
         }
 
-        // --- Other UI Utilities ---
+
+        // --- Chart & Graph Functions ---
+
+        function destroyCharts() {
+            // Destroy all existing chart instances
+            chartInstances.forEach(chart => {
+                chart.destroy();
+            });
+            chartInstances = [];
+        }
+
+        function createChart(canvasId, type, labels, data, title) {
+            const ctx = document.getElementById(canvasId);
+            
+            if (!ctx) return;
+            
+            const backgroundColors = [
+                'rgba(79, 70, 229, 0.8)',  // Indigo-500
+                'rgba(16, 185, 129, 0.8)', // Emerald-500
+                'rgba(249, 115, 22, 0.8)', // Orange-500
+                'rgba(239, 68, 68, 0.8)',  // Red-500
+                'rgba(59, 130, 246, 0.8)', // Blue-500
+                'rgba(139, 92, 246, 0.8)', // Violet-500
+                'rgba(244, 63, 94, 0.8)',  // Rose-500
+                'rgba(251, 191, 36, 0.8)', // Amber-500
+                'rgba(20, 184, 166, 0.8)', // Teal-500
+                'rgba(100, 116, 139, 0.8)' // Slate-500
+            ];
+
+            const borderColors = backgroundColors.map(color => color.replace('0.8', '1'));
+            
+            let dataset = {};
+
+            if (type === 'doughnut') {
+                dataset = {
+                    label: 'Cheque Value (₹)',
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                };
+            } else { // Bar and Line
+                 dataset = {
+                    label: 'Cheque Value (₹)',
+                    data: data,
+                    backgroundColor: type === 'bar' ? backgroundColors[0] : 'transparent',
+                    borderColor: borderColors[0],
+                    borderWidth: 2,
+                    fill: type === 'line' ? 'start' : false,
+                    tension: type === 'line' ? 0.4 : 0
+                };
+            }
+
+            const chartConfig = {
+                type: type === 'doughnut' ? 'doughnut' : type,
+                data: {
+                    labels: labels,
+                    datasets: [dataset]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Essential for fixed height chart-box
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 16, weight: 'bold', family: 'Inter' },
+                            color: '#1f2937'
+                        },
+                        legend: {
+                            display: type === 'doughnut' || type === 'bar',
+                            position: type === 'doughnut' ? 'right' : 'top',
+                            labels: {
+                                font: { family: 'Inter' }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += '₹' + context.parsed.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: (type !== 'doughnut' ? {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Value (₹)',
+                                font: { family: 'Inter' }
+                            },
+                            ticks: {
+                                callback: function(value, index, ticks) {
+                                    return '₹' + (value / 100000).toFixed(0) + ' L'; // Format to Lakhs
+                                },
+                                font: { family: 'Inter' }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { family: 'Inter' }
+                            }
+                        }
+                    } : {}) 
+                }
+            };
+            
+            // For line chart, adjust for time series if necessary, but generally keep it simple for generic reports
+            if (type === 'line') {
+                 // Remove beginAtZero for better trend visibility in line charts
+                 if(chartConfig.options.scales && chartConfig.options.scales.y) {
+                    chartConfig.options.scales.y.beginAtZero = false;
+                 }
+            }
+
+
+            const newChart = new Chart(ctx, chartConfig);
+            chartInstances.push(newChart); // Store the instance
+        }
+
+
+        // --- Data Processing Functions ---
+        
+        /**
+         * Generic filter function for reports. Filters by date range (inclusive),
+         * party name, state, deposited bank, status, and remarks keyword.
+         * The date field for filtering is determined by `dateKey`.
+         * @param {Array<Object>} data - The raw sheet data.
+         * @param {string} fromDateStr - Start date (YYYY-MM-DD format).
+         * @param {string} toDateStr - End date (YYYY-MM-DD format).
+         * @param {string} dateKey - The column header to use for date filtering (e.g., 'Chq Date', 'Deposited Date').
+         * @param {string} party - Optional party name filter.
+         * @param {string} state - Optional state filter.
+         * @param {string} depositedBank - Optional deposited bank filter.
+         * @param {string} status - Optional deposit status filter ('Deposited', 'Pending', etc.).
+         * @param {string} remarksKeyword - Optional keyword for remarks columns.
+         * @returns {Array<Object>} The filtered data.
+         */
+        function filterChequeData(data, fromDateStr, toDateStr, dateKey, party, state, depositedBank, status, remarksKeyword) {
+            
+            const fromDate = fromDateStr ? new Date(fromDateStr + 'T00:00:00') : null;
+            const toDate = toDateStr ? new Date(toDateStr + 'T23:59:59') : null;
+            
+            // Utility to convert DD/MM/YYYY string to Date object for comparison
+            function parseSheetDateForComparison(dateString) {
+                if (!dateString) return null;
+                const parts = dateString.split('/');
+                if (parts.length === 3) {
+                    // new Date(year, monthIndex, day)
+                    const date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    date.setHours(12, 0, 0, 0); // Normalize time
+                    return date;
+                }
+                return null;
+            }
+
+            return data.filter(row => {
+                let dateMatches = true;
+                if (fromDate || toDate) {
+                    const chequeDate = parseSheetDateForComparison(row[dateKey]);
+
+                    if (fromDate && (!chequeDate || chequeDate < fromDate)) {
+                        dateMatches = false;
+                    }
+                    if (toDate && (!chequeDate || chequeDate > toDate)) {
+                        dateMatches = false;
+                    }
+                }
+                
+                let partyMatches = party ? row['Party Name'].toUpperCase().includes(party.toUpperCase()) : true;
+                let stateMatches = state ? row['State'].toUpperCase().includes(state.toUpperCase()) : true;
+                let bankMatches = depositedBank ? row['Deposited Bank (Our Bank)'].toUpperCase().includes(depositedBank.toUpperCase()) : true;
+                let remarksMatches = true;
+                let statusMatches = true;
+
+                // Status Filtering Logic
+                if (status) {
+                     let rowStatus;
+                     if (row['Deposited Date']) {
+                         rowStatus = 'Deposited';
+                     } else if (row['Represent Date']) {
+                         rowStatus = 'Represented';
+                     } else if (row['Return Date']) {
+                         rowStatus = 'Returned';
+                     } else {
+                         rowStatus = 'Pending';
+                     }
+                     
+                     statusMatches = rowStatus === status;
+                }
+                
+                // Remarks Filtering Logic
+                if (remarksKeyword) {
+                    const keyword = remarksKeyword.toUpperCase();
+                    const remarks = (row['Remarks'] + ' ' + row['Return Remarks']).toUpperCase();
+                    remarksMatches = remarks.includes(keyword);
+                }
+
+
+                return dateMatches && partyMatches && stateMatches && bankMatches && statusMatches && remarksMatches;
+            });
+        }
+        
+        // Function for Graphical and AI reports to aggregate data
+        function aggregateData(filteredData, groupByField) {
+            const aggregation = {};
+            let totalValue = 0;
+            
+            filteredData.forEach(row => {
+                const groupKey = formatFieldValue(row[groupByField], 'N/A');
+                const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
+                const value = parseFloat(valueStr);
+                
+                if (!isNaN(value)) {
+                    totalValue += value;
+                    if (aggregation[groupKey]) {
+                        aggregation[groupKey] += value;
+                    } else {
+                        aggregation[groupKey] = value;
+                    }
+                }
+            });
+            
+            // Convert to array and sort by value descending
+            const aggregatedArray = Object.keys(aggregation).map(key => ({
+                key: key,
+                value: aggregation[key]
+            })).sort((a, b) => b.value - a.value);
+            
+            return {
+                aggregatedArray,
+                totalValue
+            };
+        }
+        
+        // Function for Monthly Trend Analysis
+        function getMonthlyTrendData(filteredData, dateKey) {
+            const monthlyAggregation = {};
+            
+            // Utility to convert DD/MM/YYYY to YYYY-MM
+            function getMonthKey(dateString) {
+                 if (!dateString) return null;
+                 const parts = dateString.split('/'); // DD/MM/YYYY
+                 if (parts.length === 3) {
+                     return `${parts[2]}-${parts[1].padStart(2, '0')}`; // YYYY-MM
+                 }
+                 return null;
+            }
+
+            filteredData.forEach(row => {
+                const monthKey = getMonthKey(row[dateKey]);
+                const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
+                const value = parseFloat(valueStr);
+                
+                if (monthKey && !isNaN(value)) {
+                    if (monthlyAggregation[monthKey]) {
+                        monthlyAggregation[monthKey] += value;
+                    } else {
+                        monthlyAggregation[monthKey] = value;
+                    }
+                }
+            });
+            
+            // Convert to array and sort by YYYY-MM key ascending
+            const sortedKeys = Object.keys(monthlyAggregation).sort();
+            
+            const labels = sortedKeys.map(key => {
+                 // Convert YYYY-MM to Month Name YYYY for display
+                 const [year, month] = key.split('-');
+                 const date = new Date(year, month - 1, 1);
+                 return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+            });
+            
+            const data = sortedKeys.map(key => monthlyAggregation[key]);
+
+            return { labels, data };
+        }
+        
+        
+        // --- KPI Calculation Function ---
+        function calculateAIKpis(data) {
+            if (data.length === 0) {
+                 return {
+                    totalValue: 0,
+                    count: 0,
+                    averageValue: 0,
+                    peakDayValue: 0,
+                    trendStatus: 'Stable',
+                    trendValue: 0,
+                    clearedRatio: 0
+                 };
+            }
+            
+            let totalValue = 0;
+            const count = data.length;
+            const dailyValues = {};
+            let depositedCount = 0;
+
+            data.forEach(row => {
+                const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
+                const value = parseFloat(valueStr);
+                
+                if (!isNaN(value)) {
+                    totalValue += value;
+                    
+                    // Daily aggregation for peak day calculation
+                    const date = row['Chq Date'];
+                    if (date) {
+                        dailyValues[date] = (dailyValues[date] || 0) + value;
+                    }
+                }
+                
+                // Cleared ratio calculation (checks if it has a deposited date)
+                if (row['Deposited Date']) {
+                    depositedCount++;
+                }
+            });
+
+            const averageValue = totalValue / count;
+            const peakDayValue = Math.max(0, ...Object.values(dailyValues));
+            
+            // Calculate a simple trend based on first half vs second half value
+            const midPoint = Math.ceil(data.length / 2);
+            const firstHalfValue = data.slice(0, midPoint).reduce((sum, row) => {
+                 const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
+                 return sum + parseFloat(valueStr);
+            }, 0);
+            const secondHalfValue = data.slice(midPoint).reduce((sum, row) => {
+                 const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
+                 return sum + parseFloat(valueStr);
+            }, 0);
+            
+            let trendStatus = 'Stable';
+            let trendValue = secondHalfValue - firstHalfValue;
+            let trendColor = 'kpi-trend-stable';
+
+            if (totalValue > 0) { // Avoid division by zero
+                const trendPercentage = (trendValue / totalValue) * 100;
+                if (trendPercentage > 5) {
+                    trendStatus = 'Rising';
+                    trendColor = 'kpi-trend-up';
+                } else if (trendPercentage < -5) {
+                    trendStatus = 'Declining';
+                    trendColor = 'kpi-trend-down';
+                }
+            }
+            
+            const clearedRatio = (depositedCount / count) * 100;
+
+
+            return {
+                totalValue: totalValue.toFixed(2),
+                count: count,
+                averageValue: averageValue.toFixed(2),
+                peakDayValue: peakDayValue.toFixed(2),
+                trendStatus: trendStatus,
+                trendValue: trendValue.toFixed(2),
+                trendColor: trendColor,
+                clearedRatio: clearedRatio.toFixed(2)
+            };
+        }
+
+        // --- UI Action Handlers ---
+
+        function showLoading() {
+            document.getElementById('resultsSection').innerHTML = '<div class="loading">Loading data, please wait...</div>';
+            hideAllExportButtons();
+            destroyCharts();
+        }
+
+        function showError(message) {
+            document.getElementById('resultsSection').innerHTML = `<div class="error"><strong>Error:</strong> ${message}</div>`;
+            hideAllExportButtons();
+            destroyCharts();
+        }
+
         function hideAllExportButtons() {
             document.getElementById('exportBtn').style.display = 'none';
             document.getElementById('exportAllBtn').style.display = 'none';
@@ -1319,142 +1669,577 @@
             document.getElementById('exportAIReportBtn').style.display = 'none';
         }
 
-        function destroyCharts() {
-            chartInstances.forEach(chart => {
-                if (chart) {
-                    chart.destroy();
-                }
-            });
-            chartInstances = []; 
-        }
+        // --- REPORT GENERATION FUNCTIONS ---
 
-        // --- Event Listeners ---
-        
-        // Single Cheque Search is skipped as it is not requested for modification
-
-        document.getElementById('partyDateForm').addEventListener('submit', async function(e) {
-             e.preventDefault();
-             // Logic for Party/Date Report is skipped as it is not requested for modification
-        });
-
-
-        // NEW: Event Listener for Today Deposits Report (with Date Range filter)
-        document.getElementById('todayDepositsForm').addEventListener('submit', async function(e) {
+        // 1. Single Cheque Search
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const resultsSection = document.getElementById('resultsSection');
+            showLoading();
             const sheetId = document.getElementById('sheetId').value.trim();
-            const fromDateStr = document.getElementById('depositFromDate').value;
-            const toDateStr = document.getElementById('depositToDate').value;
-            const depositedBank = document.getElementById('depositedBankTodaySelect').value;
+            const chqNumber = document.getElementById('ChqNumber').value.trim();
 
-            if (!sheetId) {
-                resultsSection.innerHTML = '<div class="error">Sheet ID not found. Cannot fetch data.</div>';
+            if (!chqNumber) {
+                showError("Please enter a Cheque Number.");
                 return;
             }
-            
-            resultsSection.innerHTML = '<div class="loading">Fetching and filtering data...</div>';
-            hideAllExportButtons();
-            
+
             try {
                 const data = await fetchSheetData(sheetId);
-                let filteredData = data.filter(row => {
-                    const depositedDateStr = row['Deposited Date'];
-                    if (!depositedDateStr) return false; // Only show deposited cheques
-
-                    // Deposited Date is stored in DD/MM/YYYY format
-                    const dateParts = depositedDateStr.split('/');
-                    if (dateParts.length !== 3) return false;
-                    
-                    // Create Date object for comparison (MM/DD/YYYY for US format in Date constructor)
-                    const depositedDate = new Date(`${dateParts[1]}/${dateParts[0]}/${dateParts[2]}`);
-                    depositedDate.setHours(12, 0, 0, 0); 
-
-                    let dateFilterPass = true;
-                    
-                    // Apply From Date Filter
-                    if (fromDateStr) {
-                        const fromDate = new Date(fromDateStr);
-                        fromDate.setHours(12, 0, 0, 0);
-                        if (depositedDate < fromDate) {
-                            dateFilterPass = false;
-                        }
-                    }
-
-                    // Apply To Date Filter
-                    if (toDateStr) {
-                        const toDate = new Date(toDateStr);
-                        toDate.setHours(12, 0, 0, 0);
-                        if (depositedDate > toDate) {
-                            dateFilterPass = false;
-                        }
-                    }
-
-                    // Apply Bank Filter
-                    const bankFilterPass = depositedBank === '' || row['Deposited Bank (Our Bank)'].toUpperCase().includes(depositedBank.toUpperCase());
-                    
-                    return dateFilterPass && bankFilterPass;
-                });
+                const resultsSection = document.getElementById('resultsSection');
                 
-                // Sort by Deposited Date (latest first - YYYY/MM/DD)
-                filteredData.sort((a, b) => {
-                    // Utility to convert DD/MM/YYYY to sortable YYYYMMDD string
-                    const parseSortableDate = (dateStr) => {
-                        if (!dateStr) return '0';
-                        const parts = dateStr.split('/');
-                        return parts.length === 3 ? `${parts[2]}${parts[1]}${parts[0]}` : '0';
-                    };
-                    const dateA = parseSortableDate(a['Deposited Date']);
-                    const dateB = parseSortableDate(b['Deposited Date']);
-                    return dateB.localeCompare(dateA); // Descending sort
-                });
+                const foundRow = data.find(row => row['Chq Number'] && row['Chq Number'].toUpperCase() === chqNumber.toUpperCase());
+                
+                if (foundRow) {
+                    lastSearchResults = [foundRow]; // For export
+                    resultsSection.innerHTML = generateCheckCardHtml(foundRow);
+                    document.getElementById('exportBtn').style.display = 'block';
+                } else {
+                    resultsSection.innerHTML = `<div class="no-results">Cheque Number <strong>${chqNumber}</strong> not found in the sheet.</div>`;
+                    lastSearchResults = [];
+                    document.getElementById('exportBtn').style.display = 'none';
+                }
 
-                renderTodayDepositsReport(filteredData);
-
-            } catch (error) {
-                console.error('Error fetching/filtering today deposits:', error);
-                resultsSection.innerHTML = `<div class="error">An error occurred: ${error.message}</div>`;
+            } catch (err) {
+                showError(err.message);
             }
         });
 
-        // Event listener for the Export button on Today Deposits tab
-        document.getElementById('exportTodayBtn').addEventListener('click', () => {
-            exportToCSV(lastFilterResults, 'Deposits_Report_Filtered');
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            exportToCSV(lastSearchResults, 'single_cheque_details');
         });
 
+
+        // 2. Party/Date Report
+        document.getElementById('partyDateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            showLoading();
+            
+            const sheetId = document.getElementById('sheetId').value.trim();
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const partySelect = document.getElementById('partySelect').value;
+
+            try {
+                const data = await fetchSheetData(sheetId);
+                
+                const filteredData = filterChequeData(data, fromDate, toDate, 'Chq Date', partySelect, null, null, null, null);
+
+                const resultsSection = document.getElementById('resultsSection');
+                
+                if (filteredData.length > 0) {
+                    lastFilterResults = filteredData;
+                    let totalValue = 0;
+                    let html = '';
+                    
+                    filteredData.forEach(row => {
+                         const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
+                         totalValue += parseFloat(valueStr);
+                         html += generatePartyDateReportCard(row);
+                    });
+                    
+                    const totalHtml = `
+                        <div class="result-card" style="margin-bottom: 20px; border-left: 5px solid #059669; padding: 15px;">
+                            <h2 style="font-size: 1.1rem; color: #059669;">REPORT SUMMARY</h2>
+                            <p style="font-size: 0.9rem; margin-top: 5px; color: #1f2937;">
+                                Total Cheques Found: <strong>${filteredData.length}</strong> | 
+                                Total Value: <strong>₹${totalValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</strong>
+                            </p>
+                        </div>
+                    `;
+                    
+                    resultsSection.innerHTML = totalHtml + html;
+                    document.getElementById('exportAllBtn').style.display = 'block';
+                } else {
+                    resultsSection.innerHTML = '<div class="no-results">No cheques found matching the criteria.</div>';
+                    document.getElementById('exportAllBtn').style.display = 'none';
+                }
+                
+            } catch (err) {
+                showError(err.message);
+            }
+        });
+
+        document.getElementById('exportAllBtn').addEventListener('click', function() {
+            exportToCSV(lastFilterResults, 'party_date_report');
+        });
+
+        // 3. Today Deposits Report
+        document.getElementById('todayDepositsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            showLoading();
+            
+            const sheetId = document.getElementById('sheetId').value.trim();
+            const depositDate = document.getElementById('depositDate').value;
+            const depositedBank = document.getElementById('depositedBankTodaySelect').value;
+
+            if (!depositDate) {
+                 showError("Please select a Deposit Date.");
+                 return;
+            }
+
+            try {
+                const data = await fetchSheetData(sheetId);
+                
+                // Filter by Deposited Date and Deposited Bank
+                // Note: The date filter uses the Deposited Date column ('Deposited Date')
+                const filteredData = filterChequeData(data, depositDate, depositDate, 'Deposited Date', null, null, depositedBank, null, null);
+                
+                const resultsSection = document.getElementById('resultsSection');
+                
+                if (filteredData.length > 0) {
+                     lastFilterResults = filteredData;
+                     let totalValue = 0;
+                     filteredData.forEach(row => {
+                         const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
+                         totalValue += parseFloat(valueStr);
+                     });
+                     
+                     // Generate a simple table for the results
+                     let tableHtml = `<h3 style="font-size: 1.1rem; margin-bottom: 10px; color: #1f2937;">Deposits on ${depositDate} (${filteredData.length} Cheques)</h3>`;
+                     
+                     // Simplify data for the table view
+                     const simplifiedData = filteredData.map(row => ({
+                         'Chq No.': row['Chq Number'],
+                         'Chq Date': row['Chq Date'],
+                         'Party Name': row['Party Name'],
+                         'Chq Value (₹)': row['Chq Value (₹)'],
+                         'Deposited Bank': row['Deposited Bank (Our Bank)'],
+                         'Remarks': row['Remarks']
+                     }));
+
+                     tableHtml += createSimpleTableHtml(simplifiedData, 'Today Deposits');
+
+                     resultsSection.innerHTML = tableHtml;
+                     document.getElementById('exportTodayBtn').style.display = 'block';
+                } else {
+                     resultsSection.innerHTML = `<div class="no-results">No deposits found for the date <strong>${depositDate}</strong> matching the criteria.</div>`;
+                     document.getElementById('exportTodayBtn').style.display = 'none';
+                }
+                
+            } catch (err) {
+                showError(err.message);
+            }
+        });
+
+        document.getElementById('exportTodayBtn').addEventListener('click', function() {
+            exportToCSV(lastFilterResults, 'today_deposits_report');
+        });
+
+        // 4. Blank Cheque Report
         document.getElementById('bankValueForm').addEventListener('submit', async function(e) {
-             e.preventDefault();
-             // Logic for Bank Value Report is skipped as it is not requested for modification
+            e.preventDefault();
+            showLoading();
+            
+            const sheetId = document.getElementById('sheetId').value.trim();
+            const bankSelect = document.getElementById('bankSelect').value;
+
+            try {
+                const data = await fetchSheetData(sheetId);
+                
+                // Filter criteria: No Deposited Date, No Return Date, No Represent Date, and optionally by Party's Bank Name
+                const filteredData = data.filter(row => {
+                    const deposited = !!row['Deposited Date'];
+                    const returned = !!row['Return Date'];
+                    const represented = !!row['Represent Date'];
+                    
+                    const bankMatches = bankSelect ? row['Bank Name (Party)'].toUpperCase().includes(bankSelect.toUpperCase()) : true;
+
+                    // A cheque is 'Blank' (Pending/Outstanding) if none of the status dates are filled
+                    return !deposited && !returned && !represented && bankMatches;
+                });
+                
+                const resultsSection = document.getElementById('resultsSection');
+                
+                if (filteredData.length > 0) {
+                     lastFilterResults = filteredData;
+                     
+                     // Generate a table for the results
+                     let tableHtml = `<h3 style="font-size: 1.1rem; margin-bottom: 10px; color: #1f2937;">Outstanding / Blank Cheque Report (${filteredData.length} Cheques)</h3>`;
+                     
+                     // Simplify data for the table view
+                     const simplifiedData = filteredData.map(row => ({
+                         'Chq No.': row['Chq Number'],
+                         'Chq Date': row['Chq Date'],
+                         'Party Name': row['Party Name'],
+                         'Party Bank': row['Bank Name (Party)'],
+                         'Chq Value (₹)': row['Chq Value (₹)'],
+                         'Remarks': row['Remarks']
+                     }));
+
+                     tableHtml += createSimpleTableHtml(simplifiedData, 'Blank Cheques');
+
+                     resultsSection.innerHTML = tableHtml;
+                     document.getElementById('exportBankBtn').style.display = 'block';
+                } else {
+                     resultsSection.innerHTML = '<div class="no-results">No outstanding/blank cheques found matching the criteria.</div>';
+                     document.getElementById('exportBankBtn').style.display = 'none';
+                }
+                
+            } catch (err) {
+                showError(err.message);
+            }
         });
-        
+
+        document.getElementById('exportBankBtn').addEventListener('click', function() {
+            exportToCSV(lastFilterResults, 'blank_cheque_report');
+        });
+
+
+        // 5. Deposit Status Report
         document.getElementById('depositForm').addEventListener('submit', async function(e) {
-             e.preventDefault();
-             // Logic for Deposit Status Report is skipped as it is not requested for modification
+            e.preventDefault();
+            showLoading();
+            
+            const sheetId = document.getElementById('sheetId').value.trim();
+            const status = document.getElementById('depositStatusSelect').value;
+            const remarksKeyword = document.getElementById('remarksKeyword').value;
+            const depositedBank = document.getElementById('depositedBankSelect').value;
+
+            if (!status) {
+                showError("Please select a Deposit Status.");
+                return;
+            }
+
+            try {
+                const data = await fetchSheetData(sheetId);
+                
+                // Filter by Status, Remarks Keyword, and Deposited Bank (Chq Date range is not used here)
+                // The dateKey is irrelevant for this report as the date filter fields are hidden/unused.
+                const filteredData = filterChequeData(data, null, null, 'Chq Date', null, null, depositedBank, status, remarksKeyword);
+                
+                const resultsSection = document.getElementById('resultsSection');
+                
+                if (filteredData.length > 0) {
+                     lastFilterResults = filteredData;
+                     
+                     // Generate a table for the results
+                     let tableHtml = `<h3 style="font-size: 1.1rem; margin-bottom: 10px; color: #1f2937;">${status} Cheques Report (${filteredData.length} Cheques)</h3>`;
+                     
+                     // Simplify data for the table view
+                     const simplifiedData = filteredData.map(row => ({
+                         'Chq No.': row['Chq Number'],
+                         'Chq Date': row['Chq Date'],
+                         'Party Name': row['Party Name'],
+                         'Chq Value (₹)': row['Chq Value (₹)'],
+                         'Deposited Date': formatFieldValue(row['Deposited Date']),
+                         'Return Date': formatFieldValue(row['Return Date']),
+                         'Represent Date': formatFieldValue(row['Represent Date']),
+                         'Remarks': formatFieldValue(row['Remarks']),
+                         'Return Remarks': formatFieldValue(row['Return Remarks']),
+                     }));
+
+                     tableHtml += createSimpleTableHtml(simplifiedData, status + ' Cheques');
+
+                     resultsSection.innerHTML = tableHtml;
+                     document.getElementById('exportDepositBtn').style.display = 'block';
+                } else {
+                     resultsSection.innerHTML = `<div class="no-results">No cheques found with status <strong>${status}</strong> matching the criteria.</div>`;
+                     document.getElementById('exportDepositBtn').style.display = 'none';
+                }
+                
+            } catch (err) {
+                showError(err.message);
+            }
         });
 
+        document.getElementById('exportDepositBtn').addEventListener('click', function() {
+            exportToCSV(lastFilterResults, 'deposit_status_report');
+        });
+
+
+        // 6. Graphical Reports
         document.getElementById('chartReportForm').addEventListener('submit', async function(e) {
-             e.preventDefault();
-             // Logic for Graphical Reports is skipped as it is not requested for modification
+            e.preventDefault();
+            showLoading();
+            destroyCharts(); // Ensure charts are cleared
+            
+            const sheetId = document.getElementById('sheetId').value.trim();
+            const fromDate = document.getElementById('chartFromDate').value;
+            const toDate = document.getElementById('chartToDate').value;
+            // IMPORTANT: The dateKey here determines which date column is used for filtering.
+            // Based on user request to use DEPOSITED DATE in the UI, we assume the underlying
+            // logic should also filter by it, as the user stated "deposited date in filter".
+            const dateKey = 'Deposited Date'; 
+            const state = document.getElementById('chartStateSelect').value;
+            const party = document.getElementById('chartPartySelect').value;
+            const chartTypeParty = document.querySelector('input[name="partyChartType"]:checked').value;
+
+            try {
+                const data = await fetchSheetData(sheetId);
+                
+                // Filter by Deposited Date, State, and Party
+                const filteredData = filterChequeData(data, fromDate, toDate, dateKey, party, state, null, null, null);
+                
+                const resultsSection = document.getElementById('resultsSection');
+                
+                if (filteredData.length > 0) {
+                    lastFilterResults = filteredData;
+                    let html = '<div class="chart-container">';
+                    
+                    // --- Chart 1: Value by Party ---
+                    const partyData = aggregateData(filteredData, 'Party Name');
+                    const partyChartData = partyData.aggregatedArray.slice(0, 10); // Top 10
+                    html += `
+                        <div class="chart-box">
+                            <h3>Cheque Value by Top 10 Parties</h3>
+                            <canvas id="partyChart"></canvas>
+                        </div>
+                    `;
+                    
+                    // --- Chart 2: Value by State ---
+                    const stateData = aggregateData(filteredData, 'State');
+                    const stateChartData = stateData.aggregatedArray.slice(0, 10); // Top 10
+                    const stateChartType = (stateChartData.length > 5) ? 'bar' : 'doughnut'; // Use bar for many states, doughnut for few
+                    html += `
+                        <div class="chart-box">
+                            <h3>Cheque Value by Top States</h3>
+                            <canvas id="stateChart"></canvas>
+                        </div>
+                    `;
+                    
+                    html += '</div>';
+                    
+                    // Add summary table for top parties
+                    const summaryTableData = partyData.aggregatedArray.map(item => ({
+                        'Party Name': item.key,
+                        'Total Value (₹)': item.value.toFixed(2),
+                    }));
+                    
+                    html += `<div style="padding: 20px;">
+                                <h3 style="font-size: 1rem; color: #3730a3; margin-bottom: 10px;">Summary Table: All Parties Value</h3>
+                                ${createSimpleTableHtml(summaryTableData, 'Party Value Summary')}
+                             </div>`;
+
+
+                    resultsSection.innerHTML = html;
+                    
+                    // Render Charts after DOM update
+                    createChart('partyChart', chartTypeParty, 
+                                partyChartData.map(d => d.key), 
+                                partyChartData.map(d => d.value), 
+                                'Value (₹) Distribution by Party');
+                                
+                    createChart('stateChart', stateChartType, 
+                                stateChartData.map(d => d.key), 
+                                stateChartData.map(d => d.value), 
+                                'Value (₹) Distribution by State');
+
+                    document.getElementById('exportChartBtn').style.display = 'block';
+                } else {
+                    resultsSection.innerHTML = '<div class="no-results">No cheques found matching the criteria for graphical reporting.</div>';
+                    document.getElementById('exportChartBtn').style.display = 'none';
+                }
+                
+            } catch (err) {
+                showError(err.message);
+            }
         });
 
+        document.getElementById('exportChartBtn').addEventListener('click', function() {
+            exportToCSV(lastFilterResults, 'graphical_report_raw_data');
+        });
+
+
+        // 7. AI & Trend Analysis
         document.getElementById('aiAnalysisForm').addEventListener('submit', async function(e) {
-             e.preventDefault();
-             // Logic for AI Analysis is skipped as it is not requested for modification
+            e.preventDefault();
+            showLoading();
+            destroyCharts(); // Ensure charts are cleared
+
+            const sheetId = document.getElementById('sheetId').value.trim();
+            const fromDate = document.getElementById('aiFromDate').value;
+            const toDate = document.getElementById('aiToDate').value;
+            // IMPORTANT: The dateKey here determines which date column is used for filtering.
+            // Based on user request to use DEPOSITED DATE in the UI, we assume the underlying
+            // logic should also filter by it.
+            const dateKey = 'Deposited Date'; 
+            const trendChartType = document.querySelector('input[name="trendChartType"]:checked').value;
+
+            try {
+                const data = await fetchSheetData(sheetId);
+                
+                // Filter by Deposited Date only
+                const filteredData = filterChequeData(data, fromDate, toDate, dateKey, null, null, null, null, null);
+                
+                const resultsSection = document.getElementById('resultsSection');
+                
+                if (filteredData.length > 0) {
+                    lastFilterResults = filteredData;
+                    let html = '';
+                    
+                    // --- KPI Cards ---
+                    const kpis = calculateAIKpis(filteredData);
+                    const totalValueFormatted = parseFloat(kpis.totalValue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const avgValueFormatted = parseFloat(kpis.averageValue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const peakValueFormatted = parseFloat(kpis.peakDayValue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const trendValueFormatted = parseFloat(kpis.trendValue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: 'always' });
+                    
+                    html += `
+                        <h2 style="font-size: 1.2rem; color: #1f2937; padding: 15px 20px 0;">Key Performance Indicators</h2>
+                        <div class="kpi-container">
+                            <div class="kpi-card kpi-total">
+                                <h4>Total Value (In Filter)</h4>
+                                <div class="value">₹${totalValueFormatted}</div>
+                                <div class="sub-value">${kpis.count} Cheques</div>
+                            </div>
+                            <div class="kpi-card kpi-average">
+                                <h4>Average Cheque Value</h4>
+                                <div class="value">₹${avgValueFormatted}</div>
+                                <div class="sub-value">Across ${kpis.count} Cheques</div>
+                            </div>
+                            <div class="kpi-card kpi-peak">
+                                <h4>Peak Single Day Value</h4>
+                                <div class="value">₹${peakValueFormatted}</div>
+                                <div class="sub-value">Highest value aggregated on a single day.</div>
+                            </div>
+                             <div class="kpi-card ${kpis.trendColor}">
+                                <h4>Value Trend (First Half vs Second Half)</h4>
+                                <div class="value">${kpis.trendStatus}</div>
+                                <div class="sub-value">Change: ₹${trendValueFormatted}</div>
+                            </div>
+                            <div class="kpi-card ${kpis.clearedRatio > 80 ? 'kpi-average' : 'kpi-trend-stable'}">
+                                <h4>Clearing Ratio (Deposited)</h4>
+                                <div class="value">${kpis.clearedRatio}%</div>
+                                <div class="sub-value">${kpis.clearedRatio > 80 ? 'Excellent' : 'Needs Review'}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // --- Trend Chart ---
+                    const trendData = getMonthlyTrendData(filteredData, dateKey);
+                    
+                    html += `
+                         <div style="padding: 10px 20px;">
+                            <h2 style="font-size: 1.2rem; color: #1f2937; padding-bottom: 10px; margin-top: 10px;">Monthly Value Trend Analysis</h2>
+                            <div class="chart-box full-width" style="height: 450px;">
+                                <h3>Value (₹) Trend over Time (Grouped by Month)</h3>
+                                <canvas id="monthlyTrendChart"></canvas>
+                            </div>
+                        </div>
+                    `;
+                    
+                    
+                    resultsSection.innerHTML = html;
+                    
+                    // Render Chart after DOM update
+                    createChart('monthlyTrendChart', trendChartType, 
+                                trendData.labels, 
+                                trendData.data, 
+                                'Monthly Deposited Value Trend');
+
+                    document.getElementById('exportAIReportBtn').style.display = 'block';
+                } else {
+                    resultsSection.innerHTML = '<div class="no-results">No cheques found matching the criteria for AI & Trend Analysis.</div>';
+                    document.getElementById('exportAIReportBtn').style.display = 'none';
+                }
+                
+            } catch (err) {
+                showError(err.message);
+            }
+        });
+
+        document.getElementById('exportAIReportBtn').addEventListener('click', function() {
+            exportToCSV(lastFilterResults, 'ai_trend_report_raw_data');
         });
 
 
-        // --- Dropdown Population & Initial Setup ---
-
-        // Function to populate dropdowns (e.g., Party, Bank, State)
+        // --- Populating Dropdowns on Load ---
         async function populateDropdowns(sheetId) {
-            // Function logic is skipped as it is not requested for modification
+            try {
+                const data = await fetchSheetData(sheetId);
+                
+                const parties = new Set();
+                const banks = new Set();
+                const depositedBanks = new Set();
+                const states = new Set();
+
+                data.forEach(row => {
+                    if (row['Party Name']) parties.add(row['Party Name']);
+                    if (row['Bank Name (Party)']) banks.add(row['Bank Name (Party)']);
+                    if (row['Deposited Bank (Our Bank)']) depositedBanks.add(row['Deposited Bank (Our Bank)']);
+                    if (row['State']) states.add(row['State']);
+                });
+
+                const sortedParties = Array.from(parties).sort();
+                const sortedBanks = Array.from(banks).sort();
+                const sortedDepositedBanks = Array.from(depositedBanks).sort();
+                const sortedStates = Array.from(states).sort();
+                
+                // Party/Date Report
+                const partySelect = document.getElementById('partySelect');
+                if (partySelect) {
+                    sortedParties.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        partySelect.appendChild(opt);
+                    });
+                }
+                
+                // Today Deposits Report
+                const depositedBankTodaySelect = document.getElementById('depositedBankTodaySelect');
+                if (depositedBankTodaySelect) {
+                    sortedDepositedBanks.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        depositedBankTodaySelect.appendChild(opt);
+                    });
+                }
+                
+                // Blank Cheque Report
+                const bankSelect = document.getElementById('bankSelect');
+                if (bankSelect) {
+                    sortedBanks.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        bankSelect.appendChild(opt);
+                    });
+                }
+
+                // Deposit Status Report
+                const depositedBankSelect = document.getElementById('depositedBankSelect');
+                if (depositedBankSelect) {
+                    sortedDepositedBanks.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        depositedBankSelect.appendChild(opt);
+                    });
+                }
+                
+                // Graphical Reports (Party and State)
+                const chartPartySelect = document.getElementById('chartPartySelect');
+                if (chartPartySelect) {
+                    sortedParties.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        chartPartySelect.appendChild(opt);
+                    });
+                }
+                
+                const chartStateSelect = document.getElementById('chartStateSelect');
+                if (chartStateSelect) {
+                    chartStateSelect.innerHTML = '<option value="">All States</option>';
+                    sortedStates.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        chartStateSelect.appendChild(opt);
+                    });
+                }
+
+
+            } catch (err) {
+                console.error("Failed to populate dropdowns", err);
+            }
         }
 
 
         // Trigger dropdown population and set default tab on page load
         document.addEventListener('DOMContentLoaded', () => {
-            // The default date setting for 'todayDeposits' has been removed from openTab()
-            // No default date is set as it is now a range filter.
-            
             const sheetId = document.getElementById('sheetId').value.trim();
             if (sheetId) {
                 setTimeout(() => populateDropdowns(sheetId), 500);

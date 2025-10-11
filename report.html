@@ -1316,133 +1316,134 @@
         }
 
 
-        // --- Chart & Graph Functions ---
+     // --- Chart & Graph Functions ---
 
-        function destroyCharts() {
-            // Destroy all existing chart instances
-            chartInstances.forEach(chart => {
-                chart.destroy();
-            });
-            chartInstances = [];
-        }
+function destroyCharts() {
+    // Destroy all existing chart instances
+    chartInstances.forEach(chart => {
+        chart.destroy();
+    });
+    chartInstances = [];
+}
 
-        function createChart(canvasId, type, labels, data, title) {
-            const ctx = document.getElementById(canvasId);
-            
-            if (!ctx) return;
-            
-            const backgroundColors = [
-                'rgba(79, 70, 229, 0.8)',  // Indigo-500
-                'rgba(16, 185, 129, 0.8)', // Emerald-500
-                'rgba(249, 115, 22, 0.8)', // Orange-500
-                'rgba(239, 68, 68, 0.8)',  // Red-500
-                'rgba(59, 130, 246, 0.8)', // Blue-500
-                'rgba(139, 92, 246, 0.8)', // Violet-500
-                'rgba(244, 63, 94, 0.8)',  // Rose-500
-                'rgba(251, 191, 36, 0.8)', // Amber-500
-                'rgba(20, 184, 166, 0.8)', // Teal-500
-                'rgba(100, 116, 139, 0.8)' // Slate-500
-            ];
+function createChart(canvasId, type, labels, data, title) {
+    const ctx = document.getElementById(canvasId);
+    
+    if (!ctx) return;
+    
+    const backgroundColors = [
+        'rgba(79, 70, 229, 0.8)',  // Indigo-500
+        'rgba(16, 185, 129, 0.8)', // Emerald-500
+        'rgba(249, 115, 22, 0.8)', // Orange-500
+        'rgba(239, 68, 68, 0.8)',  // Red-500
+        'rgba(59, 130, 246, 0.8)', // Blue-500
+        'rgba(139, 92, 246, 0.8)', // Violet-500
+        'rgba(244, 63, 94, 0.8)',  // Rose-500
+        'rgba(251, 191, 36, 0.8)', // Amber-500
+        'rgba(20, 184, 166, 0.8)', // Teal-500
+        'rgba(100, 116, 139, 0.8)' // Slate-500
+    ];
 
-            const borderColors = backgroundColors.map(color => color.replace('0.8', '1'));
-            
-            let dataset = {};
+    const borderColors = backgroundColors.map(color => color.replace('0.8', '1'));
+    
+    let dataset = {};
 
-            if (type === 'doughnut') {
-                dataset = {
-                    label: 'Cheque Value (₹)',
-                    data: data,
-                    backgroundColor: backgroundColors,
-                    borderColor: borderColors,
-                    borderWidth: 1
-                };
-            } else { // Bar and Line
-                 dataset = {
-                    label: 'Cheque Value (₹)',
-                    data: data,
-                    backgroundColor: type === 'bar' ? backgroundColors[0] : 'transparent',
-                    borderColor: borderColors[0],
-                    borderWidth: 2,
-                    fill: type === 'line' ? 'start' : false,
-                    tension: type === 'line' ? 0.4 : 0
-                };
-            }
+    if (type === 'doughnut') {
+        dataset = {
+            label: 'Cheque Value (₹)',
+            data: data,
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
+            borderWidth: 1
+        };
+    } else { // Bar and Line
+         dataset = {
+            label: 'Cheque Value (₹)',
+            data: data,
+            backgroundColor: type === 'bar' ? backgroundColors[0] : 'transparent',
+            borderColor: borderColors[0],
+            borderWidth: 2,
+            fill: type === 'line' ? 'start' : false,
+            tension: type === 'line' ? 0.4 : 0
+        };
+    }
 
-            const chartConfig = {
-                type: type === 'doughnut' ? 'doughnut' : type,
-                data: {
-                    labels: labels,
-                    datasets: [dataset]
+    const chartConfig = {
+        type: type === 'doughnut' ? 'doughnut' : type,
+        data: {
+            labels: labels,
+            datasets: [dataset]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // Essential for fixed height chart-box
+            plugins: {
+                title: {
+                    display: true,
+                    text: title,
+                    font: { size: 16, weight: 'bold', family: 'Inter' },
+                    color: '#1f2937'
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Essential for fixed height chart-box
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: title,
-                            font: { size: 16, weight: 'bold', family: 'Inter' },
-                            color: '#1f2937'
-                        },
-                        legend: {
-                            display: type === 'doughnut' || type === 'bar',
-                            position: type === 'doughnut' ? 'right' : 'top',
-                            labels: {
-                                font: { family: 'Inter' }
+                legend: {
+                    display: type === 'doughnut' || type === 'bar',
+                    position: type === 'doughnut' ? 'right' : 'top',
+                    labels: {
+                        font: { family: 'Inter' }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
                             }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed !== null) {
-                                        label += '₹' + context.parsed.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                    }
-                                    return label;
-                                }
+                            if (context.parsed !== null && context.parsed !== undefined) {
+                                // For bar/line charts, use context.parsed.y
+                                // For doughnut charts, use context.parsed
+                                const value = context.parsed.y !== undefined ? context.parsed.y : context.parsed;
+                                label += '₹' + value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                             }
+                            return label;
                         }
-                    },
-                    scales: (type !== 'doughnut' ? {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Value (₹)',
-                                font: { family: 'Inter' }
-                            },
-                            ticks: {
-                                callback: function(value, index, ticks) {
-                                    return '₹' + (value / 100000).toFixed(0) + ' L'; // Format to Lakhs
-                                },
-                                font: { family: 'Inter' }
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                font: { family: 'Inter' }
-                            }
-                        }
-                    } : {}) 
+                    }
                 }
-            };
-            
-            // For line chart, adjust for time series if necessary, but generally keep it simple for generic reports
-            if (type === 'line') {
-                 // Remove beginAtZero for better trend visibility in line charts
-                 if(chartConfig.options.scales && chartConfig.options.scales.y) {
-                    chartConfig.options.scales.y.beginAtZero = false;
-                 }
-            }
-
-
-            const newChart = new Chart(ctx, chartConfig);
-            chartInstances.push(newChart); // Store the instance
+            },
+            scales: (type !== 'doughnut' ? {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Value (₹)',
+                        font: { family: 'Inter' }
+                    },
+                    ticks: {
+                        callback: function(value, index, ticks) {
+                            return '₹' + (value / 100000).toFixed(0) + ' L'; // Format to Lakhs
+                        },
+                        font: { family: 'Inter' }
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: { family: 'Inter' }
+                    }
+                }
+            } : {}) 
         }
+    };
+    
+    // For line chart, adjust for time series if necessary, but generally keep it simple for generic reports
+    if (type === 'line') {
+         // Remove beginAtZero for better trend visibility in line charts
+         if(chartConfig.options.scales && chartConfig.options.scales.y) {
+            chartConfig.options.scales.y.beginAtZero = false;
+         }
+    }
 
+    const newChart = new Chart(ctx, chartConfig);
+    chartInstances.push(newChart); // Store the instance
+}
 
         // --- Data Processing Functions ---
         

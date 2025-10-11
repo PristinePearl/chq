@@ -514,42 +514,6 @@
             content: '- COLLAPSE';
         }
 
-        /* Status Indicator Styles */
-        .status-indicator {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .status-deposited {
-            background: #dcfce7;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-        }
-        .status-pending {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fde68a;
-        }
-        .status-returned {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-        }
-        .status-represented {
-            background: #fef7cd;
-            color: #854d0e;
-            border: 1px solid #fde68a;
-        }
-        .status-blank {
-            background: #f3e8ff;
-            color: #7c3aed;
-            border: 1px solid #e9d5ff;
-        }
-
         /* --- NEW: Styles for AI KPI Cards --- */
         .kpi-container {
             display: flex;
@@ -607,6 +571,30 @@
         }
         .kpi-trend-stable {
             background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); /* Gray */
+        }
+
+        /* Status indicator colors */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .status-deposited {
+            background: #10b981; /* Green */
+        }
+        .status-pending {
+            background: #f59e0b; /* Orange */
+        }
+        .status-returned {
+            background: #ef4444; /* Red */
+        }
+        .status-represented {
+            background: #eab308; /* Yellow */
+        }
+        .status-blank {
+            background: #8b5cf6; /* Violet */
         }
         /* --- END NEW KPI STYLES --- */
 
@@ -773,8 +761,8 @@
                     <form class="search-form" id="bankValueForm">
                         <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Blank Cheque Report</h3> 
                         <div class="form-group">
-                            <label for="partySelectBlank">Party Name (Optional):</label>
-                            <select id="partySelectBlank">
+                            <label for="blankPartySelect">Party Name (Optional):</label>
+                            <select id="blankPartySelect">
                                 <option value="">All Parties</option>
                             </select>
                         </div>
@@ -911,19 +899,23 @@
             return trimmedValue;
         }
 
-        // Function to determine cheque status with color coding
+        // Function to get cheque status with color
         function getChequeStatus(row) {
             if (row['Deposited Date']) {
-                return { status: 'Deposited', class: 'status-deposited' };
+                return { status: 'DEPOSITED', color: '#10b981', class: 'status-deposited' };
             } else if (row['Represent Date']) {
-                return { status: 'Represented', class: 'status-represented' };
+                return { status: 'REPRESENTED', color: '#eab308', class: 'status-represented' };
             } else if (row['Return Date']) {
-                return { status: 'Returned', class: 'status-returned' };
+                return { status: 'RETURNED', color: '#ef4444', class: 'status-returned' };
             } else if (!row['Deposited Date'] && !row['Return Date'] && !row['Represent Date']) {
-                return { status: 'Pending', class: 'status-pending' };
-            } else {
-                return { status: 'Blank', class: 'status-blank' };
+                // Check if it's a blank cheque (no deposited date and zero/empty value)
+                const chqValue = parseFloat((row['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g,"")) || 0;
+                if (chqValue === 0 || !row['Chq Value (₹)']) {
+                    return { status: 'BLANK', color: '#8b5cf6', class: 'status-blank' };
+                }
+                return { status: 'PENDING', color: '#f59e0b', class: 'status-pending' };
             }
+            return { status: 'PENDING', color: '#f59e0b', class: 'status-pending' };
         }
         // -----------------------------------------------------------
 
@@ -1225,8 +1217,8 @@
                     <div class="result-header" style="flex-wrap: wrap;">
                         <h2> ${row['Party Name'] || 'N/A Party'} </h2>
                         <div class="sr-ref">Cheque No: ${row['Chq Number']}</div>
-                        <div class="total-amount" style="background: none; border: none; color: inherit; font-weight: 700;">
-                            <span class="status-indicator ${statusInfo.class}">${statusInfo.status}</span>
+                        <div class="total-amount" style="background: none; border: none; color: ${statusInfo.color}; font-weight: 700;">
+                            <span class="status-indicator ${statusInfo.class}"></span>Status: ${statusInfo.status}
                         </div>
                     </div>
                     ${getChequeDocumentSectionsHtml(row)}
@@ -1238,11 +1230,10 @@
         // New function to generate HTML for the collapsible Party/Date Report
         function generatePartyDateReportCard(row) {
              const chqValue = (parseFloat(row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"")) || 0).toFixed(2);
+            const statusInfo = getChequeStatus(row);
             
             // Sanitize Chq Number for use as a valid HTML ID
             const chqNumberId = row['Chq Number'].replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, ''); 
-            
-            const statusInfo = getChequeStatus(row);
             
             const summaryHtml = `
                 <div class="summary-card" id="card-${chqNumberId}">
@@ -1260,12 +1251,18 @@
                             <div class="field-value">${formatFieldValue(row['Bank Name (Party)'], 'N/A')}</div>
                         </div>
                         <div class="summary-header-item" style="flex: 1; text-align: right;">
-                             <div class="field-label">Status</div>
-                            <div class="field-value"><span class="status-indicator ${statusInfo.class}">${statusInfo.status}</span></div>
+                             <div class="field-label">Cheque No.</div>
+                            <div class="field-value">${formatFieldValue(row['Chq Number'], '-')}</div>
                         </div>
                         <div class="summary-header-item chq-val" style="flex: 0 0 120px;">
                             <div class="field-label">Cheque Value (₹)</div>
                             <div class="field-value">₹${chqValue}</div>
+                        </div>
+                        <div class="summary-header-item" style="flex: 0 0 100px;">
+                            <div class="field-label">Status</div>
+                            <div class="field-value" style="color: ${statusInfo.color}; font-weight: 600;">
+                                <span class="status-indicator ${statusInfo.class}"></span>${statusInfo.status}
+                            </div>
                         </div>
                         <button class="summary-toggle-btn" type="button"></button>
                     </div>
@@ -1501,17 +1498,26 @@
                 let remarksMatches = true;
                 let statusMatches = true;
 
-                // Status Filtering Logic - UPDATED as per requirements
+                // Status Filtering Logic - UPDATED
                 if (status) {
-                    if (status === 'Deposited') {
-                        statusMatches = !!row['Deposited Date'];
-                    } else if (status === 'Pending') {
-                        statusMatches = !row['Deposited Date'] && !row['Return Date'] && !row['Represent Date'];
-                    } else if (status === 'Returned') {
-                        statusMatches = !!row['Return Date'] && !row['Represent Date'];
-                    } else if (status === 'Represented') {
-                        statusMatches = !!row['Represent Date'];
+                    let rowStatus;
+                    if (row['Deposited Date']) {
+                        rowStatus = 'Deposited';
+                    } else if (row['Represent Date']) {
+                        rowStatus = 'Represented';
+                    } else if (row['Return Date']) {
+                        rowStatus = 'Returned';
+                    } else {
+                        // Check if it's blank (no deposited date and zero/empty value)
+                        const chqValue = parseFloat((row['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g,"")) || 0;
+                        if (chqValue === 0 || !row['Chq Value (₹)']) {
+                            rowStatus = 'Blank';
+                        } else {
+                            rowStatus = 'Pending';
+                        }
                     }
+                     
+                    statusMatches = rowStatus === status;
                 }
                 
                 // Remarks Filtering Logic
@@ -1748,7 +1754,7 @@
         });
 
 
-        // 2. Party/Date Report (Updated with State filter and color indicators)
+        // 2. Party/Date Report (Updated with state filter and color indicators)
         document.getElementById('partyDateForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             showLoading();
@@ -1771,8 +1777,8 @@
                     let totalValue = 0;
                     let html = '';
                     
-                    // Count cheques by status for summary
-                    const statusCounts = {
+                    // Count by status for summary
+                    const statusCount = {
                         deposited: 0,
                         pending: 0,
                         returned: 0,
@@ -1785,11 +1791,11 @@
                          totalValue += parseFloat(valueStr);
                          
                          const statusInfo = getChequeStatus(row);
-                         if (statusInfo.status === 'Deposited') statusCounts.deposited++;
-                         else if (statusInfo.status === 'Pending') statusCounts.pending++;
-                         else if (statusInfo.status === 'Returned') statusCounts.returned++;
-                         else if (statusInfo.status === 'Represented') statusCounts.represented++;
-                         else statusCounts.blank++;
+                         if (statusInfo.status === 'DEPOSITED') statusCount.deposited++;
+                         else if (statusInfo.status === 'PENDING') statusCount.pending++;
+                         else if (statusInfo.status === 'RETURNED') statusCount.returned++;
+                         else if (statusInfo.status === 'REPRESENTED') statusCount.represented++;
+                         else if (statusInfo.status === 'BLANK') statusCount.blank++;
                          
                          html += generatePartyDateReportCard(row);
                     });
@@ -1802,11 +1808,11 @@
                                 Total Value: <strong>₹${totalValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</strong>
                             </p>
                             <div style="display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap;">
-                                <span class="status-indicator status-deposited">Deposited: ${statusCounts.deposited}</span>
-                                <span class="status-indicator status-pending">Pending: ${statusCounts.pending}</span>
-                                <span class="status-indicator status-returned">Returned: ${statusCounts.returned}</span>
-                                <span class="status-indicator status-represented">Represented: ${statusCounts.represented}</span>
-                                <span class="status-indicator status-blank">Blank: ${statusCounts.blank}</span>
+                                <span style="display: flex; align-items: center;"><span class="status-indicator status-deposited"></span> Deposited: ${statusCount.deposited}</span>
+                                <span style="display: flex; align-items: center;"><span class="status-indicator status-pending"></span> Pending: ${statusCount.pending}</span>
+                                <span style="display: flex; align-items: center;"><span class="status-indicator status-returned"></span> Returned: ${statusCount.returned}</span>
+                                <span style="display: flex; align-items: center;"><span class="status-indicator status-represented"></span> Represented: ${statusCount.represented}</span>
+                                <span style="display: flex; align-items: center;"><span class="status-indicator status-blank"></span> Blank: ${statusCount.blank}</span>
                             </div>
                         </div>
                     `;
@@ -1983,25 +1989,25 @@
             exportToCSV(lastFilterResults, 'deposits_report');
         });
 
-        // 4. Blank Cheque Report (Updated with Party filter and empty deposited date + 0 value logic)
+        // 4. Blank Cheque Report (Updated with party filter and empty deposited date + zero value logic)
         document.getElementById('bankValueForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             showLoading();
             
             const sheetId = document.getElementById('sheetId').value.trim();
-            const partySelect = document.getElementById('partySelectBlank').value;
+            const partySelect = document.getElementById('blankPartySelect').value;
 
             try {
                 const data = await fetchSheetData(sheetId);
                 
-                // Filter criteria: Empty Deposited Date AND (Empty Chq Value OR 0 value)
+                // Filter criteria: No Deposited Date AND (Zero value OR Empty value)
                 const filteredData = data.filter(row => {
                     const deposited = !!row['Deposited Date'];
-                    const chqValue = parseFloat(row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"")) || 0;
+                    const chqValue = parseFloat((row['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g,"")) || 0;
                     const partyMatches = partySelect ? row['Party Name'].toUpperCase().includes(partySelect.toUpperCase()) : true;
 
-                    // A cheque is 'Blank' if it has empty deposited date AND (empty value or 0 value)
-                    return !deposited && (chqValue === 0 || !row['Chq Value (₹)'] || row['Chq Value (₹)'].trim() === '') && partyMatches;
+                    // A cheque is 'Blank' if no deposited date AND (zero value OR empty value)
+                    return !deposited && (chqValue === 0 || !row['Chq Value (₹)']) && partyMatches;
                 });
                 
                 const resultsSection = document.getElementById('resultsSection');
@@ -2011,7 +2017,6 @@
                      
                      // Generate a table for the results
                      let tableHtml = `<h3 style="font-size: 1.1rem; margin-bottom: 10px; color: #1f2937;">Blank Cheque Report (${filteredData.length} Cheques)</h3>`;
-                     tableHtml += `<p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 15px;">Cheques with empty deposited date and empty/zero value</p>`;
                      
                      // Simplify data for the table view
                      const simplifiedData = filteredData.map(row => ({
@@ -2042,7 +2047,7 @@
         });
 
 
-        // 5. Deposit Status Report (Updated with proper status logic)
+        // 5. Deposit Status Report (Updated with proper status logic and cheque number display)
         document.getElementById('depositForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             showLoading();
@@ -2068,10 +2073,10 @@
                 if (filteredData.length > 0) {
                      lastFilterResults = filteredData;
                      
-                     // Generate a table for the results
+                     // Generate a table for the results with cheque number
                      let tableHtml = `<h3 style="font-size: 1.1rem; margin-bottom: 10px; color: #1f2937;">${status} Cheques Report (${filteredData.length} Cheques)</h3>`;
                      
-                     // Simplify data for the table view
+                     // Simplify data for the table view - INCLUDING CHEQUE NUMBER
                      const simplifiedData = filteredData.map(row => ({
                          'Chq No.': row['Chq Number'],
                          'Chq Date': row['Chq Date'],
@@ -2355,13 +2360,13 @@
                 }
                 
                 // Blank Cheque Report - Party filter
-                const partySelectBlank = document.getElementById('partySelectBlank');
-                if (partySelectBlank) {
+                const blankPartySelect = document.getElementById('blankPartySelect');
+                if (blankPartySelect) {
                     sortedParties.forEach(name => {
                         const opt = document.createElement('option');
                         opt.value = name;
                         opt.textContent = name;
-                        partySelectBlank.appendChild(opt);
+                        blankPartySelect.appendChild(opt);
                     });
                 }
 

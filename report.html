@@ -707,10 +707,16 @@
 
         <div id="todayDeposits" class="tab-content">
             <form class="search-form" id="todayDepositsForm">
-                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Today's Deposits</h3>
-                <div class="form-group">
-                    <label for="depositDate">Deposit Date (Defaults to Today):</label>
-                    <input type="date" id="depositDate">
+                <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Today's Deposits (From - To)</h3>
+                <div style="display:flex; gap:10px; align-items:flex-end;">
+                    <div class="form-group" style="flex:1;">
+                        <label for="depositFromDate">From Deposit Date:</label>
+                        <input type="date" id="depositFromDate">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label for="depositToDate">To Deposit Date:</label>
+                        <input type="date" id="depositToDate">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="depositedBankTodaySelect">Our Deposited Bank (Optional):</label>
@@ -718,7 +724,7 @@
                         <option value="">All Deposited Banks</option>
                     </select>
                 </div>
-                <button type="submit" class="btn">Generate Today Deposits</button>
+                <button type="submit" class="btn">Generate Deposits</button>
                 <button type="button" class="btn btn-secondary" id="exportTodayBtn" style="display: none;">EXPORT REPORT</button>
             </form>
         </div>
@@ -1769,7 +1775,7 @@
             showLoading();
             
             const sheetId = document.getElementById('sheetId').value.trim();
-            const depositDate = document.getElementById('depositDate').value;
+            const fromDate = document.getElementById('depositFromDate').value;
             const depositedBank = document.getElementById('depositedBankTodaySelect').value;
 
             if (!depositDate) {

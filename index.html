@@ -224,6 +224,11 @@
                   class="px-6 py-3 rounded-xl font-semibold text-white bg-primary-indigo hover:bg-opacity-90 transition duration-300 shadow-lg hover:shadow-primary-indigo/50">
             <i class="fa-solid fa-file-lines"></i> View Report
           </button>
+          
+          <button id="modifyBtn" type="button" 
+                  class="px-6 py-3 rounded-xl font-semibold text-white bg-dark-indigo hover:bg-opacity-90 transition duration-300 shadow-lg hover:shadow-dark-indigo/50">
+            <i class="fa-solid fa-pen-to-square"></i> Modify
+          </button>
           <span id="statusMessage" class="status-message text-sm font-medium text-secondary-green"></span>
           <button id="submitToSheet" type="button" 
                   class="px-6 py-3 rounded-xl font-semibold text-white bg-upload-red hover:bg-opacity-90 transition duration-300 shadow-lg hover:shadow-upload-red/50">
@@ -431,6 +436,7 @@
     const statusMessage = document.getElementById('statusMessage');
     const totalValueDisplay = document.getElementById('totalValueDisplay');
     const reportBtn = document.getElementById('reportBtn');
+    const modifyBtn = document.getElementById('modifyBtn'); // <-- NEW DOM ELEMENT
 
     // Header field elements
     const receivedFromEl = document.getElementById('receivedFrom');
@@ -846,6 +852,11 @@
     
     // Event listener for the report button to show the custom password modal
     reportBtn.addEventListener('click', showPasswordModal);
+
+    // NEW: Event listener for the modify button to open modify.html in a new tab
+    modifyBtn.addEventListener('click', () => {
+        window.open('modify.html', '_blank');
+    }); 
 
     // ----------------------------------------------------------------------
     // --- 6. AUTOSUGGESTION DATA AND INITIALIZATION ------------------------

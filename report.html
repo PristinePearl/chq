@@ -710,6 +710,23 @@
                 <div id="partyDate" class="tab-content">
                     <form class="search-form" id="partyDateForm">
                          <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Party / Date Report (Dates Optional)</h3>
+
+        <!-- NEW RADIO BUTTONS -->
+        <div class="form-group">
+            <label style="font-weight:600; color:#1e293b;">Select Date Type:</label>
+            <div style="display:flex; align-items:center; gap:30px;">
+                <label style="display:flex; align-items:center; gap:6px;">
+                    <input type="radio" name="dateType" value="chqDate" checked>
+                    Cheque Date
+                </label>
+                <label style="display:flex; align-items:center; gap:6px;">
+                    <input type="radio" name="dateType" value="receivedDate">
+                    Cheque Received Date
+                </label>
+            </div>
+        </div>
+        <!-- END RADIO BUTTONS -->
+
                         <div class="form-group">
                             <label for="fromDate">From Date (Cheque Date):</label>
                             <input type="date" id="fromDate">
@@ -1769,7 +1786,9 @@ function createChart(canvasId, type, labels, data, title) {
             try {
                 const data = await fetchSheetData(sheetId);
                 
-                const filteredData = filterChequeData(data, fromDate, toDate, 'Chq Date', partySelect, stateSelect, null, null, null);
+                const dateType = document.querySelector('input[name="dateType"]:checked').value;
+                const dateKey = (dateType === 'receivedDate') ? 'Received Date' : 'Chq Date';
+                const filteredData = filterChequeData(data, fromDate, toDate, dateKey, partySelect, stateSelect, null, null, null);
 
                 const resultsSection = document.getElementById('resultsSection');
                 

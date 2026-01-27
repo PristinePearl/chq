@@ -794,10 +794,16 @@
                 lastSearchResults = matchingCheques;
                 
                 if (matchingCheques.length > 0) {
-                    // Render the single cheque in READ-ONLY mode initially
-                    resultsSection.innerHTML = renderChequeForView(matchingCheques[0]);
-                    exportBtn.style.display = 'block';
-                } else {
+
+    let html = "";
+
+    matchingCheques.forEach(row => {
+        html += renderChequeForView(row);
+    });
+
+    resultsSection.innerHTML = html;
+    exportBtn.style.display = 'block';
+} else {
                     resultsSection.innerHTML = '<div class="no-results">No cheque found with that number.</div>';
                     exportBtn.style.display = 'none';
                 }

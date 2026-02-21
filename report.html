@@ -868,6 +868,12 @@
                             <label for="aiToDate">To Date (Deposited Date):</label>
                             <input type="date" id="aiToDate">
                         </div>
+<div class="form-group">
+<label for="aiStateSelect">State (Optional):</label>
+<select id="aiStateSelect">
+<option value="">All States</option>
+</select>
+</div>
                         <div class="form-group">
                             <label>Monthly Trend Chart Type:</label>
                             <div style="display: flex; gap: 20px; align-items: center;">
@@ -1694,18 +1700,70 @@ function createChart(canvasId, type, labels, data, title) {
             }
             
             const clearedRatio = (depositedCount / count) * 100;
+// ---------- KPI REMARK ENGINE ----------
+let totalRemark = totalValue > 500000 ? "Excellent volume"
+    : totalValue > 200000 ? "Healthy collections"
+    : "Low collection volume";
 
+let avgRemark = averageValue > 50000 ? "High ticket cheques"
+    : averageValue > 20000 ? "Normal range"
+    : "Small cheque values";
+
+let peakRemark = peakDayValue > averageValue*2
+    ? "Spike detected"
+    : "Stable flow";
+
+let trendRemark = trendStatus === "Rising"
+    ? "Growth improving"
+    : trendStatus === "Declining"
+    ? "Needs attention"
+    : "Stable performance";
+
+let clearRemark = clearedRatio > 85
+    ? "Excellent clearance"
+    : clearedRatio > 60
+    ? "Average clearance"
+    : "Risk zone";
+// ---------------------------------------
 
             return {
-                totalValue: totalValue.toFixed(2),
-                count: count,
-                averageValue: averageValue.toFixed(2),
-                peakDayValue: peakDayValue.toFixed(2),
-                trendStatus: trendStatus,
-                trendValue: trendValue.toFixed(2),
-                trendColor: trendColor,
-                clearedRatio: clearedRatio.toFixed(2)
-            };
+    totalValue: totalValue.toFixed(2),
+    count: count,
+    averageValue: averageValue.toFixed(2),
+    peakDayValue: peakDayValue.toFixed(2),
+    trendStatus: trendStatus,
+    trendValue: trendValue.toFixed(2),
+    trendColor: trendColor,
+    clearedRatio: clearedRatio.toFixed(2),
+
+    // -------- KPI REMARKS --------
+    totalRemark:
+        totalValue > 500000 ? "Excellent business volume" :
+        totalValue > 200000 ? "Healthy collection" :
+        "Low collection",
+
+    avgRemark:
+        averageValue > 50000 ? "High value cheques" :
+        averageValue > 20000 ? "Normal cheque size" :
+        "Small ticket cheques",
+
+    peakRemark:
+        peakDayValue > averageValue * 2
+        ? "Unusual spike detected"
+        : "Normal daily pattern",
+
+    trendRemark:
+        trendStatus === "Rising"
+        ? "Performance improving"
+        : trendStatus === "Declining"
+        ? "Drop detected"
+        : "Stable trend",
+
+    clearRemark:
+        clearedRatio > 85 ? "Excellent clearance rate"
+        : clearedRatio > 60 ? "Moderate clearance"
+        : "High risk — many pending/returns"
+};
         }
 
         // --- UI Action Handlers ---
@@ -2176,7 +2234,7 @@ function createChart(canvasId, type, labels, data, title) {
                     // --- Chart 2: Value by State ---
                     const stateData = aggregateData(filteredData, 'State');
                     const stateChartData = stateData.aggregatedArray.slice(0, 10); // Top 10
-                    const stateChartType = (stateChartData.length > 5) ? 'bar' : 'doughnut'; // Use bar for many states, doughnut for few
+                    const stateChartType = chartTypeParty; // Use bar for many states, doughnut for few
                     html += `
                         <div class="chart-box">
                             <h3>Cheque Value by Top States</h3>
@@ -2228,102 +2286,129 @@ function createChart(canvasId, type, labels, data, title) {
 
 
         // 7. AI & Trend Analysis
-        document.getElementById('aiAnalysisForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            showLoading();
-            destroyCharts(); // Ensure charts are cleared
+document.getElementById('aiAnalysisForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    showLoading();
+    destroyCharts();
 
-            const sheetId = document.getElementById('sheetId').value.trim();
-            const fromDate = document.getElementById('aiFromDate').value;
-            const toDate = document.getElementById('aiToDate').value;
-            // IMPORTANT: The dateKey here determines which date column is used for filtering.
-            // Based on user request to use DEPOSITED DATE in the UI, we assume the underlying
-            // logic should also filter by it.
-            const dateKey = 'Deposited Date'; 
-            const trendChartType = document.querySelector('input[name="trendChartType"]:checked').value;
+    const sheetId = document.getElementById('sheetId').value.trim();
+    const fromDate = document.getElementById('aiFromDate').value;
+    const toDate = document.getElementById('aiToDate').value;
+    const dateKey = 'Deposited Date';
+    const trendChartType = document.querySelector('input[name="trendChartType"]:checked').value;
+const state = document.getElementById('aiStateSelect').value;
 
-            try {
-                const data = await fetchSheetData(sheetId);
-                
-                // Filter by Deposited Date only
-                const filteredData = filterChequeData(data, fromDate, toDate, dateKey, null, null, null, null, null);
-                
-                const resultsSection = document.getElementById('resultsSection');
-                
-                if (filteredData.length > 0) {
-                    lastFilterResults = filteredData;
-                    let html = '';
-                    
-                    // --- KPI Cards ---
-                    const kpis = calculateAIKpis(filteredData);
-                    const totalValueFormatted = parseFloat(kpis.totalValue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    const avgValueFormatted = parseFloat(kpis.averageValue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    const peakValueFormatted = parseFloat(kpis.peakDayValue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    const trendValueFormatted = parseFloat(kpis.trendValue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: 'always' });
-                    
-                    html += `
-                        <h2 style="font-size: 1.2rem; color: #1f2937; padding: 15px 20px 0;">Key Performance Indicators</h2>
-                        <div class="kpi-container">
-                            <div class="kpi-card kpi-total">
-                                <h4>Total Value (In Filter)</h4>
-                                <div class="value">₹${totalValueFormatted}</div>
-                                <div class="sub-value">${kpis.count} Cheques</div>
-                            </div>
-                            <div class="kpi-card kpi-average">
-                                <h4>Average Cheque Value</h4>
-                                <div class="value">₹${avgValueFormatted}</div>
-                                <div class="sub-value">Across ${kpis.count} Cheques</div>
-                            </div>
-                            <div class="kpi-card kpi-peak">
-                                <h4>Peak Single Day Value</h4>
-                                <div class="value">₹${peakValueFormatted}</div>
-                                <div class="sub-value">Highest value aggregated on a single day.</div>
-                            </div>
-                             <div class="kpi-card ${kpis.trendColor}">
-                                <h4>Value Trend (First Half vs Second Half)</h4>
-                                <div class="value">${kpis.trendStatus}</div>
-                                <div class="sub-value">Change: ₹${trendValueFormatted}</div>
-                            </div>
-                            <div class="kpi-card ${kpis.clearedRatio > 80 ? 'kpi-average' : 'kpi-trend-stable'}">
-                                <h4>Clearing Ratio (Deposited)</h4>
-                                <div class="value">${kpis.clearedRatio}%</div>
-                                <div class="sub-value">${kpis.clearedRatio > 80 ? 'Excellent' : 'Needs Review'}</div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // --- Trend Chart ---
-                    const trendData = getMonthlyTrendData(filteredData, dateKey);
-                    
-                    html += `
-                         <div style="padding: 10px 20px;">
-                            <h2 style="font-size: 1.2rem; color: #1f2937; padding-bottom: 10px; margin-top: 10px;">Monthly Value Trend Analysis</h2>
-                            <div class="chart-box full-width" style="height: 450px;">
-                                <h3>Value (₹) Trend over Time (Grouped by Month)</h3>
-                                <canvas id="monthlyTrendChart"></canvas>
-                            </div>
-                        </div>
-                    `;
-                    
-                    
-                    resultsSection.innerHTML = html;
-                    
-                    // Render Chart after DOM update
-                    createChart('monthlyTrendChart', trendChartType, 
-                                trendData.labels, 
-                                trendData.data, 
-                                'Monthly Deposited Value Trend');
+    try {
+        const data = await fetchSheetData(sheetId);
 
-                    document.getElementById('exportAIReportBtn').style.display = 'block';
-                } else {
-                    resultsSection.innerHTML = '<div class="no-results">No cheques found matching the criteria for AI & Trend Analysis.</div>';
-                    document.getElementById('exportAIReportBtn').style.display = 'none';
-                }
-                
-            } catch (err) {
-                showError(err.message);
-            }
-        });
+        const filteredData = filterChequeData(
+            data,
+            fromDate,
+            toDate,
+            dateKey,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        const resultsSection = document.getElementById('resultsSection');
+
+        if (filteredData.length === 0) {
+            resultsSection.innerHTML = `<div class="no-results">No data found.</div>`;
+            return;
+        }
+
+        lastFilterResults = filteredData;
+
+        let html = '';
+
+        const kpis = calculateAIKpis(filteredData);
+// --- EXTRA KPI CALCULATIONS ---
+const trend = getMonthlyTrendData(filteredData, dateKey);
+const stateAgg = aggregateData(filteredData, 'State');
+
+const topState = stateAgg.aggregatedArray[0] || {key:'-', value:0};
+const bottomState = stateAgg.aggregatedArray[stateAgg.aggregatedArray.length-1] || {key:'-', value:0};
+
+const growthPercent = ((kpis.trendValue / kpis.totalValue) * 100).toFixed(2);
+
+
+      html += `
+<h2 style="font-size:1.2rem;padding:15px 20px 0;">AI Insights Dashboard</h2>
+
+<div class="kpi-container">
+
+<div class="kpi-card kpi-total">
+<h4>Total Value</h4>
+<div class="value">₹${Number(kpis.totalValue).toLocaleString('en-IN')}</div>
+<div class="sub-value">${kpis.count} Cheques</div>
+</div>
+
+<div class="kpi-card kpi-average">
+<h4>Average Value</h4>
+<div class="value">₹${Number(kpis.averageValue).toLocaleString('en-IN')}</div>
+</div>
+
+<div class="kpi-card kpi-peak">
+<h4>Peak Day</h4>
+<div class="value">₹${Number(kpis.peakDayValue).toLocaleString('en-IN')}</div>
+</div>
+
+<div class="kpi-card ${kpis.trendColor}">
+<h4>Trend</h4>
+<div class="value">${kpis.trendStatus}</div>
+<div class="sub-value">${growthPercent}% change</div>
+</div>
+
+<div class="kpi-card kpi-trend-up">
+<h4>Top State</h4>
+<div class="value">${topState.key}</div>
+<div class="sub-value">₹${topState.value.toLocaleString('en-IN')}</div>
+</div>
+
+<div class="kpi-card kpi-trend-down">
+<h4>Lowest State</h4>
+<div class="value">${bottomState.key}</div>
+<div class="sub-value">₹${bottomState.value.toLocaleString('en-IN')}</div>
+</div>
+
+<div class="kpi-card kpi-trend-stable">
+<h4>Cleared Ratio</h4>
+<div class="value">${kpis.clearedRatio}%</div>
+</div>
+
+</div>
+`;
+
+resultsSection.innerHTML = html;
+
+// wait until DOM renders canvas
+requestAnimationFrame(() => {
+
+createChart(
+    'trendChart',
+    trendChartType,
+    trend.labels,
+    trend.data,
+    'Monthly Trend'
+);
+
+createChart(
+    'stateChart',
+    trendChartType,
+    stateAgg.aggregatedArray.map(x => x.key),
+    stateAgg.aggregatedArray.map(x => x.value),
+    'Value by State'
+);
+
+});
+
+    } catch (err) {
+        showError(err.message);
+    }
+});
 
         document.getElementById('exportAIReportBtn').addEventListener('click', function() {
             exportToCSV(lastFilterResults, 'ai_trend_report_raw_data');
@@ -2456,6 +2541,174 @@ function createChart(canvasId, type, labels, data, title) {
             document.getElementById('depositFromDate').value = todayFormatted;
             document.getElementById('depositToDate').value = todayFormatted;
         });
+
+function populateAIStates(data){
+    const select=document.getElementById("aiStateSelect");
+    if(!select) return;
+
+    const states=[...new Set(
+        data.map(r=>r["State"])
+            .filter(s=>s && s.trim()!=="")
+    )].sort();
+
+    select.innerHTML='<option value="">All States</option>';
+
+    states.forEach(state=>{
+        const opt=document.createElement("option");
+        opt.value=state;
+        opt.textContent=state;
+        select.appendChild(opt);
+    });
+}
+
+document.getElementById('aiAnalysisForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    showLoading();
+    destroyCharts();
+
+    const sheetId = document.getElementById('sheetId').value.trim();
+    const fromDate = document.getElementById('aiFromDate').value;
+    const toDate = document.getElementById('aiToDate').value;
+    const dateKey = 'Deposited Date';
+    const trendChartType = document.querySelector('input[name="trendChartType"]:checked').value;
+const state = document.getElementById('aiStateSelect').value;
+
+    try{
+        const data = await fetchSheetData(sheetId);
+populateAIStates(data);
+
+        const filteredData = filterChequeData(
+            data,
+            fromDate,
+            toDate,
+            dateKey,
+            null,
+            state,
+            null,
+            null,
+            null
+        );
+
+        const resultsSection = document.getElementById('resultsSection');
+
+        if(filteredData.length===0){
+            resultsSection.innerHTML = `<div class="no-results">No data found.</div>`;
+            return;
+        }
+
+        lastFilterResults = filteredData;
+
+        const kpis = calculateAIKpis(filteredData);
+        const trend = getMonthlyTrendData(filteredData,dateKey);
+        const stateAgg = aggregateData(filteredData,'State');
+
+        let html = `
+<div class="kpi-container">
+
+<div class="kpi-card kpi-total">
+<h4>Total Value</h4>
+<div class="value">₹${Number(kpis.totalValue).toLocaleString('en-IN')}</div>
+<div class="sub-value">${kpis.count} Cheques</div>
+<div class="sub-value">${kpis.totalRemark}</div>
+</div>
+
+<div class="kpi-card kpi-average">
+<h4>Average Value</h4>
+<div class="value">₹${Number(kpis.averageValue).toLocaleString('en-IN')}</div>
+<div class="sub-value">${kpis.avgRemark}</div>
+</div>
+
+<div class="kpi-card kpi-peak">
+<h4>Peak Day Value</h4>
+<div class="value">₹${Number(kpis.peakDayValue).toLocaleString('en-IN')}</div>
+<div class="sub-value">${kpis.peakRemark}</div>
+</div>
+
+<div class="kpi-card ${kpis.trendColor}">
+<h4>Trend</h4>
+<div class="value">${kpis.trendStatus}</div>
+<div class="sub-value">₹${Number(kpis.trendValue).toLocaleString('en-IN')}</div>
+<div class="sub-value">${kpis.trendRemark}</div>
+</div>
+
+<div class="kpi-card kpi-trend-stable">
+<h4>Cleared Ratio</h4>
+<div class="value">${kpis.clearedRatio}%</div>
+<div class="sub-value">${kpis.clearRemark}</div>
+</div>
+
+</div>
+<div class="chart-container">
+            <div class="chart-box full-width">
+                <h3>Monthly Trend</h3>
+                <canvas id="trendChart"></canvas>
+            </div>
+
+            <div class="chart-box full-width">
+                <h3>State Comparison</h3>
+                <canvas id="stateChart"></canvas>
+            </div>
+        </div>
+`;
+
+        resultsSection.innerHTML = html;
+
+        requestAnimationFrame(()=>{
+
+            createChart(
+                'trendChart',
+                trendChartType,
+                trend.labels,
+                trend.data,
+                'Monthly Trend'
+            );
+
+            createChart(
+                'stateChart',
+                trendChartType,
+                stateAgg.aggregatedArray.map(x=>x.key),
+                stateAgg.aggregatedArray.map(x=>x.value),
+                'State Comparison'
+            );
+
+        });
+async function loadStatesToAllDropdowns(){
+
+    const sheetId=document.getElementById("sheetId").value.trim();
+    if(!sheetId) return;
+
+    const data=await fetchSheetData(sheetId);
+
+    const states=[...new Set(
+        data.map(r=>r["State"]).filter(Boolean)
+    )].sort();
+
+    const dropdownIds=[
+        "stateSelectParty",
+        "chartStateSelect",
+        "aiStateSelect"
+    ];
+
+    dropdownIds.forEach(id=>{
+        const select=document.getElementById(id);
+        if(!select) return;
+
+        select.innerHTML='<option value="">All States</option>';
+
+        states.forEach(state=>{
+            const opt=document.createElement("option");
+            opt.value=state;
+            opt.textContent=state;
+            select.appendChild(opt);
+        });
+    });
+}
+window.addEventListener("load",loadStatesToAllDropdowns);
+
+    }catch(err){
+        showError(err.message);
+    }
+});
     </script>
 </body>
 </html>

@@ -527,11 +527,11 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         .kpi-card {
-            flex: 1 1 200px;
-            padding: 15px 20px;
-            border-radius: 6px;
-            color: white;
-            min-width: 200px;
+    flex: 1 1 200px;
+    padding: 15px 20px;
+    border-radius: 6px;
+    color: white;
+    min-width: 200px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .kpi-card h4 {
@@ -542,10 +542,11 @@
             text-transform: uppercase;
         }
         .kpi-card .value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            line-height: 1.1;
-        }
+    font-size: clamp(1rem, 1.8vw, 1.6rem);
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+}
         .kpi-card .sub-value {
             font-size: 0.75rem;
             font-weight: 400;
@@ -681,7 +682,7 @@
             <div class="tabs">
                 <button class="tab-button active" onclick="openTab(event, 'chqSearch')">🔍 Single Cheque Search</button>
                 <button class="tab-button" onclick="openTab(event, 'partyDate')">📜 Party/Date Report</button>
-                <button class="tab-button" onclick="openTab(event, 'todayDeposits')">💰 Deposits Report</button>
+                <button class="tab-button" onclick="openTab(event, 'todayDeposits')">💰 Deposits Report - Cheque</button>
                 <button class="tab-button" onclick="openTab(event, 'bankValue')">🏦 Blank Chq Report</button> 
                 <button class="tab-button" onclick="openTab(event, 'depositStatus')">✅ Deposit Status Report</button>
                 <button class="tab-button" onclick="openTab(event, 'graphicalReports')">📊 Graphical Reports</button>
@@ -1265,6 +1266,10 @@
                             <div class="field-label">Cheque Date</div>
                             <div class="field-value">${formatFieldValue(row['Chq Date'], '-')}</div>
                         </div>
+<div class="summary-header-item" style="flex: 0 0 110px;">
+    <div class="field-label">Received Date</div>
+    <div class="field-value">${formatFieldValue(row['Received Date'], '-')}</div>
+</div>
                          <div class="summary-header-item" style="flex: 3;">
                             <div class="field-label">Party Name</div>
                             <div class="field-value">${formatFieldValue(row['Party Name'], 'N/A')}</div>
@@ -1790,6 +1795,9 @@ let clearRemark = clearedRatio > 85
             document.getElementById('exportAIReportBtn').style.display = 'none';
         }
 
+
+
+
         // --- REPORT GENERATION FUNCTIONS ---
 
         // 1. Single Cheque Search
@@ -1963,15 +1971,48 @@ let clearRemark = clearedRatio > 85
                         return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'));
                     });
 
-                    let html = `<div class="result-card" style="margin-bottom: 20px; border-left: 5px solid #4f46e5; padding: 15px;">
-                        <h2 style="font-size: 1.1rem; color: #4f46e5;">DEPOSITS REPORT SUMMARY</h2>
-                        <p style="font-size: 0.9rem; margin-top: 5px; color: #1f2937;">
-                            Date Range: <strong>${fromDate} to ${toDate}</strong> | 
-                            Total Days: <strong>${sortedDates.length}</strong> | 
-                            Total Cheques: <strong>${filteredData.length}</strong>
-                        </p>
-                    </div>`;
+                    // CALCULATE GRAND TOTALS FIRST (before rendering HTML)
+                    sortedDates.forEach((date) => {
+                        const dateData = groupedByDate[date];
+                        dateData.forEach(row => {
+                            const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
+                            grandTotalValue += parseFloat(valueStr);
+                            grandTotalCount += 1;
+                        });
+                    });
 
+                   let html = `
+<div class="result-card" style="margin-bottom:20px; background:linear-gradient(135deg,#ecfdf5 0%,#d1fae5 100%); border:2px solid #059669; padding:15px;">
+
+
+<div class="result-card" style="margin-bottom:20px; border-left:5px solid #4f46e5; padding:15px;">
+    <h2 style="font-size:1.1rem; color:#4f46e5;">DEPOSITS REPORT SUMMARY</h2>
+    <p style="font-size:0.9rem; margin-top:5px; color:#1f2937;">
+        Date Range: <strong>${fromDate} to ${toDate}</strong> | 
+        Total Days: <strong>${sortedDates.length}</strong> | 
+        Total Cheques: <strong>${filteredData.length}</strong>
+    </p>
+</div>
+
+
+    <h2 style="font-size:1.1rem; color:#059669;">GRAND TOTAL SUMMARY</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+        <div>
+            <div class="field-label">Total Days</div>
+            <div class="field-value" style="font-size:1.1rem; font-weight:700;">${sortedDates.length} Days</div>
+        </div>
+        <div>
+            <div class="field-label">Total Cheques</div>
+            <div class="field-value" style="font-size:1.1rem; font-weight:700;">${filteredData.length} Cheques</div>
+        </div>
+        <div>
+           <div class="field-label">Grand Total Value</div>
+                                    <div class="field-value" style="font-size: 1.3rem; font-weight: 700; color: #059669;">₹${grandTotalValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+            </div>
+        </div>
+    </div>
+</div>
+`;
                     // Create expandable cards for each date
                     sortedDates.forEach((date, dateIndex) => {
                         const dateData = groupedByDate[date];
@@ -1983,9 +2024,6 @@ let clearRemark = clearedRatio > 85
                             const valueStr = row['Chq Value (₹)'].replace(/[^0-9.-]+/g,"") || '0';
                             dateTotalValue += parseFloat(valueStr);
                         });
-
-                        grandTotalValue += dateTotalValue;
-                        grandTotalCount += dateChequeCount;
 
                         const dateId = `date-${dateIndex}`;
                         const dateDisplay = date === 'No Date' ? 'No Deposit Date' : date;
@@ -2017,26 +2055,7 @@ let clearRemark = clearedRatio > 85
                         `;
                     });
 
-                    // Add grand total summary
-                    html += `
-                        <div class="result-card" style="margin-top: 20px; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 2px solid #059669; padding: 15px;">
-                            <h2 style="font-size: 1.1rem; color: #059669;">GRAND TOTAL SUMMARY</h2>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                                <div>
-                                    <div class="field-label">Total Days</div>
-                                    <div class="field-value" style="font-size: 1.1rem; font-weight: 700;">${sortedDates.length} Days</div>
-                                </div>
-                                <div>
-                                    <div class="field-label">Total Cheques</div>
-                                    <div class="field-value" style="font-size: 1.1rem; font-weight: 700;">${grandTotalCount} Cheques</div>
-                                </div>
-                                <div>
-                                    <div class="field-label">Grand Total Value</div>
-                                    <div class="field-value" style="font-size: 1.3rem; font-weight: 700; color: #059669;">₹${grandTotalValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+
 
                     resultsSection.innerHTML = html;
                     document.getElementById('exportTodayBtn').style.display = 'block';
@@ -2285,134 +2304,7 @@ let clearRemark = clearedRatio > 85
         });
 
 
-        // 7. AI & Trend Analysis
-document.getElementById('aiAnalysisForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    showLoading();
-    destroyCharts();
 
-    const sheetId = document.getElementById('sheetId').value.trim();
-    const fromDate = document.getElementById('aiFromDate').value;
-    const toDate = document.getElementById('aiToDate').value;
-    const dateKey = 'Deposited Date';
-    const trendChartType = document.querySelector('input[name="trendChartType"]:checked').value;
-const state = document.getElementById('aiStateSelect').value;
-
-    try {
-        const data = await fetchSheetData(sheetId);
-
-        const filteredData = filterChequeData(
-            data,
-            fromDate,
-            toDate,
-            dateKey,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
-
-        const resultsSection = document.getElementById('resultsSection');
-
-        if (filteredData.length === 0) {
-            resultsSection.innerHTML = `<div class="no-results">No data found.</div>`;
-            return;
-        }
-
-        lastFilterResults = filteredData;
-
-        let html = '';
-
-        const kpis = calculateAIKpis(filteredData);
-// --- EXTRA KPI CALCULATIONS ---
-const trend = getMonthlyTrendData(filteredData, dateKey);
-const stateAgg = aggregateData(filteredData, 'State');
-
-const topState = stateAgg.aggregatedArray[0] || {key:'-', value:0};
-const bottomState = stateAgg.aggregatedArray[stateAgg.aggregatedArray.length-1] || {key:'-', value:0};
-
-const growthPercent = ((kpis.trendValue / kpis.totalValue) * 100).toFixed(2);
-
-
-      html += `
-<h2 style="font-size:1.2rem;padding:15px 20px 0;">AI Insights Dashboard</h2>
-
-<div class="kpi-container">
-
-<div class="kpi-card kpi-total">
-<h4>Total Value</h4>
-<div class="value">₹${Number(kpis.totalValue).toLocaleString('en-IN')}</div>
-<div class="sub-value">${kpis.count} Cheques</div>
-</div>
-
-<div class="kpi-card kpi-average">
-<h4>Average Value</h4>
-<div class="value">₹${Number(kpis.averageValue).toLocaleString('en-IN')}</div>
-</div>
-
-<div class="kpi-card kpi-peak">
-<h4>Peak Day</h4>
-<div class="value">₹${Number(kpis.peakDayValue).toLocaleString('en-IN')}</div>
-</div>
-
-<div class="kpi-card ${kpis.trendColor}">
-<h4>Trend</h4>
-<div class="value">${kpis.trendStatus}</div>
-<div class="sub-value">${growthPercent}% change</div>
-</div>
-
-<div class="kpi-card kpi-trend-up">
-<h4>Top State</h4>
-<div class="value">${topState.key}</div>
-<div class="sub-value">₹${topState.value.toLocaleString('en-IN')}</div>
-</div>
-
-<div class="kpi-card kpi-trend-down">
-<h4>Lowest State</h4>
-<div class="value">${bottomState.key}</div>
-<div class="sub-value">₹${bottomState.value.toLocaleString('en-IN')}</div>
-</div>
-
-<div class="kpi-card kpi-trend-stable">
-<h4>Cleared Ratio</h4>
-<div class="value">${kpis.clearedRatio}%</div>
-</div>
-
-</div>
-`;
-
-resultsSection.innerHTML = html;
-
-// wait until DOM renders canvas
-requestAnimationFrame(() => {
-
-createChart(
-    'trendChart',
-    trendChartType,
-    trend.labels,
-    trend.data,
-    'Monthly Trend'
-);
-
-createChart(
-    'stateChart',
-    trendChartType,
-    stateAgg.aggregatedArray.map(x => x.key),
-    stateAgg.aggregatedArray.map(x => x.value),
-    'Value by State'
-);
-
-});
-
-    } catch (err) {
-        showError(err.message);
-    }
-});
-
-        document.getElementById('exportAIReportBtn').addEventListener('click', function() {
-            exportToCSV(lastFilterResults, 'ai_trend_report_raw_data');
-        });
 
 
         // --- Populating Dropdowns on Load ---
@@ -2599,42 +2491,63 @@ populateAIStates(data);
         lastFilterResults = filteredData;
 
         const kpis = calculateAIKpis(filteredData);
+
+const stateData = aggregateData(filteredData, 'State');
+
+const topState = stateData.aggregatedArray[0] || { key:'N/A', value:0 };
+
+const lowestState =
+stateData.aggregatedArray[stateData.aggregatedArray.length - 1] || { key:'N/A', value:0 };
+
         const trend = getMonthlyTrendData(filteredData,dateKey);
         const stateAgg = aggregateData(filteredData,'State');
+
 
         let html = `
 <div class="kpi-container">
 
-<div class="kpi-card kpi-total">
-<h4>Total Value</h4>
-<div class="value">₹${Number(kpis.totalValue).toLocaleString('en-IN')}</div>
-<div class="sub-value">${kpis.count} Cheques</div>
-<div class="sub-value">${kpis.totalRemark}</div>
-</div>
-
 <div class="kpi-card kpi-average">
 <h4>Average Value</h4>
-<div class="value">₹${Number(kpis.averageValue).toLocaleString('en-IN')}</div>
+<div class="value" data-target="${kpis.averageValue}">₹0</div>
 <div class="sub-value">${kpis.avgRemark}</div>
 </div>
 
 <div class="kpi-card kpi-peak">
 <h4>Peak Day Value</h4>
-<div class="value">₹${Number(kpis.peakDayValue).toLocaleString('en-IN')}</div>
+<div class="value" data-target="${kpis.peakDayValue}">₹0</div>
 <div class="sub-value">${kpis.peakRemark}</div>
 </div>
 
 <div class="kpi-card ${kpis.trendColor}">
-<h4>Trend</h4>
+<h4>Performance</h4>
 <div class="value">${kpis.trendStatus}</div>
 <div class="sub-value">₹${Number(kpis.trendValue).toLocaleString('en-IN')}</div>
 <div class="sub-value">${kpis.trendRemark}</div>
+</div>
+
+<div class="kpi-card" style="background:linear-gradient(135deg,#16a34a,#059669)">
+<h4>TOP STATE</h4>
+<div class="value">${topState.key}</div>
+<div class="sub-value">₹${topState.value.toLocaleString('en-IN')}</div>
+</div>
+
+<div class="kpi-card" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
+<h4>LOWEST STATE</h4>
+<div class="value">${lowestState.key}</div>
+<div class="sub-value">₹${lowestState.value.toLocaleString('en-IN')}</div>
 </div>
 
 <div class="kpi-card kpi-trend-stable">
 <h4>Cleared Ratio</h4>
 <div class="value">${kpis.clearedRatio}%</div>
 <div class="sub-value">${kpis.clearRemark}</div>
+</div>
+
+<div class="kpi-card kpi-total">
+<h4>Total Value</h4>
+<div class="value" data-target="${kpis.totalValue}">₹0</div>
+<div class="sub-value">${kpis.count} Cheques</div>
+<div class="sub-value">${kpis.totalRemark}</div>
 </div>
 
 </div>
@@ -2652,6 +2565,7 @@ populateAIStates(data);
 `;
 
         resultsSection.innerHTML = html;
+animateKPIValues();
 
         requestAnimationFrame(()=>{
 
@@ -2709,6 +2623,42 @@ window.addEventListener("load",loadStatesToAllDropdowns);
         showError(err.message);
     }
 });
+
+
+function animateKPIValues(){
+
+document.querySelectorAll('.kpi-card .value').forEach(counter=>{
+
+const target = parseFloat(counter.dataset.target);
+if(isNaN(target)) return;
+
+let count = 0;
+const speed = target / 80;
+
+function update(){
+
+count += speed;
+
+if(count < target){
+
+counter.innerText = "₹" + Math.floor(count).toLocaleString("en-IN");
+
+requestAnimationFrame(update);
+
+}else{
+
+counter.innerText = "₹" + Number(target).toLocaleString("en-IN");
+
+}
+
+}
+
+update();
+
+});
+
+}
+
     </script>
 </body>
 </html>

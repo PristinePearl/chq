@@ -158,18 +158,18 @@
 
         .left-panel {
             width: 350px;
-            background: white;
-            border-right: 1px solid #e2e8f0;
+            background: linear-gradient(180deg, #ffffff 0%, #f8f6ff 100%);
+            border-right: 1px solid #e9d5ff;
             display: flex;
             flex-direction: column;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            box-shadow: 2px 0 15px rgba(79, 70, 229, 0.08);
             flex-shrink: 0;
             animation: slideInLeft 0.6s ease-out;
         }
 
         .right-panel {
             flex: 1;
-            background: #fafbfc;
+            background: linear-gradient(135deg, #fafbfc 0%, #f5f3ff 50%, #eff6ff 100%);
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -177,14 +177,13 @@
         }
 
         .header {
-            /* Deep Indigo Gradient */
-            background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%); 
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 50%, #6366f1 100%);
             color: white;
             padding: 18px 20px;
             text-align: center;
             border-bottom: none;
             flex-shrink: 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.25);
             animation: slideInDown 0.5s ease-out;
         }
 
@@ -263,7 +262,7 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: linear-gradient(90deg, #4f46e5, #3730a3);
+            background: linear-gradient(90deg, #4f46e5, #8b5cf6, #06b6d4);
             transform: scaleX(0);
             transform-origin: left;
             transition: transform 0.3s ease;
@@ -271,10 +270,11 @@
         
         /* Highlight active tab */
         .tab-button.active {
-            background: linear-gradient(90deg, rgba(79, 70, 229, 0.05) 0%, transparent 100%);
+            background: linear-gradient(90deg, rgba(79, 70, 229, 0.08) 0%, transparent 100%);
             font-weight: 700;
-            color: #3730a3;
+            color: #4f46e5;
             border-left: 4px solid #4f46e5;
+            box-shadow: inset 0 0 20px rgba(79, 70, 229, 0.05);
             animation: slideInLeft 0.4s ease-out;
         }
 
@@ -372,7 +372,7 @@
 
         .btn {
             padding: 12px 24px;
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #3730a3 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -381,7 +381,7 @@
             font-weight: 650;
             transition: all 0.3s ease;
             margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
             animation: slideInUp 0.5s ease-out backwards;
             position: relative;
             overflow: hidden;
@@ -404,9 +404,9 @@
         }
 
         .btn:hover {
-            background: linear-gradient(135deg, #3730a3 0%, #312e81 100%);
+            background: linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #6366f1 100%);
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.45);
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.5);
         }
 
         .btn:active {
@@ -415,13 +415,13 @@
 
         /* NEW BUTTON STYLE FOR EXPORT */
         .btn-secondary {
-            background: linear-gradient(135deg, #6b7280 0%, #374151 100%);
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #a855f7 100%);
             margin-top: 5px;
-            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
         }
         .btn-secondary:hover {
-            background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
-            box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
+            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #d946ef 100%);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
             transform: translateY(-3px);
         }
 
@@ -628,7 +628,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 25px;
             padding: 25px;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background: linear-gradient(135deg, #f8f6ff 0%, #f0f9ff 50%, #f5f3ff 100%);
         }
         .chart-box {
             background: white;
@@ -661,7 +661,7 @@
         .chart-box h3 {
             font-size: 1.1rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 50%, #06b6d4 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -686,7 +686,7 @@
             font-weight: 700;
             color: #1e293b;
             margin: 0 0 20px 0;
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 50%, #06b6d4 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -723,7 +723,7 @@
         }
 
         .state-card-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 50%, #7c3aed 100%);
             color: white;
             padding: 14px 16px;
             display: flex;
@@ -841,7 +841,7 @@
              font-size: 0.92rem;
         }
         .summary-toggle-btn {
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6366f1 100%);
             color: white;
             border: none;
             padding: 7px 12px;
@@ -852,11 +852,11 @@
             transition: all 0.2s ease;
             flex-shrink: 0;
             margin-left: 12px;
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
         }
         .summary-toggle-btn:hover {
-            background: linear-gradient(135deg, #3730a3 0%, #312e81 100%);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+            background: linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #8b5cf6 100%);
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.45);
             transform: translateY(-1px);
         }
         .summary-toggle-btn::before {
@@ -872,7 +872,7 @@
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 18px;
             padding: 25px;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background: linear-gradient(135deg, #f8f6ff 0%, #f5f3ff 50%, #eff6ff 100%);
             border: none;
             border-radius: 12px;
             margin: 20px;
@@ -937,27 +937,27 @@
             z-index: 1;
         }
 
-        /* Specific KPI Colors */
+        /* Specific KPI Colors - Enhanced Multicolor */
         .kpi-total { 
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); /* Indigo */
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #3730a3 100%);
         }
         .kpi-average {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Emerald Green */
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #00d9ff 100%);
         }
         .kpi-peak {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); /* Orange */
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #7c3aed 100%);
         }
         .kpi-trend-up {
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); /* Green */
+            background: linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #06b6d4 100%);
         }
         .kpi-trend-down {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); /* Red */
+            background: linear-gradient(135deg, #f43f5e 0%, #fb7185 50%, #e11d48 100%);
         }
         .kpi-trend-stable {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); /* Gray */
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%);
         }
 
-        /* Status indicator colors */
+        /* Status indicator colors - Multicolor */
         .status-indicator {
             display: inline-block;
             width: 12px;
@@ -966,21 +966,20 @@
             margin-right: 6px;
         }
         .status-deposited {
-            background: #10b981; /* Green */
+            background: #10b981;
         }
         .status-pending {
-            background: #f59e0b; /* Orange */
+            background: #f59e0b;
         }
         .status-returned {
-            background: #ef4444; /* Red */
+            background: #ef4444;
         }
         .status-represented {
-            background: #eab308; /* Yellow */
+            background: #8b5cf6;
         }
         .status-blank {
-            background: #8b5cf6; /* Violet */
+            background: #06b6d4;
         }
-        /* --- END NEW KPI STYLES --- */
 
 
         /* Responsive Design */
@@ -1743,16 +1742,16 @@ function createChart(canvasId, type, labels, data, title) {
     if (!ctx) return;
     
     const backgroundColors = [
-        'rgba(79, 70, 229, 0.85)',   // Indigo-500
-        'rgba(16, 185, 129, 0.85)',  // Emerald-500
-        'rgba(249, 115, 22, 0.85)',  // Orange-500
-        'rgba(239, 68, 68, 0.85)',   // Red-500
-        'rgba(59, 130, 246, 0.85)',  // Blue-500
-        'rgba(139, 92, 246, 0.85)',  // Violet-500
-        'rgba(244, 63, 94, 0.85)',   // Rose-500
-        'rgba(251, 191, 36, 0.85)',  // Amber-500
-        'rgba(20, 184, 166, 0.85)',  // Teal-500
-        'rgba(100, 116, 139, 0.85)'  // Slate-500
+        'rgba(79, 70, 229, 0.85)',    // Indigo
+        'rgba(139, 92, 246, 0.85)',   // Violet
+        'rgba(168, 85, 247, 0.85)',   // Purple
+        'rgba(59, 130, 246, 0.85)',   // Blue
+        'rgba(6, 182, 212, 0.85)',    // Cyan
+        'rgba(16, 185, 129, 0.85)',   // Emerald
+        'rgba(34, 197, 94, 0.85)',    // Green
+        'rgba(251, 191, 36, 0.85)',   // Amber
+        'rgba(249, 115, 22, 0.85)',   // Orange
+        'rgba(244, 63, 94, 0.85)'     // Rose
     ];
 
     const borderColors = backgroundColors.map(color => color.replace('0.85', '1'));
@@ -1782,7 +1781,7 @@ function createChart(canvasId, type, labels, data, title) {
         dataset = {
             label: 'Cheque Value (₹)',
             data: data,
-            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            backgroundColor: 'rgba(79, 70, 229, 0.15)',
             borderColor: borderColors[0],
             borderWidth: 3,
             fill: true,
@@ -1791,7 +1790,8 @@ function createChart(canvasId, type, labels, data, title) {
             pointBackgroundColor: borderColors[0],
             pointBorderColor: '#ffffff',
             pointBorderWidth: 2,
-            pointHoverRadius: 7
+            pointHoverRadius: 7,
+            pointHoverBackgroundColor: 'rgba(139, 92, 246, 1)'
         };
     }
 

@@ -21,7 +21,7 @@
 
         body {
             font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f8fafc;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 40%, #ede9fe 100%);
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -35,30 +35,31 @@
 
         .left-panel {
             width: 350px;
-            background: white;
-            border-right: 1px solid #e2e8f0;
+            background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
+            border-right: 2px solid #c7d2fe;
             display: flex;
             flex-direction: column;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            box-shadow: 4px 0 20px rgba(79, 70, 229, 0.12);
             flex-shrink: 0;
         }
 
         .right-panel {
             flex: 1;
-            background: #fafbfc;
+            background: transparent;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
         }
 
         .header {
-            /* Deep Indigo Gradient */
-            background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%); 
+            /* Rich Indigo to Violet Gradient */
+            background: linear-gradient(135deg, #312e81 0%, #4f46e5 45%, #7c3aed 100%); 
             color: white;
-            padding: 15px 20px;
+            padding: 18px 20px;
             text-align: center;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: none;
             flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
         }
 
         .header-content {
@@ -103,12 +104,12 @@
             background: none;
             font-size: 0.95rem;
             font-weight: 500;
-            color: #374151;
+            color: #4338ca;
             border-left: 4px solid transparent;
         }
         
         .tab-button.active {
-            background: #f1f5f9;
+            background: linear-gradient(90deg, #eef2ff 0%, #f5f3ff 100%);
             font-weight: 600;
             color: #3730a3; 
             border-left: 4px solid #4f46e5; 
@@ -116,7 +117,7 @@
 
         .search-section {
             padding: 20px;
-            background: #f8fafc;
+            background: transparent;
             flex: 1;
             overflow-y: auto; 
             display: flex;
@@ -150,7 +151,7 @@
 
         .form-group input, .form-group textarea {
             padding: 10px 12px;
-            border: 1px solid #d1d5db;
+            border: 1.5px solid #c7d2fe;
             border-radius: 8px;
             font-size: 0.9rem;
             transition: all 0.2s ease;
@@ -160,12 +161,12 @@
         .form-group input:focus, .form-group textarea:focus {
             outline: none;
             border-color: #4f46e5; 
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); 
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); 
         }
 
         .btn {
             padding: 12px 20px;
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); 
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); 
             color: white;
             border: none;
             border-radius: 8px;
@@ -174,34 +175,45 @@
             font-weight: 600;
             transition: all 0.2s ease;
             margin-top: 10px;
+            box-shadow: 0 2px 10px rgba(79, 70, 229, 0.3);
         }
 
         .btn:hover {
-            background: linear-gradient(135deg, #3730a3 0%, #312e81 100%); 
+            background: linear-gradient(135deg, #3730a3 0%, #6d28d9 100%); 
             transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.45);
         }
 
-        /* NEW BUTTON STYLE FOR SAVE/MODIFY */
+        /* SAVE/MODIFY button - vibrant teal-green */
         .btn-save {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); /* Orange for Modify/Save */
+            background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%);
+            box-shadow: 0 2px 10px rgba(14, 165, 233, 0.3);
         }
         .btn-save:hover {
-            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            background: linear-gradient(135deg, #0284c7 0%, #059669 100%);
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.45);
         }
-        /* NEW BUTTON STYLE FOR SECONDARY ACTION (CANCEL/EXPORT) */
+        /* SECONDARY button - warm amber-rose */
         .btn-secondary {
-            background: linear-gradient(135deg, #6b7280 0%, #374151 100%);
-            margin-top: 5px; 
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            margin-top: 5px;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
         }
         .btn-secondary:hover {
-            background: linear-gradient(135deg, #4b5563 0%, #1f2937 1f2937%);
+            background: linear-gradient(135deg, #d97706 0%, #dc2626 100%);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.45);
         }
 
         .results-section {
             padding: 10px;
             flex: 1;
-            background: white;
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(8px);
             overflow-y: auto;
+            margin: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(199, 210, 254, 0.5);
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
         }
 
         .loading {
@@ -224,11 +236,12 @@
 
         .result-card {
             background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
+            border: 1px solid #c7d2fe;
+            border-radius: 10px;
             padding: 12px;
             margin-bottom: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 12px rgba(79, 70, 229, 0.08);
+            border-top: 3px solid #4f46e5;
         }
 
         .result-header {
@@ -263,16 +276,16 @@
         }
 
         .section {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 4px;
+            background: #f5f3ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 8px;
             overflow: hidden;
         }
 
         .section-header {
-            background: #1f2937;
+            background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
             color: white;
-            padding: 6px 10px;
+            padding: 7px 10px;
             font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
@@ -337,13 +350,13 @@
 
         .no-results {
             text-align: center;
-            color: #6b7280;
+            color: #6366f1;
             font-style: italic;
             padding: 20px 10px;
             font-size: 0.9rem;
-            background: #f9fafb;
-            border-radius: 4px;
-            border: 1px dashed #d1d5db;
+            background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+            border-radius: 8px;
+            border: 1px dashed #a5b4fc;
         }
 
         /* --- Status indicator colors --- */
@@ -600,14 +613,14 @@ row.__rowIndex = i + 1; // 👈 ADD THIS (actual sheet row)
             let html = ` <div class="document-sections"> `;
 
             // Section 1: Cheque & Value Details
-            html += `<div class="section"><div class="section-header">Cheque & Value Details</div><div class="section-content"><div class="section-grid">`;
+            html += `<div class="section"><div class="section-header" style="background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);">💳 Cheque & Value Details</div><div class="section-content"><div class="section-grid">`;
             fields.filter(f => f.section === 1).forEach(field => {
                 html += getFieldHtml(field.label, field.key, row[field.key], field.type, isEditable);
             });
             html += `</div></div></div>`; 
 
             // Section 2: Deposit & Return/Represent Details
-            html += `<div class="section"><div class="section-header">Deposit & Return/Represent Details</div><div class="section-content"><div class="section-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">`;
+            html += `<div class="section"><div class="section-header" style="background: linear-gradient(90deg, #0ea5e9 0%, #10b981 100%);">🏦 Deposit & Return/Represent Details</div><div class="section-content"><div class="section-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">`;
             fields.filter(f => f.section === 2).forEach(field => {
                 const colSpanAttr = field.span && field.span > 1 ? `style="grid-column: span ${field.span} / auto;"` : '';
                 html += `<div ${colSpanAttr}>${getFieldHtml(field.label, field.key, row[field.key], field.type, isEditable)}</div>`;
@@ -615,7 +628,7 @@ row.__rowIndex = i + 1; // 👈 ADD THIS (actual sheet row)
             html += `</div></div></div>`; 
             
             // Section 3: Entry & Invoice Details
-            html += `<div class="section"><div class="section-header">Entry & Invoice Details</div><div class="section-content"><div class="section-grid">`;
+            html += `<div class="section"><div class="section-header" style="background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);">📋 Entry & Invoice Details</div><div class="section-content"><div class="section-grid">`;
             fields.filter(f => f.section === 3).forEach(field => {
                 const colSpanAttr = field.span && field.span > 1 ? `style="grid-column: span ${field.span} / auto;"` : '';
                 html += `<div ${colSpanAttr}>${getFieldHtml(field.label, field.key, row[field.key], field.type, isEditable)}</div>`;

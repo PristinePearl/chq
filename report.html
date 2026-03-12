@@ -1176,6 +1176,14 @@
                     <form class="search-form" id="depositForm">
                         <h3 style="font-size: 1rem; margin-bottom: 5px; color: #3730a3;">Deposit Status Report (Exception Report)</h3>
                         <div class="form-group">
+                            <label for="depositStatusFromDate">From Date (Cheque Date, Optional):</label>
+                            <input type="date" id="depositStatusFromDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="depositStatusToDate">To Date (Cheque Date, Optional):</label>
+                            <input type="date" id="depositStatusToDate">
+                        </div>
+                        <div class="form-group">
                             <label for="depositStatusSelect">Deposit Status:</label>
                             <select id="depositStatusSelect" required>
                                 <option value="">Select Status</option>
@@ -2573,6 +2581,8 @@ let clearRemark = clearedRatio > 85
             const status = document.getElementById('depositStatusSelect').value;
             const remarksKeyword = document.getElementById('remarksKeyword').value;
             const depositedBank = document.getElementById('depositedBankSelect').value;
+            const fromDate = document.getElementById('depositStatusFromDate').value;
+            const toDate = document.getElementById('depositStatusToDate').value;
 
             if (!status) {
                 showError("Please select a Deposit Status.");
@@ -2582,8 +2592,8 @@ let clearRemark = clearedRatio > 85
             try {
                 const data = await fetchSheetData(sheetId);
                 
-                // Filter by Status, Remarks Keyword, and Deposited Bank
-                const filteredData = filterChequeData(data, null, null, 'Chq Date', null, null, depositedBank, status, remarksKeyword);
+                // Filter by Date Range, Status, Remarks Keyword, and Deposited Bank
+                const filteredData = filterChequeData(data, fromDate, toDate, 'Chq Date', null, null, depositedBank, status, remarksKeyword);
                 
                 const resultsSection = document.getElementById('resultsSection');
                 

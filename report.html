@@ -873,240 +873,192 @@ function doExportExcel() {
         return;
     }
 
-    const data = currentPrintData.cheques;
-    const bank = BANKS[selectedPrintBank];
-    const wb = XLSX.utils.book_new();
+    try {
+        const data = currentPrintData.cheques;
+        const bank = BANKS[selectedPrintBank];
+        const wb = XLSX.utils.book_new();
 
-    // ---- compute total ----
-    let total = 0;
-    data.forEach(row => {
-        total += parseFloat((row['Chq Value (₹)'] || "0").replace(/[^0-9.-]+/g, "")) || 0;
-    });
+        // ---- compute total ----
+        let total = 0;
+        data.forEach(row => {
+            total += parseFloat((row['Chq Value (₹)'] || "0").replace(/[^0-9.-]+/g, "")) || 0;
+        });
 
-    const dateLabel = currentPrintData.date !== 'No Date'
-        ? currentPrintData.date
-        : new Date().toLocaleDateString('en-IN');
+        const dateLabel = (currentPrintData.date && currentPrintData.date !== 'No Date')
+            ? currentPrintData.date
+            : new Date().toLocaleDateString('en-IN');
 
-    // ===== BUILD ROWS =====
-    // Row 0  : Bank name  (merged A–F)
-    // Row 1  : "STATEMENT OF CHEQUES / DRAFTS"  (merged)
-    // Row 2  : Account No | Date label | Bank Slip No (split across cols)
-    // Row 3  : "Paid into…" label (merged A–E)  | SlipNo placeholder (F)
-    // Row 4  : blank separator
-    // Row 5  : Column headers (S.No | Party Name | Chq No | Chq Date | Bank | Amount)
-    // Row 6+ : Data rows
-    // Last-1 : blank
-    // Last   : TOTAL row
+        // ===== BUILD ROWS =====
+        // Row 0  : Bank name            (merged A–F)
+        // Row 1  : Subtitle             (merged A–F)
+        // Row 2  : Account No | Date | Bank Slip No  (3 merged pairs)
+        // Row 3  : "Paid into…"         (merged A–E) | SlipNo (F)
+        // Row 4  : blank separator
+        // Row 5  : Column headers       (yellow background)
+        // Row 6+ : Data rows
+        // ...
+        // Last-1 : blank
+        // Last   : TOTAL row
 
-    let ws_data = [];
+        let ws_data = [];
 
-    // Row 0 – bank name
-    ws_data.push([bank.name, "", "", "", "", ""]);
+        ws_data.push([bank.name, "", "", "", "", ""]);                                          // 0
+        ws_data.push(["STATEMENT OF CHEQUES / DRAFTS", "", "", "", "", ""]);                    // 1
+        ws_data.push([`Account No.: ${bank.acNo}`, "", `Date: ${dateLabel}`, "", "Bank Slip No: ___________", ""]); // 2
+        ws_data.push([`Paid into the credit of ${bank.acName}`, "", "", "", "", "SlipNo: ___________"]); // 3
+        ws_data.push(["", "", "", "", "", ""]);                                                  // 4 blank
+        ws_data.push(["S.No.", "Party Name", "Chq.No", "Chq.Date", "Bank Name", "Amount (₹)"]); // 5 headers
 
-    // Row 1 – subtitle
-    ws_data.push(["STATEMENT OF CHEQUES / DRAFTS", "", "", "", "", ""]);
+        const dataStartRow = 6;
 
-    // Row 2 – meta  (Account No | (blank) | Date | (blank) | Bank Slip No | (blank))
-    ws_data.push([
-        `Account No.: ${bank.acNo}`,
-        "",
-        `Date: ${dateLabel}`,
-        "",
-        "Bank Slip No: ___________",
-        ""
-    ]);
+        data.forEach((row, i) => {
+            const amt = parseFloat((row['Chq Value (₹)'] || "0").replace(/[^0-9.-]+/g, "")) || 0;
+            ws_data.push([
+                i + 1,
+                row['Party Name'] || "",
+                row['Chq Number'] || "",
+                row['Chq Date'] || "",
+                row['Bank Name (Party)'] || "",
+                amt
+            ]);
+        });
 
-    // Row 3 – "Paid into…"
-    ws_data.push([
-        `Paid into the credit of ${bank.acName}`,
-        "", "", "", "",
-        "SlipNo: ___________"
-    ]);
+        ws_data.push(["", "", "", "", "", ""]);           // blank before total
+        const totalRowIdx = ws_data.length;
+        ws_data.push(["", "", "", "", "TOTAL", total]);   // total row
 
-    // Row 4 – blank separator
-    ws_data.push(["", "", "", "", "", ""]);
+        // ===== CREATE SHEET =====
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
 
-    // Row 5 – column headers
-    ws_data.push(["S.No.", "Party Name", "Chq.No", "Chq.Date", "Bank Name", "Amount (₹)"]);
+        // ===== MERGES =====
+        ws["!merges"] = [
+            { s:{r:0,c:0}, e:{r:0,c:5} },   // bank name full row
+            { s:{r:1,c:0}, e:{r:1,c:5} },   // subtitle full row
+            { s:{r:2,c:0}, e:{r:2,c:1} },   // account no
+            { s:{r:2,c:2}, e:{r:2,c:3} },   // date
+            { s:{r:2,c:4}, e:{r:2,c:5} },   // bank slip no
+            { s:{r:3,c:0}, e:{r:3,c:4} },   // paid-into label
+        ];
 
-    const dataStartRow = ws_data.length; // = 6
+        // ===== COLUMN WIDTHS =====
+        ws["!cols"] = [
+            { wch: 6  },  // S.No
+            { wch: 32 },  // Party Name
+            { wch: 16 },  // Chq No
+            { wch: 13 },  // Chq Date
+            { wch: 28 },  // Bank Name
+            { wch: 16 }   // Amount
+        ];
 
-    // Data rows
-    data.forEach((row, i) => {
-        const amt = parseFloat((row['Chq Value (₹)'] || "0").replace(/[^0-9.-]+/g, "")) || 0;
-        ws_data.push([
-            i + 1,
-            row['Party Name'] || "",
-            row['Chq Number'] || "",
-            row['Chq Date'] || "",
-            row['Bank Name (Party)'] || "",
-            amt
-        ]);
-    });
+        // ===== ROW HEIGHTS =====
+        ws["!rows"] = [
+            { hpt: 28 }, // row 0 – bank name
+            { hpt: 22 }, // row 1 – subtitle
+            { hpt: 18 }, // row 2 – meta
+            { hpt: 18 }, // row 3 – paid-into
+        ];
 
-    // Blank before total
-    ws_data.push(["", "", "", "", "", ""]);
-
-    // Total row
-    const totalRowIdx = ws_data.length;
-    ws_data.push(["", "", "", "", "TOTAL", total]);
-
-    // ===== CREATE SHEET =====
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-    // ===== MERGES =====
-    ws["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },   // bank name
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },   // subtitle
-        { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } },   // account no
-        { s: { r: 2, c: 2 }, e: { r: 2, c: 3 } },   // date
-        { s: { r: 2, c: 4 }, e: { r: 2, c: 5 } },   // bank slip no
-        { s: { r: 3, c: 0 }, e: { r: 3, c: 4 } },   // paid-into label
-    ];
-
-    // ===== COLUMN WIDTHS =====
-    ws["!cols"] = [
-        { wch: 6 },   // S.No
-        { wch: 32 },  // Party Name
-        { wch: 16 },  // Chq No
-        { wch: 13 },  // Chq Date
-        { wch: 28 },  // Bank Name
-        { wch: 16 }   // Amount
-    ];
-
-    // ===== ROW HEIGHTS =====
-    ws["!rows"] = [];
-    ws["!rows"][0] = { hpt: 28 };
-    ws["!rows"][1] = { hpt: 22 };
-    ws["!rows"][2] = { hpt: 18 };
-    ws["!rows"][3] = { hpt: 18 };
-
-    // ===== STYLE HELPER =====
-    function sc(cell, style) {
-        if (!ws[cell]) {
-            // create empty cell so style applies
-            ws[cell] = { t: 'z', v: '' };
+        // ===== STYLE HELPER =====
+        // Creates the cell entry if it doesn't exist yet (blank/merged cells)
+        function sc(addr, style) {
+            if (!ws[addr]) ws[addr] = { t: 'z', v: '' };
+            ws[addr].s = style;
         }
-        ws[cell].s = style;
-    }
 
-    // Determine bank color (red for DBS, orange for ICICI)
-    const bankColorRgb = selectedPrintBank === 'DBS' ? 'CC0000' : 'F97316';
+        const bankColorRgb = (selectedPrintBank === 'DBS') ? 'CC0000' : 'F97316';
 
-    // ------ Row 0: Bank Name ------
-    sc("A1", {
-        font: { bold: true, sz: 18, color: { rgb: bankColorRgb } },
-        alignment: { horizontal: "center", vertical: "center" }
-    });
+        // --- Row 0: Bank Name (large, coloured, centred) ---
+        sc("A1", {
+            font: { bold: true, sz: 18, color: { rgb: bankColorRgb } },
+            alignment: { horizontal: "center", vertical: "center" }
+        });
 
-    // ------ Row 1: Subtitle ------
-    sc("A2", {
-        font: { bold: true, sz: 12, underline: true },
-        alignment: { horizontal: "center", vertical: "center" }
-    });
+        // --- Row 1: Subtitle (bold, underline, centred) ---
+        sc("A2", {
+            font: { bold: true, sz: 12, underline: true },
+            alignment: { horizontal: "center", vertical: "center" }
+        });
 
-    // ------ Row 2: Meta row ------
-    const metaStyle = { font: { bold: true, sz: 10 }, alignment: { horizontal: "left", vertical: "center" } };
-    sc("A3", metaStyle);
-    sc("C3", { ...metaStyle, alignment: { horizontal: "center" } });
-    sc("E3", { ...metaStyle, alignment: { horizontal: "right" } });
+        // --- Row 2: Meta info ---
+        const metaStyle = { font: { bold: true, sz: 10 }, alignment: { horizontal: "left", vertical: "center" } };
+        sc("A3", metaStyle);
+        sc("C3", { font: { bold: true, sz: 10 }, alignment: { horizontal: "center", vertical: "center" } });
+        sc("E3", { font: { bold: true, sz: 10 }, alignment: { horizontal: "right",  vertical: "center" } });
 
-    // ------ Row 3: Paid into ------
-    sc("A4", {
-        font: { bold: true, sz: 10 },
-        alignment: { horizontal: "left", vertical: "center" },
-        border: { bottom: { style: "thin", color: { rgb: "000000" } } }
-    });
-    sc("F4", {
-        font: { bold: true, sz: 10 },
-        alignment: { horizontal: "right" },
-        border: { bottom: { style: "thin", color: { rgb: "000000" } } }
-    });
-    // apply bottom border to merged cols too
-    ["B4","C4","D4","E4"].forEach(cell => {
-        sc(cell, { border: { bottom: { style: "thin", color: { rgb: "000000" } } } });
-    });
+        // --- Row 3: "Paid into…" with bottom border line ---
+        const paidBorder = { bottom: { style: "thin", color: { rgb: "000000" } } };
+        sc("A4", { font: { bold: true, sz: 10 }, alignment: { horizontal: "left",  vertical: "center" }, border: paidBorder });
+        ["B4","C4","D4","E4"].forEach(addr => sc(addr, { border: paidBorder }));
+        sc("F4", { font: { bold: true, sz: 10 }, alignment: { horizontal: "right", vertical: "center" }, border: paidBorder });
 
-    // ------ Row 5 (index 5): Column Headers – Yellow ------
-    const hdrStyle = {
-        font: { bold: true, sz: 10 },
-        fill: { patternType: "solid", fgColor: { rgb: "FFFF00" } },
-        border: {
-            top: { style: "thin", color: { rgb: "999999" } },
+        // --- Row 5 (ws index 5): Column headers – yellow ---
+        const hdrBorder = {
+            top:    { style: "thin", color: { rgb: "999999" } },
             bottom: { style: "thin", color: { rgb: "999999" } },
-            left: { style: "thin", color: { rgb: "999999" } },
-            right: { style: "thin", color: { rgb: "999999" } }
-        },
-        alignment: { horizontal: "center", vertical: "center" }
-    };
-    ["A6","B6","C6","D6","E6","F6"].forEach(cell => sc(cell, hdrStyle));
+            left:   { style: "thin", color: { rgb: "999999" } },
+            right:  { style: "thin", color: { rgb: "999999" } }
+        };
+        const hdrFill = { patternType: "solid", fgColor: { rgb: "FFFF00" } };
+        ["A6","B6","C6","D6","E6","F6"].forEach(addr => {
+            sc(addr, { font: { bold: true, sz: 10 }, fill: hdrFill, border: hdrBorder,
+                       alignment: { horizontal: "center", vertical: "center" } });
+        });
 
-    // ------ Data Rows (index 6 to dataStartRow + data.length - 1) ------
-    const thinBorder = {
-        top: { style: "thin", color: { rgb: "CCCCCC" } },
-        bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-        left: { style: "thin", color: { rgb: "CCCCCC" } },
-        right: { style: "thin", color: { rgb: "CCCCCC" } }
-    };
+        // --- Data rows: thin borders + alternating rows ---
+        const thinBorder = {
+            top:    { style: "thin", color: { rgb: "CCCCCC" } },
+            bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+            left:   { style: "thin", color: { rgb: "CCCCCC" } },
+            right:  { style: "thin", color: { rgb: "CCCCCC" } }
+        };
+        for (let r = dataStartRow; r < dataStartRow + data.length; r++) {
+            const evenRow = (r - dataStartRow) % 2 === 1;
+            const rowFill = { patternType: "solid", fgColor: { rgb: evenRow ? "F9FAFB" : "FFFFFF" } };
+            for (let c = 0; c <= 5; c++) {
+                const addr = XLSX.utils.encode_cell({ r, c });
+                const isAmt = c === 5;
+                const isSno = c === 0;
+                sc(addr, {
+                    font: { sz: 10 },
+                    fill: rowFill,
+                    border: thinBorder,
+                    alignment: { horizontal: isAmt ? "right" : isSno ? "center" : "left", vertical: "center" },
+                    numFmt: isAmt ? '#,##0.00' : undefined
+                });
+                // Ensure amount cells are typed as numbers
+                if (isAmt && ws[addr]) ws[addr].t = 'n';
+            }
+        }
 
-    for (let r = dataStartRow; r < dataStartRow + data.length; r++) {
-        const isEven = (r - dataStartRow) % 2 === 1;
-        const rowFill = isEven
-            ? { patternType: "solid", fgColor: { rgb: "F9FAFB" } }
-            : { patternType: "solid", fgColor: { rgb: "FFFFFF" } };
-
+        // --- Total row ---
+        const totalBorder = {
+            top:    { style: "medium", color: { rgb: "999999" } },
+            bottom: { style: "thin",   color: { rgb: "999999" } },
+            left:   { style: "thin",   color: { rgb: "999999" } },
+            right:  { style: "thin",   color: { rgb: "999999" } }
+        };
         for (let c = 0; c <= 5; c++) {
-            const cell = XLSX.utils.encode_cell({ r, c });
-            const isAmt = c === 5;
-            const isSno = c === 0;
-            sc(cell, {
-                font: { sz: 10 },
-                fill: rowFill,
-                border: thinBorder,
-                alignment: {
-                    horizontal: isAmt ? "right" : isSno ? "center" : "left",
-                    vertical: "center"
-                },
+            const addr = XLSX.utils.encode_cell({ r: totalRowIdx, c });
+            const isAmt   = c === 5;
+            const isLabel = c === 4;
+            sc(addr, {
+                font: { bold: true, sz: 11 },
+                border: totalBorder,
+                alignment: { horizontal: (isAmt || isLabel) ? "right" : "left", vertical: "center" },
                 numFmt: isAmt ? '#,##0.00' : undefined
             });
+            if (isAmt && ws[addr]) ws[addr].t = 'n';
         }
-    }
 
-    // ------ Total Row ------
-    const totalStyle = {
-        font: { bold: true, sz: 11 },
-        border: {
-            top: { style: "medium", color: { rgb: "999999" } },
-            bottom: { style: "thin", color: { rgb: "999999" } },
-            left: { style: "thin", color: { rgb: "999999" } },
-            right: { style: "thin", color: { rgb: "999999" } }
-        }
-    };
-    for (let c = 0; c <= 5; c++) {
-        const cell = XLSX.utils.encode_cell({ r: totalRowIdx, c });
-        const isAmt = c === 5;
-        const isLabel = c === 4;
-        sc(cell, {
-            ...totalStyle,
-            alignment: {
-                horizontal: isAmt || isLabel ? "right" : "left",
-                vertical: "center"
-            },
-            numFmt: isAmt ? '#,##0.00' : undefined
-        });
-    }
+        // ===== EXPORT =====
+        XLSX.utils.book_append_sheet(wb, ws, "Deposit Slip");
+        const safeDate = dateLabel.replace(/\//g, '-');
+        XLSX.writeFile(wb, `Deposit_Slip_${selectedPrintBank}_${safeDate}.xlsx`);
 
-    // ===== FORMAT AMOUNT CELLS AS NUMBER =====
-    for (let r = dataStartRow; r < dataStartRow + data.length; r++) {
-        const cell = XLSX.utils.encode_cell({ r, c: 5 });
-        if (ws[cell]) { ws[cell].t = 'n'; }
+    } catch (err) {
+        console.error("Excel export error:", err);
+        alert("Export failed: " + err.message);
     }
-    const totalAmtCell = XLSX.utils.encode_cell({ r: totalRowIdx, c: 5 });
-    if (ws[totalAmtCell]) { ws[totalAmtCell].t = 'n'; }
-
-    // ===== EXPORT =====
-    XLSX.utils.book_append_sheet(wb, ws, "Deposit Slip");
-    XLSX.writeFile(wb, `Deposit_Slip_${selectedPrintBank}_${dateLabel.replace(/\//g,'-')}.xlsx`);
 }
 // ==========================================
 // REPORT HANDLERS

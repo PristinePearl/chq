@@ -710,22 +710,26 @@ function exportToCSV(data, filename) {
 // BANKERS DETAILS TAB
 // ==========================================
 function renderBankerCards() {
-    const container = document.getElementById('bankerCardsContainer');
-    container.innerHTML = Object.entries(BANKS).map(([key, bank]) => `
+    const container = document.getElementById('resultsSection');
+
+    container.innerHTML = Object.values(BANKS).map(bank => `
         <div class="banker-card">
             <div class="banker-card-header" style="background:${bank.headerGradient};">
                 <div class="bank-name-big">${bank.name}</div>
                 <div class="bank-tagline">Company Bank Account</div>
             </div>
+
             <div class="banker-card-body">
+
                 <div class="banker-detail-row">
                     <div class="banker-detail-icon" style="background:#f0f9ff;">🏢</div>
                     <div class="banker-detail-info">
                         <div class="banker-detail-label">Account Name</div>
-                        <div class="banker-detail-value" style="font-family:Inter,sans-serif;font-size:0.82rem;">${bank.acName}</div>
+                        <div class="banker-detail-value">${bank.acName}</div>
                     </div>
                     <button class="copy-btn" onclick="copyField('${bank.acName}',this)">Copy</button>
                 </div>
+
                 <div class="banker-detail-row">
                     <div class="banker-detail-icon" style="background:#ecfdf5;">🔢</div>
                     <div class="banker-detail-info">
@@ -734,6 +738,7 @@ function renderBankerCards() {
                     </div>
                     <button class="copy-btn" onclick="copyField('${bank.acNo}',this)">Copy</button>
                 </div>
+
                 <div class="banker-detail-row">
                     <div class="banker-detail-icon" style="background:#faf5ff;">🏷️</div>
                     <div class="banker-detail-info">
@@ -742,42 +747,19 @@ function renderBankerCards() {
                     </div>
                     <button class="copy-btn" onclick="copyField('${bank.ifsc}',this)">Copy</button>
                 </div>
+
                 <div class="banker-detail-row">
                     <div class="banker-detail-icon" style="background:#fff7ed;">📍</div>
                     <div class="banker-detail-info">
                         <div class="banker-detail-label">Branch</div>
-                        <div class="banker-detail-value" style="font-family:Inter,sans-serif;">${bank.branch}</div>
+                        <div class="banker-detail-value">${bank.branch}</div>
                     </div>
                     <button class="copy-btn" onclick="copyField('${bank.branch}',this)">Copy</button>
                 </div>
+
             </div>
         </div>
     `).join('');
-
-    // Show banker info in results panel
-    document.getElementById('resultsSection').innerHTML = `
-        <div style="padding:20px;">
-            <div style="background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:1px solid #c7d2fe;border-radius:12px;padding:20px;margin-bottom:20px;">
-                <h3 style="font-size:1.1rem;font-weight:700;color:#3730a3;margin-bottom:8px;">🏛️ Company Bank Details</h3>
-                <p style="font-size:0.85rem;color:#4f46e5;">Quick reference for all company bank accounts. Click Copy to copy any detail.</p>
-            </div>
-            ${Object.entries(BANKS).map(([key, bank]) => `
-                <div style="background:white;border-radius:12px;border:1.5px solid #e2e8f0;margin-bottom:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
-                    <div style="background:${bank.headerGradient};padding:14px 20px;color:white;">
-                        <div style="font-size:1.2rem;font-weight:800;">${bank.name}</div>
-                    </div>
-                    <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
-                        ${[['Account Name', bank.acName], ['Account No.', bank.acNo], ['IFSC Code', bank.ifsc], ['Branch', bank.branch]].map(([label,val]) => `
-                            <div style="background:#f8fafc;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;">
-                                <div style="font-size:0.68rem;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">${label}</div>
-                                <div style="font-size:0.9rem;font-weight:700;color:#1e293b;font-family:'Courier New',monospace;">${val}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
 }
 
 function copyField(text, btn) {

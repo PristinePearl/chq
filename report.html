@@ -7,14 +7,6 @@
     <link rel="icon" href="https://www.pristinepearlpharma.in/images/alt-logo.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <!-- SheetJS for Excel export — loaded synchronously with fallback -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.full.min.js"></script>
-    <script>
-    // Fallback: if jsdelivr blocked/slow, load from unpkg
-    if (typeof XLSX === 'undefined') {
-        document.write('<scr' + 'ipt src="https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.full.min.js"><\/scr' + 'ipt>');
-    }
-    </script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -247,6 +239,322 @@
             .banker-cards-grid { grid-template-columns:1fr; }
         }
     </style>
+
+    <script>
+    // ============================================================
+    // Minimal self-contained XLSX writer (no CDN needed)
+    // Generates a styled .xlsx file using Office Open XML + JSZip-free approach
+    // Uses the Blob + base64 technique with a pre-built template structure
+    // ============================================================
+    const XLSXWriter = (function() {
+
+        function escXml(v) {
+            return String(v === null || v === undefined ? '' : v)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+        }
+
+        // Convert column index (0-based) to Excel letter (A, B, ... Z, AA ...)
+        function colLetter(n) {
+            let s = '';
+            n++;
+            while (n > 0) { n--; s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26); }
+            return s;
+        }
+
+        function cellAddr(r, c) { return colLetter(c) + (r + 1); }
+
+        // Minimal OPC package builder using only Blob + ArrayBuffer (no JSZip)
+        // We build a valid xlsx (which is a zip) using a pure-JS zip builder
+        function u8(str) {
+            const arr = [];
+            for (let i = 0; i < str.length; i++) {
+                const code = str.charCodeAt(i);
+                if (code < 128) { arr.push(code); }
+                else if (code < 2048) { arr.push(0xC0 | (code >> 6), 0x80 | (code & 63)); }
+                else { arr.push(0xE0 | (code >> 12), 0x80 | ((code >> 6) & 63), 0x80 | (code & 63)); }
+            }
+            return new Uint8Array(arr);
+        }
+
+        // CRC32 table
+        const crcTable = new Uint32Array(256);
+        for (let i = 0; i < 256; i++) {
+            let c = i;
+            for (let j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+            crcTable[i] = c;
+        }
+        function crc32(data) {
+            let crc = 0xFFFFFFFF;
+            for (let i = 0; i < data.length; i++) crc = crcTable[(crc ^ data[i]) & 0xFF] ^ (crc >>> 8);
+            return (crc ^ 0xFFFFFFFF) >>> 0;
+        }
+
+        function pack32LE(n) { return [n & 0xFF, (n >> 8) & 0xFF, (n >> 16) & 0xFF, (n >> 24) & 0xFF]; }
+        function pack16LE(n) { return [n & 0xFF, (n >> 8) & 0xFF]; }
+
+        function zipEntry(name, data) {
+            const nameBytes = u8(name);
+            const crc = crc32(data);
+            const size = data.length;
+            // Local file header
+            const lfh = [
+                0x50,0x4B,0x03,0x04, // signature
+                ...pack16LE(20),      // version needed
+                ...pack16LE(0),       // flags
+                ...pack16LE(0),       // compression (stored)
+                ...pack16LE(0),       // mod time
+                ...pack16LE(0),       // mod date
+                ...pack32LE(crc),
+                ...pack32LE(size),    // compressed size
+                ...pack32LE(size),    // uncompressed size
+                ...pack16LE(nameBytes.length),
+                ...pack16LE(0),       // extra field length
+                ...nameBytes
+            ];
+            return { lfh: new Uint8Array(lfh), data };
+        }
+
+        function buildZip(files) {
+            const parts = [];
+            const centralDir = [];
+            let offset = 0;
+
+            files.forEach(({ name, data }) => {
+                const nameBytes = u8(name);
+                const crc = crc32(data);
+                const size = data.length;
+                const lfh = new Uint8Array([
+                    0x50,0x4B,0x03,0x04,
+                    ...pack16LE(20), ...pack16LE(0), ...pack16LE(0),
+                    ...pack16LE(0), ...pack16LE(0),
+                    ...pack32LE(crc), ...pack32LE(size), ...pack32LE(size),
+                    ...pack16LE(nameBytes.length), ...pack16LE(0),
+                    ...nameBytes
+                ]);
+                parts.push(lfh, data);
+
+                centralDir.push(new Uint8Array([
+                    0x50,0x4B,0x01,0x02,
+                    ...pack16LE(20), ...pack16LE(20),
+                    ...pack16LE(0), ...pack16LE(0), ...pack16LE(0),
+                    ...pack16LE(0), ...pack16LE(0),
+                    ...pack32LE(crc), ...pack32LE(size), ...pack32LE(size),
+                    ...pack16LE(nameBytes.length), ...pack16LE(0), ...pack16LE(0),
+                    ...pack16LE(0), ...pack16LE(0),
+                    ...pack32LE(0),  // external attributes
+                    ...pack32LE(offset),
+                    ...nameBytes
+                ]));
+
+                offset += lfh.length + data.length;
+            });
+
+            const cdSize = centralDir.reduce((s, d) => s + d.length, 0);
+            const eocd = new Uint8Array([
+                0x50,0x4B,0x05,0x06,
+                ...pack16LE(0), ...pack16LE(0),
+                ...pack16LE(files.length), ...pack16LE(files.length),
+                ...pack32LE(cdSize),
+                ...pack32LE(offset),
+                ...pack16LE(0)
+            ]);
+
+            const allParts = [...parts, ...centralDir, eocd];
+            const total = allParts.reduce((s, p) => s + p.length, 0);
+            const buf = new Uint8Array(total);
+            let pos = 0;
+            allParts.forEach(p => { buf.set(p, pos); pos += p.length; });
+            return buf;
+        }
+
+        // Build the xlsx files
+        function buildXlsx(rows, styles, merges, colWidths, rowHeights) {
+            // Shared strings
+            const strings = [];
+            const strMap = {};
+            function ssi(s) {
+                const k = String(s);
+                if (strMap[k] === undefined) { strMap[k] = strings.length; strings.push(k); }
+                return strMap[k];
+            }
+
+            // Build cell XML
+            let sheetRows = '';
+            rows.forEach((row, ri) => {
+                const ht = rowHeights && rowHeights[ri] ? ` ht="${rowHeights[ri]}" customHeight="1"` : '';
+                sheetRows += `<row r="${ri+1}"${ht}>`;
+                row.forEach((val, ci) => {
+                    const addr = cellAddr(ri, ci);
+                    const styleIdx = (styles[ri] && styles[ri][ci] !== undefined) ? styles[ri][ci] : 0;
+                    if (val === '' || val === null || val === undefined) {
+                        sheetRows += `<c r="${addr}" s="${styleIdx}"/>`;
+                    } else if (typeof val === 'number') {
+                        sheetRows += `<c r="${addr}" s="${styleIdx}"><v>${val}</v></c>`;
+                    } else {
+                        const si = ssi(val);
+                        sheetRows += `<c r="${addr}" t="s" s="${styleIdx}"><v>${si}</v></c>`;
+                    }
+                });
+                sheetRows += '</row>';
+            });
+
+            // Merges
+            let mergeCells = '';
+            if (merges && merges.length) {
+                mergeCells = '<mergeCells count="' + merges.length + '">' +
+                    merges.map(m => `<mergeCell ref="${cellAddr(m.s.r,m.s.c)}:${cellAddr(m.e.r,m.e.c)}"/>`).join('') +
+                    '</mergeCells>';
+            }
+
+            // Col widths
+            let colsXml = '';
+            if (colWidths && colWidths.length) {
+                colsXml = '<cols>' + colWidths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('') + '</cols>';
+            }
+
+            const sheetXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+${colsXml}
+<sheetData>${sheetRows}</sheetData>
+${mergeCells}
+</worksheet>`;
+
+            const sst = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${strings.length}" uniqueCount="${strings.length}">
+${strings.map(s=>`<si><t xml:space="preserve">${escXml(s)}</t></si>`).join('')}
+</sst>`;
+
+            return { sheetXml, sst };
+        }
+
+        // Build styles.xml with all needed formats
+        function buildStyles(styleList) {
+            // styleList: array of {bold, sz, color, bg, halign, valign, underline, numFmt, borderBottom, borderTop}
+            // We'll enumerate unique fonts, fills, borders, numFmts
+
+            const fonts = [];
+            const fills = [
+                '<fill><patternFill patternType="none"/></fill>',
+                '<fill><patternFill patternType="gray125"/></fill>'
+            ];
+            const borders = ['<border><left/><right/><top/><bottom/><diagonal/></border>'];
+            const numFmts = [];
+            const xfs = [];
+
+            const fontMap = {}, fillMap = {}, borderMap = {}, numFmtMap = {};
+            let numFmtId = 164;
+
+            function getFont(s) {
+                const bold = s.bold ? '<b/>' : '';
+                const underline = s.underline ? '<u/>' : '';
+                const sz = s.sz || 10;
+                const color = s.color ? `<color rgb="${s.color}"/>` : '<color theme="1"/>';
+                const key = bold+'|'+underline+'|'+sz+'|'+s.color;
+                if (fontMap[key] === undefined) {
+                    fontMap[key] = fonts.length;
+                    fonts.push(`<font>${bold}${underline}<sz val="${sz}"/>${color}<name val="Calibri"/></font>`);
+                }
+                return fontMap[key];
+            }
+
+            function getFill(bg) {
+                if (!bg) return 0;
+                const key = bg;
+                if (fillMap[key] === undefined) {
+                    fillMap[key] = fills.length;
+                    fills.push(`<fill><patternFill patternType="solid"><fgColor rgb="${bg}"/></patternFill></fill>`);
+                }
+                return fillMap[key];
+            }
+
+            function getBorder(s) {
+                const bt = s.borderTop ? `<top style="medium"><color rgb="999999"/></top>` : '<top/>';
+                const bb = s.borderBottom ? `<bottom style="${s.borderBottom}"><color rgb="${s.borderBottomColor||'000000'}"/></bottom>` : '<bottom/>';
+                const key = bt+'|'+bb;
+                if (borderMap[key] === undefined) {
+                    borderMap[key] = borders.length;
+                    borders.push(`<border><left/><right/>${bt}${bb}<diagonal/></border>`);
+                }
+                return borderMap[key];
+            }
+
+            function getNumFmt(fmt) {
+                if (!fmt) return 0;
+                if (fmt === '#,##0.00') {
+                    // Use built-in id 4
+                    return 4;
+                }
+                const key = fmt;
+                if (numFmtMap[key] === undefined) {
+                    numFmtMap[key] = numFmtId;
+                    numFmts.push(`<numFmt numFmtId="${numFmtId}" formatCode="${escXml(fmt)}"/>`);
+                    numFmtId++;
+                }
+                return numFmtMap[key];
+            }
+
+            styleList.forEach(s => {
+                const fontId = getFont(s);
+                const fillId = getFill(s.bg);
+                const borderId = getBorder(s);
+                const numFmtId2 = getNumFmt(s.numFmt);
+                const ha = s.halign || 'general';
+                const va = s.valign || 'bottom';
+                const wrapText = s.wrapText ? '<wrapText/>' : '';
+                xfs.push(
+                    `<xf numFmtId="${numFmtId2}" fontId="${fontId}" fillId="${fillId}" borderId="${borderId}" xfId="0"` +
+                    ` applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1" applyNumberFormat="1">` +
+                    `<alignment horizontal="${ha}" vertical="${va}"${s.wrapText?' wrapText="1"':''}/>` +
+                    `</xf>`
+                );
+            });
+
+            const numFmtsXml = numFmts.length
+                ? `<numFmts count="${numFmts.length}">${numFmts.join('')}</numFmts>`
+                : '<numFmts count="0"/>';
+
+            return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+${numFmtsXml}
+<fonts count="${fonts.length}">${fonts.join('')}</fonts>
+<fills count="${fills.length}">${fills.join('')}</fills>
+<borders count="${borders.length}">${borders.join('')}</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs>
+</styleSheet>`;
+        }
+
+        function download(filename, data) {
+            const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename; a.style.display = 'none';
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+        }
+
+        return {
+            export: function(filename, rows, styleMatrix, merges, colWidths, rowHeights, styleList) {
+                const { sheetXml, sst } = buildXlsx(rows, styleMatrix, merges, colWidths, rowHeights);
+                const stylesXml = buildStyles(styleList);
+
+                const files = [
+                    { name: '_rels/.rels',                      data: u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>') },
+                    { name: 'xl/_rels/workbook.xml.rels',       data: u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>') },
+                    { name: 'xl/workbook.xml',                  data: u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Deposit Slip" sheetId="1" r:id="rId1"/></sheets></workbook>') },
+                    { name: 'xl/worksheets/sheet1.xml',         data: u8(sheetXml) },
+                    { name: 'xl/sharedStrings.xml',             data: u8(sst) },
+                    { name: 'xl/styles.xml',                    data: u8(stylesXml) },
+                    { name: '[Content_Types].xml',              data: u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>') }
+                ];
+
+                const zipData = buildZip(files);
+                download(filename, zipData);
+            }
+        };
+    })();
+    </script>
 </head>
 <body>
 
@@ -874,72 +1182,124 @@ function doPrint() {
 }
 
 function doExportExcel() {
-    // Guard: XLSX library must be loaded
-    if (typeof XLSX === 'undefined') {
-        alert('Excel library not loaded yet. Please wait a moment and try again, or check your internet connection.');
-        return;
-    }
     if (!currentPrintData || !currentPrintData.cheques.length) {
         alert('No data to export');
         return;
     }
-
     try {
         const data = currentPrintData.cheques;
         const bank = BANKS[selectedPrintBank];
-        const wb = XLSX.utils.book_new();
+        const bankColorRgb = (selectedPrintBank === 'DBS') ? 'FFCC0000' : 'FFF97316';
 
-        // Compute total
         let total = 0;
         data.forEach(row => {
-            total += parseFloat((row['Chq Value (\u20b9)'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+            total += parseFloat((row['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
         });
 
         const dateLabel = (currentPrintData.date && currentPrintData.date !== 'No Date')
             ? currentPrintData.date
             : new Date().toLocaleDateString('en-IN');
 
-        // BUILD ROWS
-        // Row 0: Bank name (merged A-F)
-        // Row 1: Subtitle (merged A-F)
-        // Row 2: Account No | Date | Bank Slip No
-        // Row 3: "Paid into..." (merged A-E) | SlipNo (F)
-        // Row 4: blank
-        // Row 5: Column headers (yellow)
-        // Row 6+: Data rows
-        // Last-1: blank
-        // Last: TOTAL row
+        // ---- Style definitions (indexed) ----
+        // 0 = default
+        // 1 = bank name (large, coloured, center)
+        // 2 = subtitle (bold, underline, center)
+        // 3 = meta bold left
+        // 4 = meta bold center
+        // 5 = meta bold right
+        // 6 = paid-into (bold left, bottom border)
+        // 7 = paid-into blank cells (bottom border only)
+        // 8 = paid-into right cell
+        // 9 = header cell (yellow bg, bold, center)
+        // 10 = data cell left
+        // 11 = data cell center (S.No)
+        // 12 = data cell right + number format (Amount)
+        // 13 = data cell left alt row
+        // 14 = data cell center alt row
+        // 15 = data cell right alt row + number
+        // 16 = total label (bold right)
+        // 17 = total amount (bold right, number, top border medium)
 
-        const ws_data = [];
-        ws_data.push([bank.name, '', '', '', '', '']);
-        ws_data.push(['STATEMENT OF CHEQUES / DRAFTS', '', '', '', '', '']);
-        ws_data.push(['Account No.: ' + bank.acNo, '', 'Date: ' + dateLabel, '', 'Bank Slip No: ___________', '']);
-        ws_data.push(['Paid into the credit of ' + bank.acName, '', '', '', '', 'SlipNo: ___________']);
-        ws_data.push(['', '', '', '', '', '']);
-        ws_data.push(['S.No.', 'Party Name', 'Chq.No', 'Chq.Date', 'Bank Name', 'Amount (\u20b9)']);
+        const styleList = [
+            // 0 default
+            { sz: 10 },
+            // 1 bank name
+            { bold: true, sz: 18, color: bankColorRgb, halign: 'center', valign: 'center' },
+            // 2 subtitle
+            { bold: true, sz: 12, underline: true, halign: 'center', valign: 'center' },
+            // 3 meta left
+            { bold: true, sz: 10, halign: 'left', valign: 'center' },
+            // 4 meta center
+            { bold: true, sz: 10, halign: 'center', valign: 'center' },
+            // 5 meta right
+            { bold: true, sz: 10, halign: 'right', valign: 'center' },
+            // 6 paid-into left (bottom border)
+            { bold: true, sz: 10, halign: 'left', valign: 'center', borderBottom: 'thin', borderBottomColor: '000000' },
+            // 7 paid-into blank (bottom border)
+            { borderBottom: 'thin', borderBottomColor: '000000' },
+            // 8 paid-into right
+            { bold: true, sz: 10, halign: 'right', valign: 'center', borderBottom: 'thin', borderBottomColor: '000000' },
+            // 9 header yellow
+            { bold: true, sz: 10, bg: 'FFFFFF00', halign: 'center', valign: 'center' },
+            // 10 data left white
+            { sz: 10, halign: 'left', valign: 'center' },
+            // 11 data center white (S.No)
+            { sz: 10, halign: 'center', valign: 'center' },
+            // 12 data right white (Amount)
+            { sz: 10, halign: 'right', valign: 'center', numFmt: '#,##0.00' },
+            // 13 data left alt (light grey)
+            { sz: 10, halign: 'left', valign: 'center', bg: 'FFF9FAFB' },
+            // 14 data center alt
+            { sz: 10, halign: 'center', valign: 'center', bg: 'FFF9FAFB' },
+            // 15 data right alt (Amount)
+            { sz: 10, halign: 'right', valign: 'center', numFmt: '#,##0.00', bg: 'FFF9FAFB' },
+            // 16 total label (bold, right, top border medium)
+            { bold: true, sz: 11, halign: 'right', valign: 'center', borderTop: true },
+            // 17 total amount
+            { bold: true, sz: 11, halign: 'right', valign: 'center', numFmt: '#,##0.00', borderTop: true },
+        ];
+
+        // ---- Build rows ----
+        const rows = [];
+        const styleMatrix = [];  // [row][col] = style index
+
+        function addRow(cells, styleRow) {
+            rows.push(cells);
+            styleMatrix.push(styleRow);
+        }
+
+        // Row 0: bank name
+        addRow([bank.name,'','','','',''], [1,1,1,1,1,1]);
+        // Row 1: subtitle
+        addRow(['STATEMENT OF CHEQUES / DRAFTS','','','','',''], [2,2,2,2,2,2]);
+        // Row 2: meta
+        addRow(['Account No.: '+bank.acNo, '', 'Date: '+dateLabel, '', 'Bank Slip No: ___________', ''], [3,3,4,4,5,5]);
+        // Row 3: paid into
+        addRow(['Paid into the credit of '+bank.acName,'','','','','SlipNo: ___________'], [6,7,7,7,7,8]);
+        // Row 4: blank
+        addRow(['','','','','',''], [0,0,0,0,0,0]);
+        // Row 5: headers
+        addRow(['S.No.','Party Name','Chq.No','Chq.Date','Bank Name','Amount (₹)'], [9,9,9,9,9,9]);
 
         const dataStartRow = 6;
-
         data.forEach((row, i) => {
-            const amt = parseFloat((row['Chq Value (\u20b9)'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
-            ws_data.push([
-                i + 1,
-                row['Party Name'] || '',
-                row['Chq Number'] || '',
-                row['Chq Date'] || '',
-                row['Bank Name (Party)'] || '',
-                amt
-            ]);
+            const amt = parseFloat((row['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+            const isAlt = i % 2 === 1;
+            const sL = isAlt ? 13 : 10;
+            const sC = isAlt ? 14 : 11;
+            const sR = isAlt ? 15 : 12;
+            addRow(
+                [i+1, row['Party Name']||'', row['Chq Number']||'', row['Chq Date']||'', row['Bank Name (Party)']||'', amt],
+                [sC, sL, sL, sL, sL, sR]
+            );
         });
 
-        ws_data.push(['', '', '', '', '', '']);
-        const totalRowIdx = ws_data.length;
-        ws_data.push(['', '', '', '', 'TOTAL', total]);
+        // blank before total
+        addRow(['','','','','',''], [0,0,0,0,0,0]);
+        // total
+        addRow(['','','','','TOTAL',total], [0,0,0,0,16,17]);
 
-        const ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-        // MERGES
-        ws['!merges'] = [
+        const merges = [
             { s:{r:0,c:0}, e:{r:0,c:5} },
             { s:{r:1,c:0}, e:{r:1,c:5} },
             { s:{r:2,c:0}, e:{r:2,c:1} },
@@ -948,122 +1308,21 @@ function doExportExcel() {
             { s:{r:3,c:0}, e:{r:3,c:4} }
         ];
 
-        // COLUMN WIDTHS
-        ws['!cols'] = [
-            { wch: 6  },
-            { wch: 32 },
-            { wch: 16 },
-            { wch: 13 },
-            { wch: 28 },
-            { wch: 16 }
-        ];
+        const colWidths = [6, 32, 16, 13, 28, 16];
+        const rowHeights = { 0: 36, 1: 28, 2: 20, 3: 20 };
 
-        // ROW HEIGHTS
-        ws['!rows'] = [
-            { hpt: 28 },
-            { hpt: 22 },
-            { hpt: 18 },
-            { hpt: 18 }
-        ];
-
-        // STYLE HELPER — creates cell if missing
-        function sc(addr, style) {
-            if (!ws[addr]) ws[addr] = { t: 'z', v: '' };
-            ws[addr].s = style;
-        }
-
-        const bankColorRgb = (selectedPrintBank === 'DBS') ? 'CC0000' : 'F97316';
-
-        // Row 0: Bank name
-        sc('A1', {
-            font: { bold: true, sz: 18, color: { rgb: bankColorRgb } },
-            alignment: { horizontal: 'center', vertical: 'center' }
-        });
-
-        // Row 1: Subtitle
-        sc('A2', {
-            font: { bold: true, sz: 12, underline: true },
-            alignment: { horizontal: 'center', vertical: 'center' }
-        });
-
-        // Row 2: Meta
-        sc('A3', { font: { bold: true, sz: 10 }, alignment: { horizontal: 'left',   vertical: 'center' } });
-        sc('C3', { font: { bold: true, sz: 10 }, alignment: { horizontal: 'center', vertical: 'center' } });
-        sc('E3', { font: { bold: true, sz: 10 }, alignment: { horizontal: 'right',  vertical: 'center' } });
-
-        // Row 3: Paid into + bottom border
-        const paidBorder = { bottom: { style: 'thin', color: { rgb: '000000' } } };
-        sc('A4', { font: { bold: true, sz: 10 }, alignment: { horizontal: 'left',  vertical: 'center' }, border: paidBorder });
-        ['B4','C4','D4','E4'].forEach(a => sc(a, { border: paidBorder }));
-        sc('F4', { font: { bold: true, sz: 10 }, alignment: { horizontal: 'right', vertical: 'center' }, border: paidBorder });
-
-        // Row 5 (index 5 = Excel row 6): Column headers — yellow
-        const hdrFill   = { patternType: 'solid', fgColor: { rgb: 'FFFF00' } };
-        const hdrBorder = {
-            top:    { style: 'thin', color: { rgb: '999999' } },
-            bottom: { style: 'thin', color: { rgb: '999999' } },
-            left:   { style: 'thin', color: { rgb: '999999' } },
-            right:  { style: 'thin', color: { rgb: '999999' } }
-        };
-        ['A6','B6','C6','D6','E6','F6'].forEach(a => {
-            sc(a, { font: { bold: true, sz: 10 }, fill: hdrFill, border: hdrBorder,
-                    alignment: { horizontal: 'center', vertical: 'center' } });
-        });
-
-        // Data rows
-        const thinBorder = {
-            top:    { style: 'thin', color: { rgb: 'CCCCCC' } },
-            bottom: { style: 'thin', color: { rgb: 'CCCCCC' } },
-            left:   { style: 'thin', color: { rgb: 'CCCCCC' } },
-            right:  { style: 'thin', color: { rgb: 'CCCCCC' } }
-        };
-        for (let r = dataStartRow; r < dataStartRow + data.length; r++) {
-            const isEven = (r - dataStartRow) % 2 === 1;
-            const rowFill = { patternType: 'solid', fgColor: { rgb: isEven ? 'F9FAFB' : 'FFFFFF' } };
-            for (let c = 0; c <= 5; c++) {
-                const addr = XLSX.utils.encode_cell({ r, c });
-                const isAmt = c === 5;
-                const isSno = c === 0;
-                sc(addr, {
-                    font: { sz: 10 },
-                    fill: rowFill,
-                    border: thinBorder,
-                    alignment: { horizontal: isAmt ? 'right' : isSno ? 'center' : 'left', vertical: 'center' },
-                    numFmt: isAmt ? '#,##0.00' : undefined
-                });
-                if (isAmt && ws[addr]) ws[addr].t = 'n';
-            }
-        }
-
-        // Total row
-        const totalBorder = {
-            top:    { style: 'medium', color: { rgb: '999999' } },
-            bottom: { style: 'thin',   color: { rgb: '999999' } },
-            left:   { style: 'thin',   color: { rgb: '999999' } },
-            right:  { style: 'thin',   color: { rgb: '999999' } }
-        };
-        for (let c = 0; c <= 5; c++) {
-            const addr = XLSX.utils.encode_cell({ r: totalRowIdx, c });
-            const isAmt   = c === 5;
-            const isLabel = c === 4;
-            sc(addr, {
-                font: { bold: true, sz: 11 },
-                border: totalBorder,
-                alignment: { horizontal: (isAmt || isLabel) ? 'right' : 'left', vertical: 'center' },
-                numFmt: isAmt ? '#,##0.00' : undefined
-            });
-            if (isAmt && ws[addr]) ws[addr].t = 'n';
-        }
-
-        XLSX.utils.book_append_sheet(wb, ws, 'Deposit Slip');
         const safeDate = dateLabel.replace(/\//g, '-');
-        XLSX.writeFile(wb, 'Deposit_Slip_' + selectedPrintBank + '_' + safeDate + '.xlsx');
+        XLSXWriter.export(
+            'Deposit_Slip_' + selectedPrintBank + '_' + safeDate + '.xlsx',
+            rows, styleMatrix, merges, colWidths, rowHeights, styleList
+        );
 
     } catch (err) {
         console.error('Excel export error:', err);
         alert('Export failed: ' + err.message);
     }
 }
+
 // ==========================================
 // REPORT HANDLERS
 // ==========================================

@@ -874,35 +874,66 @@ function doExportExcel() {
     }
 
     const data = currentPrintData.cheques;
+    const bank = BANKS[selectedPrintBank];
     const wb = XLSX.utils.book_new();
+
+    // ---- compute total ----
+    let total = 0;
+    data.forEach(row => {
+        total += parseFloat((row['Chq Value (₹)'] || "0").replace(/[^0-9.-]+/g, "")) || 0;
+    });
+
+    const dateLabel = currentPrintData.date !== 'No Date'
+        ? currentPrintData.date
+        : new Date().toLocaleDateString('en-IN');
+
+    // ===== BUILD ROWS =====
+    // Row 0  : Bank name  (merged A–F)
+    // Row 1  : "STATEMENT OF CHEQUES / DRAFTS"  (merged)
+    // Row 2  : Account No | Date label | Bank Slip No (split across cols)
+    // Row 3  : "Paid into…" label (merged A–E)  | SlipNo placeholder (F)
+    // Row 4  : blank separator
+    // Row 5  : Column headers (S.No | Party Name | Chq No | Chq Date | Bank | Amount)
+    // Row 6+ : Data rows
+    // Last-1 : blank
+    // Last   : TOTAL row
 
     let ws_data = [];
 
-    // ===== HEADER =====
-    ws_data.push(["PRISTINE PEARL PHARMA PVT LTD"]);
-    ws_data.push(["CHEQUE DEPOSIT SLIP"]);
-    ws_data.push([`DATE: ${currentPrintData.date}`]);
-    ws_data.push([]);
+    // Row 0 – bank name
+    ws_data.push([bank.name, "", "", "", "", ""]);
 
-    // ===== TABLE HEADER =====
+    // Row 1 – subtitle
+    ws_data.push(["STATEMENT OF CHEQUES / DRAFTS", "", "", "", "", ""]);
+
+    // Row 2 – meta  (Account No | (blank) | Date | (blank) | Bank Slip No | (blank))
     ws_data.push([
-        "S.NO",
-        "PARTY NAME",
-        "CHEQUE NO",
-        "CHEQUE DATE",
-        "BANK NAME",
-        "AMOUNT (₹)"
+        `Account No.: ${bank.acNo}`,
+        "",
+        `Date: ${dateLabel}`,
+        "",
+        "Bank Slip No: ___________",
+        ""
     ]);
 
-    let total = 0;
+    // Row 3 – "Paid into…"
+    ws_data.push([
+        `Paid into the credit of ${bank.acName}`,
+        "", "", "", "",
+        "SlipNo: ___________"
+    ]);
 
+    // Row 4 – blank separator
+    ws_data.push(["", "", "", "", "", ""]);
+
+    // Row 5 – column headers
+    ws_data.push(["S.No.", "Party Name", "Chq.No", "Chq.Date", "Bank Name", "Amount (₹)"]);
+
+    const dataStartRow = ws_data.length; // = 6
+
+    // Data rows
     data.forEach((row, i) => {
-        const amt = parseFloat(
-            (row['Chq Value (₹)'] || "0").replace(/[^0-9.-]+/g, "")
-        ) || 0;
-
-        total += amt;
-
+        const amt = parseFloat((row['Chq Value (₹)'] || "0").replace(/[^0-9.-]+/g, "")) || 0;
         ws_data.push([
             i + 1,
             row['Party Name'] || "",
@@ -913,91 +944,169 @@ function doExportExcel() {
         ]);
     });
 
-    ws_data.push([]);
+    // Blank before total
+    ws_data.push(["", "", "", "", "", ""]);
+
+    // Total row
+    const totalRowIdx = ws_data.length;
     ws_data.push(["", "", "", "", "TOTAL", total]);
 
+    // ===== CREATE SHEET =====
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
 
-    // ===== MERGE CELLS =====
+    // ===== MERGES =====
     ws["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
-        { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } }
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },   // bank name
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },   // subtitle
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } },   // account no
+        { s: { r: 2, c: 2 }, e: { r: 2, c: 3 } },   // date
+        { s: { r: 2, c: 4 }, e: { r: 2, c: 5 } },   // bank slip no
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 4 } },   // paid-into label
     ];
 
-    // ===== COLUMN WIDTH =====
+    // ===== COLUMN WIDTHS =====
     ws["!cols"] = [
-        { wch: 6 },
-        { wch: 30 },
-        { wch: 18 },
-        { wch: 15 },
-        { wch: 25 },
-        { wch: 15 }
+        { wch: 6 },   // S.No
+        { wch: 32 },  // Party Name
+        { wch: 16 },  // Chq No
+        { wch: 13 },  // Chq Date
+        { wch: 28 },  // Bank Name
+        { wch: 16 }   // Amount
     ];
 
-    // ===== STYLE FUNCTION =====
-    function styleCell(cell, style) {
-        if (!ws[cell]) return;
+    // ===== ROW HEIGHTS =====
+    ws["!rows"] = [];
+    ws["!rows"][0] = { hpt: 28 };
+    ws["!rows"][1] = { hpt: 22 };
+    ws["!rows"][2] = { hpt: 18 };
+    ws["!rows"][3] = { hpt: 18 };
+
+    // ===== STYLE HELPER =====
+    function sc(cell, style) {
+        if (!ws[cell]) {
+            // create empty cell so style applies
+            ws[cell] = { t: 'z', v: '' };
+        }
         ws[cell].s = style;
     }
 
-    // ===== TITLE STYLE =====
-    const titleStyle = {
-        font: { bold: true, sz: 16 },
-        alignment: { horizontal: "center" }
+    // Determine bank color (red for DBS, orange for ICICI)
+    const bankColorRgb = selectedPrintBank === 'DBS' ? 'CC0000' : 'F97316';
+
+    // ------ Row 0: Bank Name ------
+    sc("A1", {
+        font: { bold: true, sz: 18, color: { rgb: bankColorRgb } },
+        alignment: { horizontal: "center", vertical: "center" }
+    });
+
+    // ------ Row 1: Subtitle ------
+    sc("A2", {
+        font: { bold: true, sz: 12, underline: true },
+        alignment: { horizontal: "center", vertical: "center" }
+    });
+
+    // ------ Row 2: Meta row ------
+    const metaStyle = { font: { bold: true, sz: 10 }, alignment: { horizontal: "left", vertical: "center" } };
+    sc("A3", metaStyle);
+    sc("C3", { ...metaStyle, alignment: { horizontal: "center" } });
+    sc("E3", { ...metaStyle, alignment: { horizontal: "right" } });
+
+    // ------ Row 3: Paid into ------
+    sc("A4", {
+        font: { bold: true, sz: 10 },
+        alignment: { horizontal: "left", vertical: "center" },
+        border: { bottom: { style: "thin", color: { rgb: "000000" } } }
+    });
+    sc("F4", {
+        font: { bold: true, sz: 10 },
+        alignment: { horizontal: "right" },
+        border: { bottom: { style: "thin", color: { rgb: "000000" } } }
+    });
+    // apply bottom border to merged cols too
+    ["B4","C4","D4","E4"].forEach(cell => {
+        sc(cell, { border: { bottom: { style: "thin", color: { rgb: "000000" } } } });
+    });
+
+    // ------ Row 5 (index 5): Column Headers – Yellow ------
+    const hdrStyle = {
+        font: { bold: true, sz: 10 },
+        fill: { patternType: "solid", fgColor: { rgb: "FFFF00" } },
+        border: {
+            top: { style: "thin", color: { rgb: "999999" } },
+            bottom: { style: "thin", color: { rgb: "999999" } },
+            left: { style: "thin", color: { rgb: "999999" } },
+            right: { style: "thin", color: { rgb: "999999" } }
+        },
+        alignment: { horizontal: "center", vertical: "center" }
+    };
+    ["A6","B6","C6","D6","E6","F6"].forEach(cell => sc(cell, hdrStyle));
+
+    // ------ Data Rows (index 6 to dataStartRow + data.length - 1) ------
+    const thinBorder = {
+        top: { style: "thin", color: { rgb: "CCCCCC" } },
+        bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+        left: { style: "thin", color: { rgb: "CCCCCC" } },
+        right: { style: "thin", color: { rgb: "CCCCCC" } }
     };
 
-    styleCell("A1", titleStyle);
-    styleCell("A2", { font: { bold: true, sz: 12 }, alignment: { horizontal: "center" } });
-    styleCell("A3", { font: { bold: true }, alignment: { horizontal: "center" } });
+    for (let r = dataStartRow; r < dataStartRow + data.length; r++) {
+        const isEven = (r - dataStartRow) % 2 === 1;
+        const rowFill = isEven
+            ? { patternType: "solid", fgColor: { rgb: "F9FAFB" } }
+            : { patternType: "solid", fgColor: { rgb: "FFFFFF" } };
 
-    // ===== HEADER STYLE (YELLOW) =====
-    for (let c = 0; c <= 5; c++) {
-        const cell = XLSX.utils.encode_cell({ r: 4, c });
-        styleCell(cell, {
-            font: { bold: true },
-            fill: { fgColor: { rgb: "FFFF00" } },
-            border: {
-                top: { style: "thin" },
-                bottom: { style: "thin" },
-                left: { style: "thin" },
-                right: { style: "thin" }
-            },
-            alignment: { horizontal: "center" }
-        });
-    }
-
-    // ===== DATA BORDER =====
-    for (let r = 5; r < ws_data.length; r++) {
         for (let c = 0; c <= 5; c++) {
             const cell = XLSX.utils.encode_cell({ r, c });
-            styleCell(cell, {
-                border: {
-                    top: { style: "thin" },
-                    bottom: { style: "thin" },
-                    left: { style: "thin" },
-                    right: { style: "thin" }
-                }
+            const isAmt = c === 5;
+            const isSno = c === 0;
+            sc(cell, {
+                font: { sz: 10 },
+                fill: rowFill,
+                border: thinBorder,
+                alignment: {
+                    horizontal: isAmt ? "right" : isSno ? "center" : "left",
+                    vertical: "center"
+                },
+                numFmt: isAmt ? '#,##0.00' : undefined
             });
         }
     }
 
-    // ===== TOTAL ROW STYLE =====
-    const lastRow = ws_data.length - 1;
-
+    // ------ Total Row ------
+    const totalStyle = {
+        font: { bold: true, sz: 11 },
+        border: {
+            top: { style: "medium", color: { rgb: "999999" } },
+            bottom: { style: "thin", color: { rgb: "999999" } },
+            left: { style: "thin", color: { rgb: "999999" } },
+            right: { style: "thin", color: { rgb: "999999" } }
+        }
+    };
     for (let c = 0; c <= 5; c++) {
-        const cell = XLSX.utils.encode_cell({ r: lastRow, c });
-        styleCell(cell, {
-            font: { bold: true },
-            border: {
-                top: { style: "medium" }
-            }
+        const cell = XLSX.utils.encode_cell({ r: totalRowIdx, c });
+        const isAmt = c === 5;
+        const isLabel = c === 4;
+        sc(cell, {
+            ...totalStyle,
+            alignment: {
+                horizontal: isAmt || isLabel ? "right" : "left",
+                vertical: "center"
+            },
+            numFmt: isAmt ? '#,##0.00' : undefined
         });
     }
 
+    // ===== FORMAT AMOUNT CELLS AS NUMBER =====
+    for (let r = dataStartRow; r < dataStartRow + data.length; r++) {
+        const cell = XLSX.utils.encode_cell({ r, c: 5 });
+        if (ws[cell]) { ws[cell].t = 'n'; }
+    }
+    const totalAmtCell = XLSX.utils.encode_cell({ r: totalRowIdx, c: 5 });
+    if (ws[totalAmtCell]) { ws[totalAmtCell].t = 'n'; }
+
     // ===== EXPORT =====
     XLSX.utils.book_append_sheet(wb, ws, "Deposit Slip");
-    XLSX.writeFile(wb, "Deposit_Slip.xlsx");
+    XLSX.writeFile(wb, `Deposit_Slip_${selectedPrintBank}_${dateLabel.replace(/\//g,'-')}.xlsx`);
 }
 // ==========================================
 // REPORT HANDLERS

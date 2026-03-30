@@ -7,7 +7,6 @@
     <link rel="icon" href="https://www.pristinepearlpharma.in/images/alt-logo.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1183,141 +1182,142 @@ function doPrint() {
 }
 
 function doExportExcel() {
-
-    if (!currentPrintData) {
-        alert("No data to export");
+    if (!currentPrintData || !currentPrintData.cheques.length) {
+        alert('No data to export');
         return;
     }
+    try {
+        const data = currentPrintData.cheques;
+        const bank = BANKS[selectedPrintBank];
+        const bankColorRgb = (selectedPrintBank === 'DBS') ? 'FFCC0000' : 'FFF97316';
 
-    const bank = BANKS[selectedPrintBank];
-    const data = currentPrintData.cheques;
+        let total = 0;
+        data.forEach(row => {
+            total += parseFloat((row['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+        });
 
-    let row = 0;
-    const ws_data = [];
+        const dateLabel = (currentPrintData.date && currentPrintData.date !== 'No Date')
+            ? currentPrintData.date
+            : new Date().toLocaleDateString('en-IN');
 
-    // ===== TITLE =====
-    ws_data[row++] = [bank.name];
-    ws_data[row++] = ["DEPOSIT SLIP"];
+        // ---- Style definitions (indexed) ----
+        // 0 = default
+        // 1 = bank name (large, coloured, center)
+        // 2 = subtitle (bold, underline, center)
+        // 3 = meta bold left
+        // 4 = meta bold center
+        // 5 = meta bold right
+        // 6 = paid-into (bold left, bottom border)
+        // 7 = paid-into blank cells (bottom border only)
+        // 8 = paid-into right cell
+        // 9 = header cell (yellow bg, bold, center)
+        // 10 = data cell left
+        // 11 = data cell center (S.No)
+        // 12 = data cell right + number format (Amount)
+        // 13 = data cell left alt row
+        // 14 = data cell center alt row
+        // 15 = data cell right alt row + number
+        // 16 = total label (bold right)
+        // 17 = total amount (bold right, number, top border medium)
 
-    // ===== META =====
-    ws_data[row++] = ["DATE :", currentPrintData.date, "", "", "BRANCH :", bank.branch];
-    ws_data[row++] = ["A/C NAME :", bank.acName];
-    ws_data[row++] = ["A/C NO :", bank.acNo];
-
-    // ===== TABLE HEADER =====
-    ws_data[row++] = [];
-    ws_data[row++] = ["S.NO", "CHEQUE NO", "PARTY NAME", "BANK", "AMOUNT"];
-
-    let total = 0;
-
-    data.forEach((chq, i) => {
-        const amt = parseFloat(chq.amount || 0);
-        total += amt;
-
-        ws_data[row++] = [
-            i + 1,
-            chq.chequeNo,
-            chq.party,
-            chq.bank,
-            amt
+        const styleList = [
+            // 0 default
+            { sz: 10 },
+            // 1 bank name
+            { bold: true, sz: 18, color: bankColorRgb, halign: 'center', valign: 'center' },
+            // 2 subtitle
+            { bold: true, sz: 12, underline: true, halign: 'center', valign: 'center' },
+            // 3 meta left
+            { bold: true, sz: 10, halign: 'left', valign: 'center' },
+            // 4 meta center
+            { bold: true, sz: 10, halign: 'center', valign: 'center' },
+            // 5 meta right
+            { bold: true, sz: 10, halign: 'right', valign: 'center' },
+            // 6 paid-into left (bottom border)
+            { bold: true, sz: 10, halign: 'left', valign: 'center', borderBottom: 'thin', borderBottomColor: '000000' },
+            // 7 paid-into blank (bottom border)
+            { borderBottom: 'thin', borderBottomColor: '000000' },
+            // 8 paid-into right
+            { bold: true, sz: 10, halign: 'right', valign: 'center', borderBottom: 'thin', borderBottomColor: '000000' },
+            // 9 header yellow
+            { bold: true, sz: 10, bg: 'FFFFFF00', halign: 'center', valign: 'center' },
+            // 10 data left white
+            { sz: 10, halign: 'left', valign: 'center' },
+            // 11 data center white (S.No)
+            { sz: 10, halign: 'center', valign: 'center' },
+            // 12 data right white (Amount)
+            { sz: 10, halign: 'right', valign: 'center', numFmt: '#,##0.00' },
+            // 13 data left alt (light grey)
+            { sz: 10, halign: 'left', valign: 'center', bg: 'FFF9FAFB' },
+            // 14 data center alt
+            { sz: 10, halign: 'center', valign: 'center', bg: 'FFF9FAFB' },
+            // 15 data right alt (Amount)
+            { sz: 10, halign: 'right', valign: 'center', numFmt: '#,##0.00', bg: 'FFF9FAFB' },
+            // 16 total label (bold, right, top border medium)
+            { bold: true, sz: 11, halign: 'right', valign: 'center', borderTop: true },
+            // 17 total amount
+            { bold: true, sz: 11, halign: 'right', valign: 'center', numFmt: '#,##0.00', borderTop: true },
         ];
-    });
 
-    // ===== TOTAL =====
-    ws_data[row++] = [];
-    ws_data[row++] = ["", "", "", "TOTAL", total];
+        // ---- Build rows ----
+        const rows = [];
+        const styleMatrix = [];  // [row][col] = style index
 
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-    // ===== MERGES =====
-    ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Bank Name
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }, // Deposit Slip
-        { s: { r: 3, c: 1 }, e: { r: 3, c: 4 } }, // AC Name
-        { s: { r: 4, c: 1 }, e: { r: 4, c: 4 } }  // AC No
-    ];
-
-    // ===== COLUMN WIDTH =====
-    ws['!cols'] = [
-        { wch: 8 },
-        { wch: 18 },
-        { wch: 35 },
-        { wch: 20 },
-        { wch: 15 }
-    ];
-
-    // ===== STYLING =====
-    function setStyle(cell, style) {
-        if (!ws[cell]) return;
-        ws[cell].s = style;
-    }
-
-    const center = { alignment: { horizontal: "center", vertical: "center" } };
-    const bold = { font: { bold: true } };
-
-    const titleStyle = {
-        font: { bold: true, sz: 16, color: { rgb: "CC0000" } },
-        alignment: { horizontal: "center" }
-    };
-
-    const headerStyle = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: "FFFF00" } },
-        alignment: { horizontal: "center" },
-        border: {
-            top: { style: "thin" },
-            bottom: { style: "thin" },
-            left: { style: "thin" },
-            right: { style: "thin" }
+        function addRow(cells, styleRow) {
+            rows.push(cells);
+            styleMatrix.push(styleRow);
         }
-    };
 
-    const cellBorder = {
-        border: {
-            top: { style: "thin" },
-            bottom: { style: "thin" },
-            left: { style: "thin" },
-            right: { style: "thin" }
-        }
-    };
+        // Row 0: bank name
+        addRow([bank.name,'','','','',''], [1,1,1,1,1,1]);
+        // Row 1: subtitle
+        addRow(['STATEMENT OF CHEQUES / DRAFTS','','','','',''], [2,2,2,2,2,2]);
+        // Row 2: meta
+        addRow(['Account No.: '+bank.acNo, '', 'Date: '+dateLabel, '', 'Bank Slip No: ___________', ''], [3,3,4,4,5,5]);
+        // Row 3: paid into
+        addRow(['Paid into the credit of '+bank.acName,'','','','','SlipNo: ___________'], [6,7,7,7,7,8]);
+        // Row 4: blank
+        addRow(['','','','','',''], [0,0,0,0,0,0]);
+        // Row 5: headers
+        addRow(['S.No.','Party Name','Chq.No','Chq.Date','Bank Name','Amount (₹)'], [9,9,9,9,9,9]);
 
-    // Title styles
-    setStyle("A1", titleStyle);
-    setStyle("A2", { ...titleStyle, font: { bold: true, sz: 12 } });
-
-    // Header row
-    ["A7","B7","C7","D7","E7"].forEach(c => setStyle(c, headerStyle));
-
-    // Data rows
-    for (let i = 8; i < 8 + data.length; i++) {
-        ["A","B","C","D","E"].forEach(col => {
-            setStyle(col + i, cellBorder);
+        const dataStartRow = 6;
+        data.forEach((row, i) => {
+            const amt = parseFloat((row['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+            const isAlt = i % 2 === 1;
+            const sL = isAlt ? 13 : 10;
+            const sC = isAlt ? 14 : 11;
+            const sR = isAlt ? 15 : 12;
+            addRow(
+                [i+1, row['Party Name']||'', row['Chq Number']||'', row['Chq Date']||'', row['Bank Name (Party)']||'', amt],
+                [sC, sL, sL, sL, sL, sR]
+            );
         });
-    }
 
-    // Total row
-    const totalRow = 8 + data.length + 1;
-    ["A","B","C","D","E"].forEach(col => {
-        setStyle(col + totalRow, {
-            ...cellBorder,
-            font: { bold: true }
-        });
-    });
+        // blank before total
+        addRow(['','','','','',''], [0,0,0,0,0,0]);
+        // total
+        addRow(['','','','','TOTAL',total], [0,0,0,0,16,17]);
 
-    // Align amount column right
-    for (let i = 8; i < 8 + data.length; i++) {
-        setStyle("E" + i, {
-            ...cellBorder,
-            alignment: { horizontal: "right" }
-        });
-    }
+        const merges = [
+            { s:{r:0,c:0}, e:{r:0,c:5} },
+            { s:{r:1,c:0}, e:{r:1,c:5} },
+            { s:{r:2,c:0}, e:{r:2,c:1} },
+            { s:{r:2,c:2}, e:{r:2,c:3} },
+            { s:{r:2,c:4}, e:{r:2,c:5} },
+            { s:{r:3,c:0}, e:{r:3,c:4} }
+        ];
 
-    // ===== CREATE FILE =====
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Deposit Slip");
+        const colWidths = [6, 32, 16, 13, 28, 16];
+        const rowHeights = { 0: 36, 1: 28, 2: 20, 3: 20 };
 
-    XLSX.writeFile(wb, "Deposit_Slip.xlsx");
-} catch (err) {
+        const safeDate = dateLabel.replace(/\//g, '-');
+        XLSXWriter.export(
+            'Deposit_Slip_' + selectedPrintBank + '_' + safeDate + '.xlsx',
+            rows, styleMatrix, merges, colWidths, rowHeights, styleList
+        );
+
+    } catch (err) {
         console.error('Excel export error:', err);
         alert('Export failed: ' + err.message);
     }

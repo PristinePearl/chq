@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <!-- SheetJS for Excel export -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.full.min.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -868,53 +868,137 @@ function doPrint() {
 }
 
 function doExportExcel() {
-    if (!currentPrintData) return;
-    const bank = BANKS[selectedPrintBank];
-    const cheques = currentPrintData.cheques;
-    const today = currentPrintData.date !== 'No Date' ? currentPrintData.date : new Date().toLocaleDateString('en-IN');
-    const total = cheques.reduce((s,r) => s + (parseFloat(r['Chq Value (₹)']?.replace(/[^0-9.-]+/g,'')||'0')||0), 0);
+    if (!currentPrintData || !currentPrintData.cheques.length) {
+        alert("No data to export");
+        return;
+    }
 
+    const data = currentPrintData.cheques;
     const wb = XLSX.utils.book_new();
 
-    // Build worksheet data
-    const wsData = [];
-    wsData.push([bank.name]);
-    wsData.push(['STATEMENT OF CHEQUES / DRAFTS']);
-    wsData.push([]);
-    wsData.push([`Account No.: ${bank.acNo}`, '', `Date: ${today}`, '', `Bank Slip No : `, '']);
-    wsData.push([`Paid into the credit of PRISTINE PEARL PHARMA PVT.LTD.`, '', `SlipNo: `, '']);
-    wsData.push([]);
-    wsData.push(['S.No.', 'Chq.No', 'Chq.Date', 'Party Name', 'Bank Name', 'Amount']);
-    cheques.forEach((r, i) => {
-        const v = parseFloat(r['Chq Value (₹)']?.replace(/[^0-9.-]+/g,'')||'0')||0;
-        wsData.push([i+1, r['Chq Number']||'', r['Chq Date']||'', r['Party Name']||'', r['Bank Name (Party)']||'', v]);
+    let ws_data = [];
+
+    // ===== HEADER =====
+    ws_data.push(["PRISTINE PEARL PHARMA PVT LTD"]);
+    ws_data.push(["CHEQUE DEPOSIT SLIP"]);
+    ws_data.push([`DATE: ${currentPrintData.date}`]);
+    ws_data.push([]);
+
+    // ===== TABLE HEADER =====
+    ws_data.push([
+        "S.NO",
+        "PARTY NAME",
+        "CHEQUE NO",
+        "CHEQUE DATE",
+        "BANK NAME",
+        "AMOUNT (₹)"
+    ]);
+
+    let total = 0;
+
+    data.forEach((row, i) => {
+        const amt = parseFloat(
+            (row['Chq Value (₹)'] || "0").replace(/[^0-9.-]+/g, "")
+        ) || 0;
+
+        total += amt;
+
+        ws_data.push([
+            i + 1,
+            row['Party Name'] || "",
+            row['Chq Number'] || "",
+            row['Chq Date'] || "",
+            row['Bank Name (Party)'] || "",
+            amt
+        ]);
     });
-    wsData.push(['', '', '', '', 'TOTAL', total]);
 
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws_data.push([]);
+    ws_data.push(["", "", "", "", "TOTAL", total]);
 
-    // Column widths
-    ws['!cols'] = [{wch:6},{wch:14},{wch:12},{wch:35},{wch:25},{wch:15}];
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
 
-    // Merge header cells
-    ws['!merges'] = [
-        {s:{r:0,c:0},e:{r:0,c:5}}, // Bank name
-        {s:{r:1,c:0},e:{r:1,c:5}}, // Statement title
-        {s:{r:3,c:0},e:{r:3,c:1}}, // Account no
-        {s:{r:4,c:0},e:{r:4,c:3}}, // Paid into
+    // ===== MERGE CELLS =====
+    ws["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } }
     ];
 
-    // Style cells
-    const titleCell = XLSX.utils.encode_cell({r:0,c:0});
-    if(ws[titleCell]) ws[titleCell].s = { font:{bold:true,sz:18,color:{rgb:'CC0000'}}, alignment:{horizontal:'center'} };
-    const subCell = XLSX.utils.encode_cell({r:1,c:0});
-    if(ws[subCell]) ws[subCell].s = { font:{bold:true,sz:12,underline:true}, alignment:{horizontal:'center'} };
+    // ===== COLUMN WIDTH =====
+    ws["!cols"] = [
+        { wch: 6 },
+        { wch: 30 },
+        { wch: 18 },
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 15 }
+    ];
 
-    XLSX.utils.book_append_sheet(wb, ws, 'Deposit Slip');
-    XLSX.writeFile(wb, `Deposit_Slip_${selectedPrintBank}_${today.replace(/\//g,'-')}.xlsx`);
-    closePrintModal();
+    // ===== STYLE FUNCTION =====
+    function styleCell(cell, style) {
+        if (!ws[cell]) return;
+        ws[cell].s = style;
+    }
+
+    // ===== TITLE STYLE =====
+    const titleStyle = {
+        font: { bold: true, sz: 16 },
+        alignment: { horizontal: "center" }
+    };
+
+    styleCell("A1", titleStyle);
+    styleCell("A2", { font: { bold: true, sz: 12 }, alignment: { horizontal: "center" } });
+    styleCell("A3", { font: { bold: true }, alignment: { horizontal: "center" } });
+
+    // ===== HEADER STYLE (YELLOW) =====
+    for (let c = 0; c <= 5; c++) {
+        const cell = XLSX.utils.encode_cell({ r: 4, c });
+        styleCell(cell, {
+            font: { bold: true },
+            fill: { fgColor: { rgb: "FFFF00" } },
+            border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+            },
+            alignment: { horizontal: "center" }
+        });
+    }
+
+    // ===== DATA BORDER =====
+    for (let r = 5; r < ws_data.length; r++) {
+        for (let c = 0; c <= 5; c++) {
+            const cell = XLSX.utils.encode_cell({ r, c });
+            styleCell(cell, {
+                border: {
+                    top: { style: "thin" },
+                    bottom: { style: "thin" },
+                    left: { style: "thin" },
+                    right: { style: "thin" }
+                }
+            });
+        }
+    }
+
+    // ===== TOTAL ROW STYLE =====
+    const lastRow = ws_data.length - 1;
+
+    for (let c = 0; c <= 5; c++) {
+        const cell = XLSX.utils.encode_cell({ r: lastRow, c });
+        styleCell(cell, {
+            font: { bold: true },
+            border: {
+                top: { style: "medium" }
+            }
+        });
+    }
+
+    // ===== EXPORT =====
+    XLSX.utils.book_append_sheet(wb, ws, "Deposit Slip");
+    XLSX.writeFile(wb, "Deposit_Slip.xlsx");
 }
-
 // ==========================================
 // REPORT HANDLERS
 // ==========================================

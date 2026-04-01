@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <!-- SheetJS: reliable, Excel-compatible XLSX generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -860,144 +860,214 @@ function doPrint() {
 // Excel opens without any format errors.
 // ==========================================
 function doExportExcel() {
-    if (!currentPrintData || !currentPrintData.cheques.length) {
-        alert('No data to export');
+    if (!currentPrintData || !currentPrintData.cheques || !currentPrintData.cheques.length) {
+        alert('No data to export.');
         return;
     }
 
-    const data   = currentPrintData.cheques;
-    const bank   = BANKS[selectedPrintBank];
-    const dateLabel = (currentPrintData.date && currentPrintData.date !== 'No Date')
-        ? currentPrintData.date
-        : new Date().toLocaleDateString('en-IN');
+    try {
+        const bank    = BANKS[selectedPrintBank];
+        const cheques = currentPrintData.cheques;
+        const dateLabel = (currentPrintData.date && currentPrintData.date !== 'No Date')
+            ? currentPrintData.date
+            : new Date().toLocaleDateString('en-IN');
 
-    const isDBS = (selectedPrintBank === 'DBS');
-    const bankFgColor = isDBS ? 'FFCC0000' : 'FFFF6600'; // ARGB
+        // ── helpers ──────────────────────────────────────────────
+        // border object factory
+        const bdr = (style) => ({
+            top:    { style },
+            bottom: { style },
+            left:   { style },
+            right:  { style }
+        });
+        const bdrOnly = (sides, style) => {
+            const o = {};
+            sides.forEach(s => { o[s] = { style }; });
+            return o;
+        };
 
-    // ---- Helper: build a cell object with style ----
-    function cell(v, s) { return { v, s, t: typeof v === 'number' ? 'n' : 's' }; }
+        // cell factory:  makeCell(value, fontOpts, fillRgb, borderObj, alignH, numFmt)
+        function makeCell(v, font = {}, fillRgb = null, border = null, alignH = 'left', numFmt = null) {
+            const cell = { v, t: typeof v === 'number' ? 'n' : 's' };
+            const s = {};
 
-    // ---- Style definitions ----
-    // SheetJS Pro supports full styles; community version supports basic.
-    // We use the styles property via sheet_add_aoa and cell-level style objects.
-    // For maximum compatibility we'll use the XLSX.utils approach + manual styles.
+            // font
+            s.font = Object.assign({ name: 'Calibri', sz: 11 }, font);
 
-    const wb = XLSX.utils.book_new();
-    const ws = {};
+            // fill
+            if (fillRgb) {
+                s.fill = { patternType: 'solid', fgColor: { rgb: fillRgb } };
+            }
 
-    // Column widths (chars)
-    ws['!cols'] = [
-        { wch: 6 },   // A - S.No
-        { wch: 30 },  // B - Party Name
-        { wch: 15 },  // C - Chq No
-        { wch: 13 },  // D - Chq Date
-        { wch: 28 },  // E - Bank Name
-        { wch: 16 },  // F - Amount
-    ];
+            // border
+            if (border) s.border = border;
 
-    let R = 0; // current row (0-based)
+            // alignment
+            s.alignment = { horizontal: alignH, vertical: 'center', wrapText: true };
 
-    // ---- Row helper ----
-    function setCell(row, col, value, numFmt) {
-        const addr = XLSX.utils.encode_cell({ r: row, c: col });
-        const t = typeof value === 'number' ? 'n' : 's';
-        ws[addr] = { v: value, t };
-        if (numFmt) ws[addr].z = numFmt;
+            // number format
+            if (numFmt) { s.numFmt = numFmt; cell.t = 'n'; }
+
+            cell.s = s;
+            return cell;
+        }
+
+        // ── build worksheet rows ──────────────────────────────────
+        const ws = {};
+        const merges = [];
+        let r = 0;   // 0-based row index
+
+        function setCell(row, col, cell) {
+            ws[XLSX.utils.encode_cell({ r: row, c: col })] = cell;
+        }
+        function addMerge(r1, c1, r2, c2) {
+            merges.push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } });
+        }
+
+        // ── ROW 0 : Bank name ─────────────────────────────────────
+        // Big red bold title, merged A–F
+        setCell(r, 0, makeCell(bank.name,
+            { bold: true, sz: 20, color: { rgb: 'CC0000' } },
+            null, null, 'center'));
+        addMerge(r, 0, r, 5);
+        r++;
+
+        // ── ROW 1 : Subtitle ──────────────────────────────────────
+        setCell(r, 0, makeCell('STATEMENT OF CHEQUES / DRAFTS',
+            { bold: true, sz: 13, underline: true },
+            null, null, 'center'));
+        addMerge(r, 0, r, 5);
+        r++;
+
+        // ── ROW 2 : blank spacer ──────────────────────────────────
+        r++;
+
+        // ── ROW 3 : Account No | Date | Bank Slip No ─────────────
+        setCell(r, 0, makeCell('Account No.:  ' + bank.acNo, { bold: true, sz: 11 }, null, null, 'left'));
+        addMerge(r, 0, r, 1);
+        setCell(r, 2, makeCell('Date:  ' + dateLabel, { bold: true, sz: 11 }, null, null, 'center'));
+        addMerge(r, 2, r, 3);
+        setCell(r, 4, makeCell('Bank Slip No:  ___________', { bold: true, sz: 11 }, null, null, 'right'));
+        addMerge(r, 4, r, 5);
+        r++;
+
+        // ── ROW 4 : Paid-into line (bottom border) ─────────────────
+        const paidBdr = bdrOnly(['bottom'], 'medium');
+        const paidCell = makeCell(
+            'Paid into the credit of  ' + bank.acName,
+            { bold: true, sz: 11 }, null, paidBdr, 'left');
+        setCell(r, 0, paidCell);
+        addMerge(r, 0, r, 4);
+
+        const slipCell = makeCell('SlipNo:  ___________',
+            { bold: true, sz: 11 }, null, paidBdr, 'right');
+        setCell(r, 5, slipCell);
+        r++;
+
+        // ── ROW 5 : blank ─────────────────────────────────────────
+        r++;
+
+        // ── ROW 6 : Table headers (yellow background) ──────────────
+        const headers = ['S.No.', 'Party Name', 'Chq.No', 'Chq.Date', 'Bank Name', 'Amount (₹)'];
+        const hdrAligns = ['center', 'left', 'center', 'center', 'left', 'right'];
+        headers.forEach((h, c) => {
+            setCell(r, c, makeCell(h,
+                { bold: true, sz: 11 },
+                'FFFFFF00',           // yellow bg
+                bdr('thin'),
+                hdrAligns[c]));
+        });
+        r++;
+
+        // ── DATA ROWS ─────────────────────────────────────────────
+        let grandTotal = 0;
+        cheques.forEach((chq, idx) => {
+            const amt = parseFloat((chq['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+            grandTotal += amt;
+            const isAlt = idx % 2 === 1;
+            const bg    = isAlt ? 'FFF1F5F9' : null;   // very light grey for odd rows
+
+            const rowData = [
+                { v: idx + 1,                      align: 'center' },
+                { v: chq['Party Name']    || '',    align: 'left'   },
+                { v: chq['Chq Number']    || '',    align: 'center' },
+                { v: chq['Chq Date']      || '',    align: 'center' },
+                { v: chq['Bank Name (Party)'] || '', align: 'left'  },
+                { v: amt,                           align: 'right', numFmt: '#,##0.00' }
+            ];
+
+            rowData.forEach(({ v, align, numFmt }, c) => {
+                const cell = makeCell(v, { sz: 11 }, bg, bdr('thin'), align, numFmt || null);
+                // For numeric amount cell, force type
+                if (numFmt) { cell.t = 'n'; cell.v = v; }
+                // For S.No, force number type
+                if (c === 0) { cell.t = 'n'; }
+                setCell(r, c, cell);
+            });
+            r++;
+        });
+
+        // ── TOTAL ROW ─────────────────────────────────────────────
+        const totalBdr = {
+            top:    { style: 'medium' },
+            bottom: { style: 'thin'   },
+            left:   { style: 'thin'   },
+            right:  { style: 'thin'   }
+        };
+
+        // Blank cells A–D
+        for (let c = 0; c < 4; c++) {
+            setCell(r, c, makeCell('', {}, null, totalBdr, 'left'));
+        }
+        // "TOTAL" label in E
+        setCell(r, 4, makeCell('TOTAL',
+            { bold: true, sz: 12 },
+            'FFFFF0CC',   // light amber background
+            totalBdr,
+            'right'));
+        // Total amount in F
+        const totalCell = makeCell(grandTotal,
+            { bold: true, sz: 12, color: { rgb: '005C2D' } },
+            'FFFFF0CC',
+            totalBdr,
+            'right',
+            '#,##0.00');
+        totalCell.t = 'n';
+        totalCell.v = grandTotal;
+        setCell(r, 5, totalCell);
+
+        // ── Worksheet dimensions ───────────────────────────────────
+        ws['!ref'] = XLSX.utils.encode_range({ r: 0, c: 0 }, { r, c: 5 });
+        ws['!merges'] = merges;
+        ws['!cols'] = [
+            { wch: 7  },   // S.No.
+            { wch: 34 },   // Party Name
+            { wch: 16 },   // Chq No
+            { wch: 13 },   // Chq Date
+            { wch: 30 },   // Bank Name
+            { wch: 17 }    // Amount
+        ];
+        // Row heights
+        ws['!rows'] = [];
+        ws['!rows'][0] = { hpt: 32 };   // bank title
+        ws['!rows'][1] = { hpt: 24 };   // subtitle
+        ws['!rows'][3] = { hpt: 20 };   // meta
+        ws['!rows'][4] = { hpt: 20 };   // paid-into
+        ws['!rows'][6] = { hpt: 20 };   // header
+
+        // ── Write file ────────────────────────────────────────────
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Deposit Slip');
+
+        const safeDate = dateLabel.replace(/\//g, '-');
+        XLSX.writeFile(wb, `Deposit_Slip_${selectedPrintBank}_${safeDate}.xlsx`);
+
+    } catch (err) {
+        console.error('Excel export error:', err);
+        alert('Export failed: ' + err.message);
     }
-
-    // Compute total
-    let grandTotal = 0;
-    data.forEach(r => { grandTotal += parseFloat((r['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g, '')) || 0; });
-
-    // --- Row 0: Bank Name (merged A1:F1) ---
-    setCell(R, 0, bank.name);
-    R++;
-
-    // --- Row 1: Subtitle ---
-    setCell(R, 0, 'STATEMENT OF CHEQUES / DRAFTS');
-    R++;
-
-    // --- Row 2: blank ---
-    R++;
-
-    // --- Row 3: Meta info ---
-    setCell(R, 0, 'Account No.: ' + bank.acNo);
-    setCell(R, 2, 'Date: ' + dateLabel);
-    setCell(R, 4, 'Bank Slip No: ___________');
-    R++;
-
-    // --- Row 4: Paid into ---
-    setCell(R, 0, 'Paid into the credit of ' + bank.acName);
-    setCell(R, 4, 'SlipNo: ___________');
-    R++;
-
-    // --- Row 5: blank ---
-    R++;
-
-    // --- Row 6: Table headers ---
-    const headers = ['S.No.', 'Party Name', 'Chq. No.', 'Chq. Date', 'Bank Name', 'Amount (₹)'];
-    headers.forEach((h, c) => setCell(R, c, h));
-    const headerRow = R;
-    R++;
-
-    // --- Data rows ---
-    const dataStartRow = R;
-    data.forEach((row, i) => {
-        const amt = parseFloat((row['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
-        setCell(R, 0, i + 1);
-        setCell(R, 1, row['Party Name'] || '');
-        setCell(R, 2, String(row['Chq Number'] || ''));
-        setCell(R, 3, row['Chq Date'] || '');
-        setCell(R, 4, row['Bank Name (Party)'] || '');
-        setCell(R, 5, amt, '#,##0.00');
-        R++;
-    });
-
-    // --- blank row ---
-    R++;
-
-    // --- Total row ---
-    setCell(R, 4, 'TOTAL');
-    setCell(R, 5, grandTotal, '#,##0.00');
-    const totalRow = R;
-    R++;
-
-    // --- Merges ---
-    ws['!merges'] = [
-        // Bank name title: A1:F1
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
-        // Subtitle: A2:F2
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
-        // Account No: A4:B4
-        { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } },
-        // Date: C4:D4
-        { s: { r: 3, c: 2 }, e: { r: 3, c: 3 } },
-        // Bank Slip No: E4:F4
-        { s: { r: 3, c: 4 }, e: { r: 3, c: 5 } },
-        // Paid into: A5:D5
-        { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } },
-        // SlipNo: E5:F5
-        { s: { r: 4, c: 4 }, e: { r: 4, c: 5 } },
-        // Total label spans 5 cols
-        { s: { r: totalRow, c: 0 }, e: { r: totalRow, c: 4 } },
-    ];
-
-    // Set the worksheet range
-    ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: R, c: 5 } });
-
-    // Row heights (in points, 1pt ≈ 1px at 96dpi)
-    ws['!rows'] = [];
-    ws['!rows'][0] = { hpt: 28 }; // bank name
-    ws['!rows'][1] = { hpt: 20 }; // subtitle
-    ws['!rows'][headerRow] = { hpt: 18 };
-    ws['!rows'][totalRow]  = { hpt: 20 };
-
-    // Add sheet and save
-    XLSX.utils.book_append_sheet(wb, ws, 'Deposit Slip');
-
-    const safeDate = dateLabel.replace(/\//g, '-');
-    XLSX.writeFile(wb, `Deposit_Slip_${selectedPrintBank}_${safeDate}.xlsx`);
 }
+
 
 // ==========================================
 // REPORT HANDLERS

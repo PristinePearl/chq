@@ -218,7 +218,7 @@
   <!-- ══════════════════════════════════════════════════
        NEFT FLOATING ACTION BUTTON
   ══════════════════════════════════════════════════ -->
-  <button id="neftFab" title="NEFT Entry / Receipts" onclick="openNeft()">
+  <button id="neftFab" title="BANK RECEIPTS" onclick="openNeft()">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="2" y="5" width="20" height="14" rx="2.5" fill="white" fill-opacity="0.25" stroke="white" stroke-width="1.5"/>
       <path d="M2 9h20" stroke="white" stroke-width="1.5"/>
@@ -226,7 +226,7 @@
       <rect x="11" y="13" width="6" height="2" rx="0.5" fill="white"/>
       <path d="M19 3.5L19 7M17 5.5H21" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
     </svg>
-    <span>NEFT</span>
+    <span>RECEIPTS</span>
   </button>
 
   <!-- ══════════════════════════════════════════════════
@@ -248,7 +248,7 @@
               </svg>
             </div>
             <div>
-              <h2 class="text-lg font-extrabold tracking-wide" style="background: linear-gradient(90deg, #065f46, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">NEFT ENTRY / RECEIPTS</h2>
+              <h2 class="text-lg font-extrabold tracking-wide" style="background: linear-gradient(90deg, #065f46, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">BANK RECEIPTS</h2>
               <p class="text-xs text-gray-500 font-medium">Pristine Pearl Pharma Pvt Ltd</p>
             </div>
           </div>
@@ -887,7 +887,7 @@
         const ws = XLSX.utils.aoa_to_sheet([['Date', 'Party', 'Amount']]);
         ws['!cols'] = [{wch:15},{wch:40},{wch:15}];
         XLSX.utils.book_append_sheet(wb, ws, 'NEFT');
-        XLSX.writeFile(wb, 'NEFT_Template.xlsx');
+        XLSX.writeFile(wb, 'BankReceipt_Template.xlsx');
     }
 
     // ── Drag & Drop ──

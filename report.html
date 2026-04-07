@@ -26,13 +26,13 @@
         @keyframes scaleIn { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        @keyframes countUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
         body { font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; background:var(--slate-50); margin:0; padding:0; height:100vh; overflow:hidden; }
         .main-container { display:flex; height:100vh; }
-
         .left-panel { width:360px; background:#fff; border-right:1px solid var(--slate-200); display:flex; flex-direction:column; box-shadow:4px 0 20px rgba(79,70,229,0.07); flex-shrink:0; animation:slideInLeft .5s ease-out; }
         .right-panel { flex:1; background:linear-gradient(135deg,#fafbfc 0%,#f5f3ff 60%,#eff6ff 100%); overflow-y:auto; display:flex; flex-direction:column; animation:slideInRight .5s ease-out; }
-
         .header { background:linear-gradient(135deg,#312e81 0%,#4f46e5 50%,#6366f1 100%); color:white; padding:20px; text-align:center; flex-shrink:0; position:relative; overflow:hidden; }
         .header::before { content:''; position:absolute; top:-30px; right:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,0.06); }
         .header::after { content:''; position:absolute; bottom:-40px; left:-20px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,0.04); }
@@ -41,7 +41,6 @@
         .company-logo img { width:100%; height:100%; object-fit:contain; }
         .header h1 { font-size:1.1rem; font-weight:800; margin:0; letter-spacing:0.01em; }
         .header-sub { font-size:0.7rem; opacity:0.7; margin-top:2px; letter-spacing:0.08em; text-transform:uppercase; }
-
         .tabs { display:flex; flex-direction:column; border-bottom:1px solid var(--slate-200); flex-shrink:0; background:#fff; }
         .tab-button { padding:11px 18px; text-align:left; border:none; background:none; cursor:pointer; font-size:0.82rem; font-weight:600; color:var(--slate-500); transition:all .2s ease; border-left:3px solid transparent; font-family:'Plus Jakarta Sans',sans-serif; letter-spacing:0.01em; }
         .tab-button:hover:not(.active) { background:rgba(79,70,229,0.03); color:var(--indigo); transform:translateX(3px); }
@@ -50,7 +49,8 @@
         .tab-button.neft-tab:hover:not(.active) { color:var(--teal); }
         .tab-button.deposit-combined-tab.active { border-left-color:var(--violet-dark); color:var(--violet-dark); background:linear-gradient(90deg,rgba(124,58,237,0.08) 0%,rgba(124,58,237,0.02) 100%); }
         .tab-button.deposit-combined-tab:hover:not(.active) { color:var(--violet-dark); }
-
+        .tab-button.dashboard-tab.active { border-left-color:#f59e0b; color:#b45309; background:linear-gradient(90deg,rgba(245,158,11,0.1) 0%,rgba(245,158,11,0.02) 100%); }
+        .tab-button.dashboard-tab:hover:not(.active) { color:#b45309; }
         .search-section { padding:18px; background:var(--slate-50); flex:1; overflow-y:auto; }
         .tab-content { display:none; }
         .tab-content.active { display:block; }
@@ -61,14 +61,11 @@
         .form-group input[type="radio"], .form-group input[type="checkbox"] { width:auto; height:auto; padding:0; margin:0 5px 0 0; border:none; }
         .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,0.15); }
         .form-group input::placeholder { color:var(--slate-300); }
-
-        /* Deposit type toggle tabs */
         .deposit-type-toggle { display:flex; gap:0; background:var(--slate-100); border-radius:10px; padding:4px; margin-bottom:4px; }
         .deposit-type-btn { flex:1; padding:8px 10px; border:none; border-radius:7px; cursor:pointer; font-size:0.78rem; font-weight:700; color:var(--slate-500); background:none; transition:all .2s ease; font-family:'Plus Jakarta Sans',sans-serif; text-align:center; }
         .deposit-type-btn.active-chq { background:white; color:var(--indigo); box-shadow:0 2px 8px rgba(79,70,229,0.15); }
         .deposit-type-btn.active-neft { background:white; color:var(--teal); box-shadow:0 2px 8px rgba(8,145,178,0.15); }
         .deposit-type-btn.active-both { background:white; color:var(--violet-dark); box-shadow:0 2px 8px rgba(124,58,237,0.15); }
-
         .data-source-toggle { display:flex; flex-direction:column; gap:8px; background:white; border:2px solid var(--slate-200); border-radius:10px; padding:11px 13px; }
         .data-source-toggle > label { font-weight:700; color:var(--slate-500); font-size:0.73rem; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px; }
         .ds-options { display:flex; gap:6px; flex-wrap:wrap; }
@@ -77,7 +74,6 @@
         .ds-chip.chq-chip { border-color:var(--indigo); color:var(--indigo); background:#eef2ff; }
         .ds-chip.neft-chip { border-color:var(--teal); color:var(--teal); background:#ecfeff; }
         .ds-chip.all-chip { border-color:var(--green); color:var(--green); background:#ecfdf5; }
-
         .btn { padding:11px 22px; background:linear-gradient(135deg,var(--indigo) 0%,var(--indigo-light) 50%,var(--indigo-dark) 100%); color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.88rem; font-weight:700; transition:all .25s ease; margin-top:8px; box-shadow:0 4px 14px rgba(79,70,229,0.3); font-family:'Plus Jakarta Sans',sans-serif; letter-spacing:0.01em; }
         .btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(79,70,229,0.4); }
         .btn:active { transform:translateY(0); }
@@ -87,19 +83,16 @@
         .btn-neft:hover { box-shadow:0 8px 24px rgba(8,145,178,0.4); transform:translateY(-2px); }
         .btn-combined { background:linear-gradient(135deg,var(--indigo) 0%,var(--violet-dark) 50%,var(--teal) 100%); box-shadow:0 4px 14px rgba(124,58,237,0.3); }
         .btn-combined:hover { box-shadow:0 8px 24px rgba(124,58,237,0.4); transform:translateY(-2px); }
-
         .results-section { padding:16px; flex:1; background:white; overflow-y:auto; }
         .loading { text-align:center; color:var(--slate-500); font-style:italic; padding:50px; font-size:0.95rem; animation:pulse 1.5s ease-in-out infinite; }
         .error { background:#eef2ff; color:var(--indigo); padding:14px; border-radius:8px; border-left:4px solid var(--indigo); margin:10px 0; font-size:0.88rem; font-weight:500; }
         .no-results { text-align:center; color:var(--slate-500); font-style:italic; padding:30px 10px; font-size:0.88rem; background:var(--slate-50); border-radius:8px; border:1.5px dashed var(--slate-200); }
-
         .result-card { background:white; border:1.5px solid var(--slate-200); border-radius:10px; padding:14px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all .25s ease; }
         .result-card:hover { box-shadow:0 6px 20px rgba(0,0,0,0.09); transform:translateX(3px); border-color:var(--indigo); }
         .result-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1.5px solid var(--slate-100); flex-wrap:wrap; gap:8px; }
         .result-card .result-header h2 { font-size:1rem; font-weight:700; color:var(--slate-800); margin:0; }
         .sr-ref { font-size:1rem; font-weight:700; color:var(--slate-700); }
         .total-amount { font-size:0.95rem; font-weight:700; color:var(--green); background:#ecfdf5; padding:3px 8px; border-radius:6px; border:1px solid #a7f3d0; }
-
         .document-sections { display:flex; flex-direction:column; gap:8px; }
         .section { background:var(--slate-50); border:1.5px solid var(--slate-200); border-radius:8px; overflow:hidden; }
         .section-header { background:var(--slate-800); color:white; padding:6px 12px; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
@@ -108,7 +101,6 @@
         .field { display:flex; flex-direction:column; background:white; padding:8px; border-radius:6px; border:1.5px solid var(--slate-200); }
         .field-label { font-size:0.68rem; color:var(--slate-400); font-weight:700; text-transform:uppercase; margin-bottom:3px; letter-spacing:0.05em; }
         .field-value { font-size:0.84rem; color:var(--slate-800); font-weight:600; word-break:break-word; }
-
         .product-table-container { overflow-x:auto; border-radius:8px; border:1.5px solid var(--slate-200); }
         .product-table { width:100%; border-collapse:collapse; font-size:0.8rem; min-width:600px; }
         .product-table th, .product-table td { border-bottom:1px solid var(--slate-200); padding:9px 11px; text-align:left; }
@@ -116,34 +108,18 @@
         .product-table tr:last-child td { border-bottom:none; }
         .product-table tr:nth-child(even) td { background:var(--slate-50); }
         .neft-table th { background:linear-gradient(90deg,#0e7490,#0891b2); }
-
-        /* ==================== CHARTS — FIXED LAYOUT ==================== */
         .chart-container { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:16px; }
-        .chart-box {
-            background:white;
-            padding:16px;
-            border-radius:12px;
-            box-shadow:0 4px 16px rgba(0,0,0,0.07);
-            border:1.5px solid var(--slate-200);
-            transition:all .3s cubic-bezier(.4,0,.2,1);
-            display:flex;
-            flex-direction:column;
-            min-height:0;
-        }
+        .chart-box { background:white; padding:16px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.07); border:1.5px solid var(--slate-200); transition:all .3s cubic-bezier(.4,0,.2,1); display:flex; flex-direction:column; min-height:0; }
         .chart-box:hover { box-shadow:0 12px 32px rgba(0,0,0,0.1); transform:translateY(-3px); }
         .chart-box.full-width { grid-column:1/-1; }
         .chart-box h3 { font-size:0.88rem; font-weight:800; color:var(--indigo); margin-bottom:10px; padding-bottom:8px; border-bottom:2px solid var(--slate-100); flex-shrink:0; }
         .chart-box.neft-chart h3 { color:var(--teal); }
         .chart-box.combined-chart h3 { color:var(--violet-dark); }
-        /* Canvas wrapper controls height */
         .chart-canvas-wrapper { position:relative; flex:1; min-height:260px; max-height:340px; }
         .chart-canvas-wrapper canvas { position:absolute; top:0; left:0; width:100% !important; height:100% !important; }
-
         .section-separator { grid-column:1/-1; display:flex; align-items:center; gap:12px; padding:4px 0; }
         .section-separator .sep-label { font-size:0.82rem; font-weight:800; color:var(--teal); white-space:nowrap; }
         .section-separator .sep-line { flex:1; height:2px; background:linear-gradient(90deg,var(--teal),#a5f3fc,transparent); border-radius:2px; }
-
-        /* KPI */
         .kpi-container { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; padding:20px; border-radius:12px; margin:16px; }
         .kpi-card { padding:20px; border-radius:12px; color:white; box-shadow:0 6px 18px rgba(0,0,0,0.12); transition:all .3s ease; position:relative; overflow:hidden; animation:scaleIn .4s ease-out backwards; }
         .kpi-card::before { content:''; position:absolute; top:-20px; right:-20px; width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.08); }
@@ -159,30 +135,19 @@
         .kpi-trend-stable { background:linear-gradient(135deg,#b45309 0%,var(--amber) 100%); }
         .kpi-neft { background:linear-gradient(135deg,#0e7490 0%,var(--teal-light) 100%); }
         .kpi-combined { background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#0891b2 100%); }
-
-        /* STATUS */
         .status-indicator { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
         .status-deposited { background:var(--green-light); }
         .status-pending { background:var(--amber); }
         .status-returned { background:var(--red); }
         .status-represented { background:var(--violet); }
         .status-blank { background:var(--teal-light); }
-
-        /* SUMMARY CARDS — Cheque deposits */
         .summary-card { background:white; border:1.5px solid var(--slate-200); border-radius:10px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all .25s ease; }
         .summary-card:hover { box-shadow:0 6px 18px rgba(0,0,0,0.08); border-color:var(--indigo); transform:translateY(-2px); }
-
-        /* NEFT SUMMARY CARD — styled IDENTICAL to cheque summary card but teal accent */
         .summary-card.neft-card { border-color:var(--slate-200); }
         .summary-card.neft-card:hover { border-color:var(--teal); box-shadow:0 6px 18px rgba(8,145,178,0.12); }
-
         .summary-header { display:flex; justify-content:space-between; align-items:center; padding:13px 16px; cursor:pointer; background:var(--slate-50); border-radius:10px 10px 0 0; transition:background .2s ease; }
-
-        /* Cheque header */
         .summary-card:not(.neft-card) .summary-header { background:var(--slate-50); }
-        /* NEFT header — matches cheque header exactly but with teal tint */
         .summary-card.neft-card .summary-header { background:linear-gradient(90deg,#f0fdff,#f8fffe); }
-
         .summary-header-item { font-size:0.88rem; font-weight:600; color:var(--slate-800); flex:1; min-width:80px; }
         .summary-header-item.chq-val { font-weight:800; color:var(--green); flex-grow:0; min-width:120px; text-align:right; padding-right:12px; }
         .summary-header-item.neft-val { font-weight:800; color:var(--teal); flex-grow:0; min-width:140px; text-align:right; padding-right:12px; }
@@ -192,8 +157,6 @@
         .summary-toggle-btn::before { content:'+ DETAILS'; }
         .summary-toggle-btn.expanded::before { content:'– COLLAPSE'; }
         .summary-details { display:none; padding:14px; border-top:1.5px solid var(--slate-200); }
-
-        /* GRAND TOTAL BANNER — shared base, color variants via modifier */
         .grand-total-banner { border-radius:14px; margin-bottom:20px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.13); }
         .grand-total-banner__header { padding:18px 22px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; }
         .grand-total-banner__header--chq { background:linear-gradient(135deg,#064e3b 0%,#059669 60%,#34d399 100%); }
@@ -214,15 +177,6 @@
         .grand-total-banner__footer-item-label { font-size:0.62rem; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.07em; margin-bottom:3px; }
         .grand-total-banner__footer-item-val--chq { font-size:0.88rem; font-weight:700; color:#065f46; }
         .grand-total-banner__footer-item-val--neft { font-size:0.88rem; font-weight:700; color:#0e7490; }
-
-        /* BANK RECEIPTS KPI BANNER (legacy — keep for compatibility) */
-        .neft-kpi-banner { background:linear-gradient(135deg,#ecfeff,#f0fdfa); border:2px solid #a5f3fc; border-radius:12px; padding:14px 18px; margin-bottom:14px; display:flex; gap:20px; flex-wrap:wrap; align-items:center; animation:slideInDown .4s ease; }
-        .neft-kpi-item { display:flex; flex-direction:column; gap:2px; }
-        .neft-kpi-item .nk-label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#0e7490; }
-        .neft-kpi-item .nk-val { font-size:1.2rem; font-weight:800; color:#0c4a6e; }
-        .neft-badge { background:linear-gradient(135deg,var(--teal),var(--teal-light)); color:white; font-size:0.7rem; font-weight:700; padding:3px 10px; border-radius:20px; }
-
-        /* BLANK CHQ */
         .blank-summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; padding:16px; background:linear-gradient(135deg,#faf5ff,#f0f9ff); border-radius:12px; margin-bottom:16px; border:1.5px solid #e9d5ff; }
         .blank-summary-card { background:white; border-radius:10px; padding:16px; text-align:center; box-shadow:0 3px 10px rgba(0,0,0,0.05); border:1.5px solid var(--slate-200); transition:all .25s ease; animation:scaleIn .4s ease-out backwards; }
         .blank-summary-card:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(124,58,237,0.12); border-color:var(--violet); }
@@ -232,12 +186,10 @@
         .blank-summary-card.highlight-card .bsc-value { color:var(--violet-dark); }
         .blank-summary-card.security-card .bsc-value { color:#dc2626; }
         .blank-summary-card.party-card .bsc-value { color:var(--teal); }
-
         .section-title-bar { display:flex; align-items:center; gap:10px; margin-bottom:12px; padding-bottom:10px; border-bottom:2px solid var(--slate-200); }
         .section-title-bar h3 { font-size:0.95rem; font-weight:800; color:var(--slate-800); margin:0; }
         .count-badge { background:linear-gradient(135deg,var(--indigo),var(--violet)); color:white; font-size:0.68rem; font-weight:700; padding:3px 10px; border-radius:20px; }
         .security-badge { background:linear-gradient(135deg,#dc2626,var(--red)); }
-
         .condensed-party-list { display:flex; flex-direction:column; gap:7px; }
         .condensed-party-row { display:flex; align-items:center; background:white; border:1.5px solid var(--slate-200); border-radius:8px; padding:10px 14px; transition:all .2s ease; }
         .condensed-party-row:hover { border-color:var(--violet); box-shadow:0 4px 12px rgba(124,58,237,0.1); transform:translateX(3px); }
@@ -248,8 +200,6 @@
         .security-row { border-left:4px solid #dc2626 !important; }
         .security-row .party-alpha { background:linear-gradient(135deg,#dc2626,var(--red)) !important; }
         .alpha-divider { background:var(--slate-100); padding:4px 10px; font-size:0.7rem; font-weight:800; color:var(--slate-400); text-transform:uppercase; letter-spacing:0.1em; border-radius:4px; margin-top:5px; }
-
-        /* STATE CARDS */
         .statewise-summary-section { background:white; padding:20px; margin:0 16px 16px; border-radius:12px; border:1.5px solid var(--slate-200); box-shadow:0 4px 12px rgba(0,0,0,0.05); }
         .statewise-summary-section h3 { font-size:1rem; font-weight:800; margin:0 0 16px 0; color:var(--indigo); }
         .statewise-summary-section.neft-state h3 { color:var(--teal); }
@@ -266,7 +216,139 @@
         .metric-label { font-size:0.66rem; color:var(--slate-500); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
         .metric-value { font-size:1.1rem; font-weight:800; color:var(--slate-800); }
 
-        /* BANKERS DETAILS */
+        /* ==============================
+           STATE MINI CARDS (for Deposits Report)
+           ============================== */
+        .state-mini-section { padding:14px 0 6px; }
+        .state-mini-section h4 { font-size:0.78rem; font-weight:800; color:var(--indigo); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:7px; }
+        .state-mini-section h4.neft-title { color:var(--teal); }
+        .state-mini-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:9px; }
+        .state-mini-card { background:white; border:1.5px solid var(--slate-200); border-radius:10px; overflow:hidden; transition:all .25s ease; animation:scaleIn .35s ease-out backwards; }
+        .state-mini-card:hover { transform:translateY(-3px) scale(1.02); box-shadow:0 8px 20px rgba(79,70,229,0.15); border-color:var(--indigo); }
+        .state-mini-card.neft-mini:hover { border-color:var(--teal); box-shadow:0 8px 20px rgba(8,145,178,0.15); }
+        .state-mini-header { padding:7px 10px; display:flex; justify-content:space-between; align-items:center; }
+        .state-mini-header.chq-header { background:linear-gradient(90deg,var(--indigo),var(--indigo-light)); }
+        .state-mini-header.neft-header { background:linear-gradient(90deg,#0e7490,var(--teal-light)); }
+        .state-mini-name { font-size:0.75rem; font-weight:800; color:white; }
+        .state-mini-rank { background:rgba(255,255,255,0.22); color:white; font-size:0.6rem; font-weight:700; padding:2px 6px; border-radius:10px; }
+        .state-mini-body { padding:10px; }
+        .state-mini-val { font-size:0.98rem; font-weight:800; color:var(--slate-800); }
+        .state-mini-count { font-size:0.68rem; color:var(--slate-500); font-weight:600; margin-top:2px; }
+        .state-mini-bar { height:3px; border-radius:2px; margin-top:7px; }
+        .state-mini-bar.chq-bar { background:linear-gradient(90deg,var(--indigo),var(--indigo-light)); }
+        .state-mini-bar.neft-bar { background:linear-gradient(90deg,var(--teal),var(--teal-light)); }
+
+        /* ==============================
+           DASHBOARD STYLES
+           ============================== */
+        .dashboard-wrapper { padding:0; background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 40%,#0c4a6e 100%); min-height:100%; }
+        .dashboard-header { padding:22px 24px 16px; background:linear-gradient(180deg,rgba(255,255,255,0.05) 0%,transparent 100%); border-bottom:1px solid rgba(255,255,255,0.08); }
+        .dashboard-header-row { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+        .dashboard-title { font-size:1.3rem; font-weight:800; color:white; letter-spacing:-0.01em; }
+        .dashboard-date-badge { background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.4); color:#fcd34d; font-size:0.75rem; font-weight:700; padding:6px 14px; border-radius:20px; letter-spacing:.03em; }
+        .dashboard-refresh-btn { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; transition:all .2s ease; display:flex; align-items:center; gap:6px; }
+        .dashboard-refresh-btn:hover { background:rgba(255,255,255,0.18); transform:translateY(-1px); }
+        .dashboard-refresh-btn.spinning .refresh-icon { animation:spin 1s linear infinite; }
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .dashboard-date-picker { display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap; }
+        .dashboard-date-picker label { color:rgba(255,255,255,0.6); font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+        .dashboard-date-picker input[type="date"] { padding:7px 12px; border:1.5px solid rgba(255,255,255,0.2); border-radius:8px; background:rgba(255,255,255,0.08); color:white; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; }
+        .dashboard-date-picker input[type="date"]:focus { outline:none; border-color:rgba(245,158,11,0.6); }
+        .dashboard-date-picker input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(1) opacity(.6); }
+        .db-load-btn { padding:8px 18px; background:linear-gradient(135deg,#f59e0b,#d97706); color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:700; font-family:'Plus Jakarta Sans',sans-serif; transition:all .2s ease; }
+        .db-load-btn:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(245,158,11,0.4); }
+
+        /* KPI Row */
+        .db-kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; padding:18px 24px; }
+        .db-kpi-card { border-radius:14px; padding:18px 20px; position:relative; overflow:hidden; animation:scaleIn .4s ease-out backwards; transition:all .3s ease; }
+        .db-kpi-card:hover { transform:translateY(-4px); }
+        .db-kpi-card::after { content:''; position:absolute; top:-15px; right:-15px; width:70px; height:70px; border-radius:50%; background:rgba(255,255,255,0.07); }
+        .db-kpi-combined { background:linear-gradient(135deg,#312e81,#4f46e5,#7c3aed); box-shadow:0 6px 20px rgba(79,70,229,0.35); }
+        .db-kpi-chq { background:linear-gradient(135deg,#1e3a5f,#2563eb,#3b82f6); box-shadow:0 6px 20px rgba(37,99,235,0.35); }
+        .db-kpi-neft { background:linear-gradient(135deg,#0c4a6e,#0891b2,#22d3ee); box-shadow:0 6px 20px rgba(8,145,178,0.35); }
+        .db-kpi-records { background:linear-gradient(135deg,#3b0764,#7c3aed,#a855f7); box-shadow:0 6px 20px rgba(124,58,237,0.35); }
+        .db-kpi-avg { background:linear-gradient(135deg,#064e3b,#059669,#34d399); box-shadow:0 6px 20px rgba(5,150,105,0.35); }
+        .db-kpi-label { font-size:0.65rem; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; }
+        .db-kpi-value { font-size:1.45rem; font-weight:800; color:white; line-height:1.1; letter-spacing:-0.02em; }
+        .db-kpi-sub { font-size:0.7rem; color:rgba(255,255,255,0.65); margin-top:5px; font-weight:600; }
+        .db-kpi-icon { position:absolute; bottom:12px; right:14px; font-size:1.6rem; opacity:0.3; }
+
+        /* Split overview */
+        .db-split-row { display:flex; gap:14px; padding:0 24px 18px; flex-wrap:wrap; }
+        .db-split-card { flex:1; min-width:220px; border-radius:14px; padding:18px 20px; position:relative; overflow:hidden; }
+        .db-split-chq { background:linear-gradient(135deg,rgba(79,70,229,0.12),rgba(99,102,241,0.06)); border:1.5px solid rgba(79,70,229,0.25); }
+        .db-split-neft { background:linear-gradient(135deg,rgba(8,145,178,0.12),rgba(6,182,212,0.06)); border:1.5px solid rgba(8,145,178,0.25); }
+        .db-split-title { font-size:0.72rem; font-weight:800; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:.07em; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+        .db-split-amount { font-size:1.6rem; font-weight:800; color:white; letter-spacing:-0.02em; }
+        .db-split-meta { display:flex; gap:16px; margin-top:8px; }
+        .db-split-meta-item { display:flex; flex-direction:column; }
+        .db-split-meta-label { font-size:0.6rem; color:rgba(255,255,255,0.5); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+        .db-split-meta-val { font-size:0.88rem; font-weight:700; color:rgba(255,255,255,0.85); }
+
+        /* Day summary header */
+        .db-section-label { padding:6px 24px 10px; }
+        .db-section-label h3 { font-size:0.82rem; font-weight:800; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:.08em; display:flex; align-items:center; gap:8px; }
+        .db-section-label h3::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(255,255,255,0.15),transparent); }
+
+        /* Day consolidated card */
+        .db-day-card { margin:0 24px 14px; border-radius:14px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.2); animation:slideInDown .4s ease-out backwards; }
+        .db-day-header { padding:16px 20px; background:linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06)); border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; cursor:pointer; transition:background .2s; }
+        .db-day-header:hover { background:linear-gradient(135deg,rgba(255,255,255,0.16),rgba(255,255,255,0.09)); }
+        .db-day-date { font-size:1.05rem; font-weight:800; color:white; }
+        .db-day-badges { display:flex; gap:8px; flex-wrap:wrap; }
+        .db-day-badge { font-size:0.68rem; font-weight:700; padding:4px 10px; border-radius:20px; }
+        .db-badge-chq { background:rgba(79,70,229,0.3); color:#a5b4fc; border:1px solid rgba(79,70,229,0.4); }
+        .db-badge-neft { background:rgba(8,145,178,0.3); color:#67e8f9; border:1px solid rgba(8,145,178,0.4); }
+        .db-day-total { font-size:1.2rem; font-weight:800; color:#fbbf24; }
+        .db-day-chevron { color:rgba(255,255,255,0.5); font-size:1.1rem; transition:transform .25s ease; }
+        .db-day-chevron.open { transform:rotate(180deg); }
+        .db-day-body { background:rgba(15,23,42,0.5); display:none; }
+        .db-day-body.open { display:block; }
+        .db-day-inner { padding:16px 20px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .db-inner-block { border-radius:10px; padding:14px; }
+        .db-inner-chq { background:rgba(79,70,229,0.1); border:1px solid rgba(79,70,229,0.2); }
+        .db-inner-neft { background:rgba(8,145,178,0.1); border:1px solid rgba(8,145,178,0.2); }
+        .db-inner-title { font-size:0.68rem; font-weight:800; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:.07em; margin-bottom:10px; }
+        .db-inner-title.chq-color { color:#a5b4fc; }
+        .db-inner-title.neft-color { color:#67e8f9; }
+        .db-inner-amount { font-size:1.3rem; font-weight:800; color:white; }
+        .db-inner-records { font-size:0.72rem; color:rgba(255,255,255,0.5); margin-top:3px; }
+        .db-mini-table { width:100%; font-size:0.75rem; border-collapse:collapse; margin-top:10px; }
+        .db-mini-table th { color:rgba(255,255,255,0.4); font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:5px 8px; border-bottom:1px solid rgba(255,255,255,0.08); text-align:left; }
+        .db-mini-table td { color:rgba(255,255,255,0.8); padding:5px 8px; border-bottom:1px solid rgba(255,255,255,0.05); font-weight:600; }
+        .db-mini-table tr:last-child td { border-bottom:none; }
+        .db-mini-table .amt-cell { color:#86efac; font-weight:700; text-align:right; }
+        .db-mini-table .neft-amt { color:#67e8f9; }
+
+        /* State mini section within dashboard */
+        .db-state-section { padding:0 24px 20px; }
+        .db-state-label { font-size:0.75rem; font-weight:800; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:.08em; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+        .db-state-label::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(255,255,255,0.15),transparent); }
+        .db-state-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+        .db-state-card { border-radius:10px; padding:12px 14px; animation:scaleIn .3s ease-out backwards; transition:all .25s ease; }
+        .db-state-card:hover { transform:translateY(-3px); }
+        .db-state-card.chq-state { background:rgba(79,70,229,0.15); border:1px solid rgba(79,70,229,0.25); }
+        .db-state-card.neft-state { background:rgba(8,145,178,0.15); border:1px solid rgba(8,145,178,0.25); }
+        .db-state-card.combined-state { background:linear-gradient(135deg,rgba(79,70,229,0.12),rgba(8,145,178,0.12)); border:1px solid rgba(124,58,237,0.25); }
+        .db-state-name { font-size:0.78rem; font-weight:800; color:rgba(255,255,255,0.85); }
+        .db-state-val { font-size:1rem; font-weight:800; color:white; margin-top:4px; }
+        .db-state-count { font-size:0.62rem; color:rgba(255,255,255,0.45); margin-top:2px; font-weight:600; }
+        .db-state-bar { height:2px; border-radius:1px; margin-top:8px; }
+        .db-state-bar.chq-bar { background:linear-gradient(90deg,#818cf8,#6366f1); }
+        .db-state-bar.neft-bar { background:linear-gradient(90deg,#22d3ee,#0891b2); }
+        .db-state-bar.combined-bar { background:linear-gradient(90deg,#818cf8,#22d3ee); }
+
+        /* Loading skeleton */
+        .db-skeleton { border-radius:14px; height:80px; background:linear-gradient(90deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.1) 50%,rgba(255,255,255,0.05) 100%); background-size:200% 100%; animation:shimmer 1.5s infinite; margin:0 24px 14px; }
+
+        /* empty state */
+        .db-empty { padding:40px 24px; text-align:center; color:rgba(255,255,255,0.4); }
+        .db-empty .db-empty-icon { font-size:2.5rem; margin-bottom:12px; }
+        .db-empty p { font-size:0.88rem; font-weight:600; }
+
+        /* Dashboard inside results panel */
+        #resultsSection.dashboard-mode { padding:0; background:transparent; overflow-y:auto; }
+
         .banker-section-title { font-size:0.75rem; font-weight:800; color:var(--slate-500); text-transform:uppercase; letter-spacing:0.08em; padding:12px 0 6px; border-bottom:1px solid var(--slate-200); margin-bottom:14px; }
         .banker-grid { display:flex; flex-direction:column; gap:16px; }
         .banker-card { background:white; border-radius:14px; overflow:hidden; box-shadow:0 6px 22px rgba(0,0,0,0.09); border:1.5px solid var(--slate-200); transition:all .3s ease; animation:scaleIn .4s ease-out backwards; }
@@ -290,13 +372,9 @@
         .copy-btn:hover { background:var(--indigo); color:white; border-color:var(--indigo); }
         .copy-btn.copied { background:var(--green-light); color:white; border-color:var(--green-light); }
         .qr-hint { display:flex; align-items:center; gap:8px; padding:10px 18px; background:var(--slate-50); font-size:0.72rem; color:var(--slate-500); font-weight:500; border-top:1px solid var(--slate-100); }
-
-        /* COMBINED CHART LEGEND */
         .combined-legend { display:flex; gap:16px; flex-wrap:wrap; align-items:center; padding:4px 0 8px; flex-shrink:0; }
         .legend-dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; }
         .legend-item { display:flex; align-items:center; font-size:0.75rem; font-weight:700; color:var(--slate-600); }
-
-        /* PRINT MODAL */
         .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.7); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
         .modal-overlay.active { display:flex; }
         .modal-box { background:white; border-radius:16px; padding:28px; width:500px; max-width:95vw; box-shadow:0 30px 70px rgba(0,0,0,0.25); animation:scaleIn .3s ease-out; }
@@ -310,13 +388,9 @@
         .modal-actions { display:flex; gap:10px; }
         .modal-actions .btn { margin-top:0; flex:1; font-size:0.82rem; padding:10px; }
         .modal-close-btn { position:absolute; top:12px; right:14px; background:none; border:none; font-size:1.1rem; cursor:pointer; color:var(--slate-400); }
-
         .print-deposit-btn { background:linear-gradient(135deg,var(--teal),var(--teal-light)); color:white; border:none; padding:6px 11px; border-radius:6px; cursor:pointer; font-size:0.72rem; font-weight:700; transition:all .2s ease; flex-shrink:0; margin-left:8px; font-family:'Plus Jakarta Sans',sans-serif; }
         .print-deposit-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(8,145,178,0.35); }
-
-        /* FY BADGE */
         .fy-badge { display:inline-flex; align-items:center; gap:5px; background:linear-gradient(135deg,#312e81,var(--indigo)); color:white; font-size:0.65rem; font-weight:700; padding:3px 10px; border-radius:20px; margin-bottom:10px; }
-
         @media print {
             body { overflow:auto !important; height:auto !important; }
             .main-container { display:block !important; height:auto !important; }
@@ -335,12 +409,12 @@
         .print-slip table th { background:#ffff00; border:1px solid #999; padding:7px 10px; font-weight:700; text-align:left; }
         .print-slip table td { border:1px solid #ccc; padding:6px 10px; }
         .print-slip .total-row td { font-weight:700; border-top:2px solid #999; text-align:right; }
-
         @media (max-width:768px) {
             .main-container { flex-direction:column; }
             .left-panel { width:100%; height:auto; border-right:none; border-bottom:1px solid var(--slate-200); }
             .right-panel { height:60vh; }
             .chart-container { grid-template-columns:1fr; }
+            .db-day-inner { grid-template-columns:1fr; }
         }
     </style>
 </head>
@@ -386,7 +460,8 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-button active" onclick="openTab(event,'chqSearch')">🔍 Single Cheque Search</button>
+            <button class="tab-button dashboard-tab active" onclick="openTab(event,'dashboardTab')">🏠 Dashboard</button>
+            <button class="tab-button" onclick="openTab(event,'chqSearch')">🔍 Single Cheque Search</button>
             <button class="tab-button" onclick="openTab(event,'partyDate')">📜 Party / Date Report</button>
             <button class="tab-button deposit-combined-tab" onclick="openTab(event,'depositsReport')">💰 Deposits Report</button>
             <button class="tab-button" onclick="openTab(event,'bankValue')">🏦 Blank Chq Report</button>
@@ -397,7 +472,20 @@
         </div>
 
         <div class="search-section">
-            <div id="chqSearch" class="tab-content active">
+            <!-- DASHBOARD TAB -->
+            <div id="dashboardTab" class="tab-content active">
+                <div style="display:flex;flex-direction:column;gap:13px;">
+                    <h3 style="font-size:0.95rem;margin-bottom:4px;color:#b45309;font-weight:800;">🏠 Live Dashboard</h3>
+                    <p style="font-size:0.8rem;color:var(--slate-500);line-height:1.5;">Combined day-wise view of Cheque + Bank Receipts. Defaults to today.</p>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="dashboardDate">
+                    </div>
+                    <button type="button" class="btn" style="background:linear-gradient(135deg,#b45309,#f59e0b,#d97706);box-shadow:0 4px 14px rgba(245,158,11,0.4);" onclick="loadDashboard()">🔄 Load Dashboard</button>
+                </div>
+            </div>
+
+            <div id="chqSearch" class="tab-content">
                 <form class="search-form" id="searchForm">
                     <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--indigo-dark);font-weight:800;">Individual Cheque Search</h3>
                     <div class="form-group" style="display:none;">
@@ -432,12 +520,9 @@
                 </form>
             </div>
 
-            <!-- ====== COMBINED DEPOSITS REPORT PANEL ====== -->
             <div id="depositsReport" class="tab-content">
                 <form class="search-form" id="depositsReportForm">
                     <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--violet-dark);font-weight:800;">💰 Deposits Report</h3>
-
-                    <!-- REPORT TYPE TOGGLE -->
                     <div class="form-group">
                         <label>Report Type</label>
                         <div class="deposit-type-toggle">
@@ -445,20 +530,14 @@
                             <button type="button" class="deposit-type-btn" id="depTypeNeft" onclick="setDepositType('neft')">🏧 Bank Receipts</button>
                         </div>
                     </div>
-
                     <div class="form-group"><label>From Date</label><input type="date" id="depositFromDate"></div>
                     <div class="form-group"><label>To Date</label><input type="date" id="depositToDate"></div>
-
-                    <!-- Cheque-specific filter -->
                     <div id="depChqFilters">
                         <div class="form-group"><label>Our Bank (Optional)</label><select id="depositedBankTodaySelect"><option value="">All Banks</option></select></div>
                     </div>
-
-                    <!-- NEFT-specific filter -->
                     <div id="depNeftFilters" style="display:none;">
                         <div class="form-group"><label>Party Filter (Optional)</label><input type="text" id="neftPartyFilter" placeholder="Filter by party..." oninput="this.value=this.value.toUpperCase()"></div>
                     </div>
-
                     <button type="submit" class="btn btn-combined" id="depSubmitBtn">Generate Cheque Report</button>
                     <button type="button" class="btn btn-secondary" id="exportDepositsBtn" style="display:none;">EXPORT</button>
                 </form>
@@ -571,8 +650,8 @@
     </div>
 
     <div class="right-panel">
-        <div class="results-section" id="resultsSection">
-            <div class="no-results">Enter Cheque Number and click Search to view details</div>
+        <div class="results-section dashboard-mode" id="resultsSection">
+            <!-- Dashboard loads here by default -->
         </div>
     </div>
 </div>
@@ -590,7 +669,7 @@ const BANKS = {
 
 let lastSearchResults = [], lastFilterResults = [], lastNeftResults = [];
 let chartInstances = [], currentPrintData = null, selectedPrintBank = 'DBS';
-let currentDepositType = 'chq'; // 'chq' or 'neft'
+let currentDepositType = 'chq';
 
 // ==========================================
 // DEPOSIT TYPE TOGGLE
@@ -602,11 +681,8 @@ function setDepositType(type) {
     const chqFilters  = document.getElementById('depChqFilters');
     const neftFilters = document.getElementById('depNeftFilters');
     const submitBtn   = document.getElementById('depSubmitBtn');
-
-    // Reset both
     btnChq.className  = 'deposit-type-btn';
     btnNeft.className = 'deposit-type-btn';
-
     if (type === 'chq') {
         btnChq.classList.add('active-chq');
         chqFilters.style.display  = '';
@@ -622,6 +698,7 @@ function setDepositType(type) {
     }
     document.getElementById('exportDepositsBtn').style.display = 'none';
     document.getElementById('resultsSection').innerHTML = '<div class="no-results">Run the report using the controls on the left.</div>';
+    document.getElementById('resultsSection').className = 'results-section';
 }
 
 // ==========================================
@@ -687,6 +764,13 @@ function parseDDMMYYYY(s) {
     d.setHours(12,0,0,0); return isNaN(d) ? null : d;
 }
 
+function todayDDMMYYYY() {
+    return formatDateDDMMYYYY(new Date());
+}
+function todayISO() {
+    return new Date().toISOString().split('T')[0];
+}
+
 // ==========================================
 // STATUS LOGIC
 // ==========================================
@@ -725,6 +809,13 @@ function openTab(evt, tabName) {
     el.style.display='block'; el.classList.add('active');
     evt.currentTarget.classList.add('active');
     const rs = document.getElementById('resultsSection');
+
+    if (tabName === 'dashboardTab') {
+        rs.className = 'results-section dashboard-mode';
+        loadDashboard();
+        return;
+    }
+    rs.className = 'results-section';
     rs.innerHTML = '<div class="no-results">Run the report using the controls on the left.</div>';
     rs.scrollTop = 0;
     hideAllExportButtons(); destroyCharts();
@@ -912,13 +1003,23 @@ function calculateNeftKpis(data, amtKey) {
 // ==========================================
 // UI HELPERS
 // ==========================================
-function showLoading() { document.getElementById('resultsSection').innerHTML='<div class="loading">Loading data, please wait…</div>'; hideAllExportButtons(); destroyCharts(); }
-function showError(msg) { document.getElementById('resultsSection').innerHTML=`<div class="error"><strong>⚠ Error:</strong> ${msg}</div>`; hideAllExportButtons(); destroyCharts(); }
+function showLoading() {
+    const rs = document.getElementById('resultsSection');
+    rs.className = 'results-section';
+    rs.innerHTML='<div class="loading">Loading data, please wait…</div>';
+    hideAllExportButtons(); destroyCharts();
+}
+function showError(msg) {
+    const rs = document.getElementById('resultsSection');
+    rs.className = 'results-section';
+    rs.innerHTML=`<div class="error"><strong>⚠ Error:</strong> ${msg}</div>`;
+    hideAllExportButtons(); destroyCharts();
+}
 function hideAllExportButtons() { ['exportBtn','exportAllBtn','exportDepositsBtn','exportBankBtn','exportDepositBtn','exportChartBtn','exportAIReportBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';}); }
 function destroyCharts() { chartInstances.forEach(c=>c.destroy()); chartInstances=[]; }
 
 // ==========================================
-// CHART CREATION — FIXED to use canvas wrapper
+// CHART CREATION
 // ==========================================
 function createChart(id, type, labels, data, title, colorSet) {
     const ctx = document.getElementById(id); if(!ctx) return;
@@ -971,7 +1072,6 @@ function createCombinedChart(id, chartType, labels, chqValues, neftValues, combi
     chartInstances.push(c);
 }
 
-// Helper to build a chart canvas wrapped in sizing div
 function makeChartBox(id, title, extraClass='', legendHtml='') {
     return `<div class="chart-box${extraClass?(' '+extraClass):''}">
         <h3>${title}</h3>
@@ -1048,10 +1148,9 @@ function createSimpleTableHtml(data, name, themeClass) {
 }
 
 // ==========================================
-// GRAND TOTAL BANNER BUILDER (shared)
+// GRAND TOTAL BANNER BUILDER
 // ==========================================
 function buildGrandTotalBanner(opts) {
-    // opts: { type:'chq'|'neft', label, total, days, records, avg, from, to, bank, recordWord }
     const isTeal = opts.type === 'neft';
     const headerClass = isTeal ? 'grand-total-banner__header--neft' : 'grand-total-banner__header--chq';
     const footerClass = isTeal ? 'grand-total-banner__footer--neft' : 'grand-total-banner__footer--chq';
@@ -1094,23 +1193,51 @@ function buildGrandTotalBanner(opts) {
 }
 
 // ==========================================
-// NEFT DAY CARD — styled exactly like cheque summary card
+// STATE MINI CARDS BUILDER (for Deposits Report)
+// ==========================================
+function buildStateMiniCards(stateAgg, type, maxVal) {
+    if (!stateAgg || !stateAgg.length) return '';
+    const isNeft = type === 'neft';
+    const headerClass = isNeft ? 'neft-header' : 'chq-header';
+    const barClass = isNeft ? 'neft-bar' : 'chq-bar';
+    const titleColor = isNeft ? 'neft-title' : '';
+    const titleLabel = isNeft ? '🏧 Bank Receipts — State-wise' : '🏦 Cheque — State-wise';
+
+    let html = `<div class="state-mini-section">
+        <h4 class="${titleColor}">${titleLabel}</h4>
+        <div class="state-mini-grid">`;
+    stateAgg.forEach((s, i) => {
+        const pct = maxVal > 0 ? Math.max(8, (s.value / maxVal) * 100) : 8;
+        html += `<div class="state-mini-card${isNeft ? ' neft-mini' : ''}" style="animation-delay:${i*0.04}s;">
+            <div class="state-mini-header ${headerClass}">
+                <span class="state-mini-name">${s.key}</span>
+                <span class="state-mini-rank">#${i+1}</span>
+            </div>
+            <div class="state-mini-body">
+                <div class="state-mini-val">₹${s.value.toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
+                <div class="state-mini-count">${s.count} ${isNeft?'receipts':'cheques'}</div>
+                <div class="state-mini-bar ${barClass}" style="width:${pct}%;"></div>
+            </div>
+        </div>`;
+    });
+    html += `</div></div>`;
+    return html;
+}
+
+// ==========================================
+// NEFT DAY CARD
 // ==========================================
 function generateNeftDayCard(date, rows, idx, amtKey, keys) {
     const sampleRow = rows[0] || {};
     const rowKeys = keys || Object.keys(sampleRow);
     function findKey(patterns) { for(const p of patterns){ const f=rowKeys.find(k=>k.toUpperCase().includes(p.toUpperCase())); if(f) return f; } return null; }
     const partyKey = findKey(['party','PARTY','customer','CLIENT','NAME']) || null;
-
     let dayTotal = 0;
     rows.forEach(r=>{ dayTotal += parseFloat(String(r[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0; });
-
-    // get distinct parties for the subtitle
     const parties = partyKey ? [...new Set(rows.map(r=>String(r[partyKey]||'').trim()).filter(Boolean))] : [];
     const partyPreview = parties.length > 0
         ? (parties.length <= 2 ? parties.join(', ') : parties.slice(0,2).join(', ') + ` +${parties.length-2} more`)
         : '';
-
     const did = `neft-${idx}`;
     return `<div class="summary-card neft-card">
         <div class="summary-header" onclick="toggleDetails('${did}-det',this.querySelector('.summary-toggle-btn'))">
@@ -1156,6 +1283,7 @@ function exportToCSV(data, filename) {
 // ==========================================
 function renderBankerCards() {
     const container = document.getElementById('resultsSection');
+    container.className = 'results-section';
     container.innerHTML = `<div style="padding:4px;">` + Object.values(BANKS).map((bank, i) => `
         <div class="banker-card" style="animation-delay:${i*0.1}s;">
             <div class="banker-card-header" style="background:${bank.headerGradient};">
@@ -1271,6 +1399,315 @@ function doExportExcel() {
 }
 
 // ==========================================
+// ★★★ DASHBOARD ★★★
+// ==========================================
+async function loadDashboard() {
+    const rs = document.getElementById('resultsSection');
+    rs.className = 'results-section dashboard-mode';
+    const sheetId = document.getElementById('sheetId').value.trim();
+    const dateInput = document.getElementById('dashboardDate').value || todayISO();
+    const displayDate = formatDateDDMMYYYY(new Date(dateInput + 'T12:00:00'));
+
+    // Show skeleton loading
+    rs.innerHTML = `
+    <div class="dashboard-wrapper">
+        <div class="dashboard-header">
+            <div class="dashboard-header-row">
+                <div class="dashboard-title">📊 Live Dashboard</div>
+                <div class="dashboard-date-badge">📅 ${displayDate}</div>
+            </div>
+        </div>
+        <div class="db-kpi-row">
+            ${[1,2,3,4,5].map(()=>`<div class="db-skeleton" style="height:96px;margin:0;border-radius:14px;"></div>`).join('')}
+        </div>
+        <div style="padding:0 24px;"><div class="db-skeleton"></div><div class="db-skeleton" style="margin-top:10px;"></div></div>
+    </div>`;
+
+    try {
+        // Fetch both in parallel
+        const [chqData, neftData] = await Promise.allSettled([
+            fetchSheetData(sheetId),
+            fetchNeftData()
+        ]);
+
+        const allChq = chqData.status === 'fulfilled' ? chqData.value : [];
+        const allNeft = neftData.status === 'fulfilled' ? neftData.value : [];
+
+        // Detect NEFT keys
+        const neftKeys = allNeft.length ? Object.keys(allNeft[0]) : [];
+        function findNeftKey(patterns) { for(const p of patterns){ const f=neftKeys.find(k=>k.toUpperCase().includes(p.toUpperCase())); if(f) return f; } return null; }
+        const neftDateKey  = findNeftKey(['date']) || 'date';
+        const neftPartyKey = findNeftKey(['party','customer','client','name']) || 'party';
+        const neftAmtKey   = findNeftKey(['amount','value','₹','amt']) || 'amount';
+        const neftStateKey = findNeftKey(['state']) || null;
+
+        // Filter for selected date — using deposit date for CHQ, receipt date for NEFT
+        const todayChq = filterDepositsReport(allChq, dateInput, dateInput, '');
+        const todayNeft = filterNeftData(allNeft, dateInput, dateInput, '');
+
+        // Totals
+        let chqTotal = 0, neftTotal = 0;
+        todayChq.forEach(r => { chqTotal += parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; });
+        todayNeft.forEach(r => { neftTotal += parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0; });
+        const combined = chqTotal + neftTotal;
+        const totalRecords = todayChq.length + todayNeft.length;
+        const avgPerRecord = totalRecords > 0 ? combined / totalRecords : 0;
+
+        // State aggregation
+        const chqStateAgg = buildStateAgg(todayChq, 'State', 'Chq Value (₹)', false);
+        const neftStateAgg = neftStateKey ? buildStateAgg(todayNeft, neftStateKey, neftAmtKey, true) : [];
+        // Combined state
+        const combinedStateMap = {};
+        chqStateAgg.forEach(s => { if(!combinedStateMap[s.key]) combinedStateMap[s.key]={value:0,count:0}; combinedStateMap[s.key].value+=s.value; combinedStateMap[s.key].count+=s.count; });
+        neftStateAgg.forEach(s => { if(!combinedStateMap[s.key]) combinedStateMap[s.key]={value:0,count:0}; combinedStateMap[s.key].value+=s.value; combinedStateMap[s.key].count+=s.count; });
+        const combinedStateArr = Object.entries(combinedStateMap).map(([k,v])=>({key:k,...v})).sort((a,b)=>b.value-a.value);
+
+        // Party aggregation (for cheque mini-list)
+        const chqPartyMap = {};
+        todayChq.forEach(r => { const p = r['Party Name']||'N/A'; const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; chqPartyMap[p]=(chqPartyMap[p]||0)+v; });
+        const chqPartyTop = Object.entries(chqPartyMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+        const neftPartyMap = {};
+        todayNeft.forEach(r => { const p = String(r[neftPartyKey]||'N/A'); const v = parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0; neftPartyMap[p]=(neftPartyMap[p]||0)+v; });
+        const neftPartyTop = Object.entries(neftPartyMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+        // Day cards - group both by date (just one day here, but if range changes later this is ready)
+        const hasData = todayChq.length > 0 || todayNeft.length > 0;
+
+        let html = `<div class="dashboard-wrapper">
+        <div class="dashboard-header">
+            <div class="dashboard-header-row">
+                <div class="dashboard-title">📊 Live Dashboard</div>
+                <div class="dashboard-date-badge">📅 ${displayDate}</div>
+                <button class="dashboard-refresh-btn" onclick="loadDashboard()"><span class="refresh-icon">🔄</span> Refresh</button>
+            </div>
+            <div class="dashboard-date-picker">
+                <label>Change Date:</label>
+                <input type="date" id="dashboardDate" value="${dateInput}">
+                <button class="db-load-btn" onclick="loadDashboard()">Load</button>
+            </div>
+        </div>`;
+
+        // KPI row
+        html += `<div class="db-kpi-row">
+            <div class="db-kpi-card db-kpi-combined" style="animation-delay:.05s;">
+                <div class="db-kpi-label">Combined Total</div>
+                <div class="db-kpi-value">₹${combined.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                <div class="db-kpi-sub">${totalRecords} total records today</div>
+                <div class="db-kpi-icon">💰</div>
+            </div>
+            <div class="db-kpi-card db-kpi-chq" style="animation-delay:.10s;">
+                <div class="db-kpi-label">Cheque Deposits</div>
+                <div class="db-kpi-value">₹${chqTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                <div class="db-kpi-sub">${todayChq.length} cheques · ${combined>0?((chqTotal/combined)*100).toFixed(1):0}% share</div>
+                <div class="db-kpi-icon">🏦</div>
+            </div>
+            <div class="db-kpi-card db-kpi-neft" style="animation-delay:.15s;">
+                <div class="db-kpi-label">Bank Receipts</div>
+                <div class="db-kpi-value">₹${neftTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                <div class="db-kpi-sub">${todayNeft.length} receipts · ${combined>0?((neftTotal/combined)*100).toFixed(1):0}% share</div>
+                <div class="db-kpi-icon">🏧</div>
+            </div>
+            <div class="db-kpi-card db-kpi-records" style="animation-delay:.20s;">
+                <div class="db-kpi-label">Total Transactions</div>
+                <div class="db-kpi-value">${totalRecords}</div>
+                <div class="db-kpi-sub">${todayChq.length} CHQ + ${todayNeft.length} NEFT</div>
+                <div class="db-kpi-icon">📋</div>
+            </div>
+            <div class="db-kpi-card db-kpi-avg" style="animation-delay:.25s;">
+                <div class="db-kpi-label">Avg Per Transaction</div>
+                <div class="db-kpi-value">₹${avgPerRecord.toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
+                <div class="db-kpi-sub">Combined average</div>
+                <div class="db-kpi-icon">📈</div>
+            </div>
+        </div>`;
+
+        if (!hasData) {
+            html += `<div class="db-empty"><div class="db-empty-icon">📭</div><p>No transactions found for ${displayDate}.<br>Try selecting a different date.</p></div>`;
+        } else {
+            // Split overview
+            html += `<div class="db-section-label"><h3>📌 Today's Breakdown</h3></div>
+            <div class="db-split-row">
+                <div class="db-split-card db-split-chq">
+                    <div class="db-split-title">🏦 Cheque Deposits</div>
+                    <div class="db-split-amount">₹${chqTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                    <div class="db-split-meta">
+                        <div class="db-split-meta-item"><span class="db-split-meta-label">Cheques</span><span class="db-split-meta-val">${todayChq.length}</span></div>
+                        <div class="db-split-meta-item"><span class="db-split-meta-label">Avg</span><span class="db-split-meta-val">₹${todayChq.length?Math.round(chqTotal/todayChq.length).toLocaleString('en-IN'):'0'}</span></div>
+                        <div class="db-split-meta-item"><span class="db-split-meta-label">States</span><span class="db-split-meta-val">${chqStateAgg.length}</span></div>
+                    </div>
+                </div>
+                <div class="db-split-card db-split-neft">
+                    <div class="db-split-title">🏧 Bank Receipts (NEFT)</div>
+                    <div class="db-split-amount">₹${neftTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                    <div class="db-split-meta">
+                        <div class="db-split-meta-item"><span class="db-split-meta-label">Receipts</span><span class="db-split-meta-val">${todayNeft.length}</span></div>
+                        <div class="db-split-meta-item"><span class="db-split-meta-label">Avg</span><span class="db-split-meta-val">₹${todayNeft.length?Math.round(neftTotal/todayNeft.length).toLocaleString('en-IN'):'0'}</span></div>
+                        <div class="db-split-meta-item"><span class="db-split-meta-label">States</span><span class="db-split-meta-val">${neftStateAgg.length}</span></div>
+                    </div>
+                </div>
+            </div>`;
+
+            // Day consolidated card
+            html += `<div class="db-section-label"><h3>📅 Day-wise Consolidated</h3></div>
+            <div class="db-day-card">
+                <div class="db-day-header" onclick="toggleDbDay(this)">
+                    <div>
+                        <div class="db-day-date">${displayDate}</div>
+                        <div class="db-day-badges" style="margin-top:5px;">
+                            ${todayChq.length ? `<span class="db-day-badge db-badge-chq">🏦 ${todayChq.length} Cheques</span>` : ''}
+                            ${todayNeft.length ? `<span class="db-day-badge db-badge-neft">🏧 ${todayNeft.length} Receipts</span>` : ''}
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:16px;">
+                        <div class="db-day-total">₹${combined.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                        <div class="db-day-chevron open">▼</div>
+                    </div>
+                </div>
+                <div class="db-day-body open">
+                    <div class="db-day-inner">`;
+
+            // CHQ block
+            if (todayChq.length) {
+                html += `<div class="db-inner-block db-inner-chq">
+                    <div class="db-inner-title chq-color">🏦 CHEQUE DETAILS</div>
+                    <div class="db-inner-amount">₹${chqTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                    <div class="db-inner-records">${todayChq.length} cheques</div>
+                    <table class="db-mini-table">
+                        <thead><tr><th>Party</th><th>Bank</th><th style="text-align:right;">Value</th></tr></thead>
+                        <tbody>
+                            ${todayChq.slice(0,8).map(r=>{
+                                const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
+                                return `<tr><td>${(r['Party Name']||'N/A').substring(0,18)}</td><td>${(r['Bank Name (Party)']||'-').substring(0,12)}</td><td class="amt-cell">₹${v.toLocaleString('en-IN')}</td></tr>`;
+                            }).join('')}
+                            ${todayChq.length>8?`<tr><td colspan="3" style="color:rgba(255,255,255,0.35);font-size:0.65rem;padding:4px 8px;">+${todayChq.length-8} more…</td></tr>`:''}
+                        </tbody>
+                    </table>
+                </div>`;
+            } else {
+                html += `<div class="db-inner-block db-inner-chq" style="display:flex;align-items:center;justify-content:center;"><span style="color:rgba(255,255,255,0.3);font-size:0.82rem;">No cheque deposits</span></div>`;
+            }
+
+            // NEFT block
+            if (todayNeft.length) {
+                html += `<div class="db-inner-block db-inner-neft">
+                    <div class="db-inner-title neft-color">🏧 BANK RECEIPTS</div>
+                    <div class="db-inner-amount">₹${neftTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                    <div class="db-inner-records">${todayNeft.length} receipts</div>
+                    <table class="db-mini-table">
+                        <thead><tr><th>Party</th><th style="text-align:right;">Amount</th></tr></thead>
+                        <tbody>
+                            ${todayNeft.slice(0,8).map(r=>{
+                                const v = parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0;
+                                return `<tr><td>${String(r[neftPartyKey]||'N/A').substring(0,22)}</td><td class="amt-cell neft-amt">₹${v.toLocaleString('en-IN')}</td></tr>`;
+                            }).join('')}
+                            ${todayNeft.length>8?`<tr><td colspan="2" style="color:rgba(255,255,255,0.35);font-size:0.65rem;padding:4px 8px;">+${todayNeft.length-8} more…</td></tr>`:''}
+                        </tbody>
+                    </table>
+                </div>`;
+            } else {
+                html += `<div class="db-inner-block db-inner-neft" style="display:flex;align-items:center;justify-content:center;"><span style="color:rgba(255,255,255,0.3);font-size:0.82rem;">No bank receipts</span></div>`;
+            }
+
+            html += `</div></div></div>`;
+
+            // STATE SECTION
+            if (combinedStateArr.length) {
+                const maxStateVal = combinedStateArr[0].value;
+                html += `<div class="db-section-label"><h3>🗺️ State-wise Summary</h3></div>
+                <div class="db-state-section">`;
+
+                // Combined state cards
+                if (combinedStateArr.length) {
+                    html += `<div style="margin-bottom:8px;font-size:0.65rem;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;">Combined (CHQ + NEFT)</div>
+                    <div class="db-state-cards">`;
+                    combinedStateArr.forEach((s, i) => {
+                        const pct = maxStateVal > 0 ? Math.max(10, (s.value / maxStateVal) * 100) : 10;
+                        html += `<div class="db-state-card combined-state" style="animation-delay:${i*0.04}s;">
+                            <div class="db-state-name">${s.key}</div>
+                            <div class="db-state-val">₹${s.value.toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
+                            <div class="db-state-count">${s.count} records</div>
+                            <div class="db-state-bar combined-bar" style="width:${pct}%;"></div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                // CHQ state cards
+                if (chqStateAgg.length) {
+                    const maxC = chqStateAgg[0].value;
+                    html += `<div style="margin:16px 0 8px;font-size:0.65rem;font-weight:700;color:rgba(165,180,252,0.7);text-transform:uppercase;letter-spacing:.08em;">🏦 Cheque — by State</div>
+                    <div class="db-state-cards">`;
+                    chqStateAgg.forEach((s, i) => {
+                        const pct = maxC > 0 ? Math.max(10, (s.value / maxC) * 100) : 10;
+                        html += `<div class="db-state-card chq-state" style="animation-delay:${i*0.04}s;">
+                            <div class="db-state-name">${s.key}</div>
+                            <div class="db-state-val">₹${s.value.toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
+                            <div class="db-state-count">${s.count} cheques</div>
+                            <div class="db-state-bar chq-bar" style="width:${pct}%;"></div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                // NEFT state cards
+                if (neftStateAgg.length) {
+                    const maxN = neftStateAgg[0].value;
+                    html += `<div style="margin:16px 0 8px;font-size:0.65rem;font-weight:700;color:rgba(103,232,249,0.7);text-transform:uppercase;letter-spacing:.08em;">🏧 Bank Receipts — by State</div>
+                    <div class="db-state-cards">`;
+                    neftStateAgg.forEach((s, i) => {
+                        const pct = maxN > 0 ? Math.max(10, (s.value / maxN) * 100) : 10;
+                        html += `<div class="db-state-card neft-state" style="animation-delay:${i*0.04}s;">
+                            <div class="db-state-name">${s.key}</div>
+                            <div class="db-state-val">₹${s.value.toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
+                            <div class="db-state-count">${s.count} receipts</div>
+                            <div class="db-state-bar neft-bar" style="width:${pct}%;"></div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+                html += `</div>`; // close db-state-section
+            }
+        }
+
+        html += `<div style="height:30px;"></div></div>`; // bottom padding
+        rs.innerHTML = html;
+
+    } catch(err) {
+        rs.innerHTML = `<div class="dashboard-wrapper" style="padding:24px;">
+            <div class="error" style="background:rgba(239,68,68,0.15);border-color:#ef4444;color:#fca5a5;">
+                <strong>⚠ Dashboard Error:</strong> ${err.message}<br>
+                <small style="opacity:.7;margin-top:6px;display:block;">Check your network or data source.</small>
+            </div>
+        </div>`;
+    }
+}
+
+function buildStateAgg(data, stateKey, amtKey, isNeft) {
+    const map = {};
+    data.forEach(r => {
+        const k = formatFieldValue(r[stateKey], 'Unknown');
+        const v = isNeft
+            ? parseFloat(String(r[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0
+            : parseFloat((r[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0;
+        if (!map[k]) map[k] = { value:0, count:0 };
+        map[k].value += v;
+        map[k].count += 1;
+    });
+    return Object.entries(map).map(([k,v])=>({key:k,...v})).sort((a,b)=>b.value-a.value);
+}
+
+function toggleDbDay(headerEl) {
+    const body = headerEl.nextElementSibling;
+    const chev = headerEl.querySelector('.db-day-chevron');
+    if (body.classList.contains('open')) {
+        body.classList.remove('open'); body.style.display='none'; chev.classList.remove('open');
+    } else {
+        body.classList.add('open'); body.style.display='block'; chev.classList.add('open');
+    }
+}
+
+// ==========================================
 // REPORT HANDLERS
 // ==========================================
 
@@ -1312,16 +1749,11 @@ document.getElementById('partyDateForm').addEventListener('submit', async functi
 });
 document.getElementById('exportAllBtn').addEventListener('click',()=>exportToCSV(lastFilterResults,'party_date_report'));
 
-// ==========================================
-// 3. COMBINED DEPOSITS REPORT (Cheque + NEFT in one tab)
-// ==========================================
+// 3. COMBINED DEPOSITS REPORT
 document.getElementById('depositsReportForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    if (currentDepositType === 'chq') {
-        await runChequeDepositsReport();
-    } else {
-        await runNeftDepositsReport();
-    }
+    if (currentDepositType === 'chq') await runChequeDepositsReport();
+    else await runNeftDepositsReport();
 });
 document.getElementById('exportDepositsBtn').addEventListener('click', () => {
     if (currentDepositType === 'neft') exportToCSV(lastNeftResults, 'bank_receipts_report');
@@ -1342,7 +1774,7 @@ async function runChequeDepositsReport() {
         if (!fd.length) { rs.innerHTML = `<div class="no-results">No cheque deposits found for ${from} to ${to}.</div>`; return; }
         lastFilterResults = fd;
 
-        // Normalize & group by date
+        // Group by date
         const gbd = {};
         fd.forEach(r => {
             const normDate = r._effectiveDate !== 'No Date' ? formatDateDDMMYYYY(r._effectiveDate) : 'No Date';
@@ -1357,6 +1789,11 @@ async function runChequeDepositsReport() {
         sortedDates.forEach(d => gbd[d].forEach(r => { gTotal += parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; }));
         const avgPerChq = fd.length > 0 ? gTotal / fd.length : 0;
 
+        // State aggregation for CHQ
+        const chqStateAgg = buildStateAgg(fd, 'State', 'Chq Value (₹)', false);
+        const maxChqStateVal = chqStateAgg.length ? chqStateAgg[0].value : 0;
+        const chqStateMiniHtml = chqStateAgg.length ? buildStateMiniCards(chqStateAgg, 'chq', maxChqStateVal) : '';
+
         let html = buildGrandTotalBanner({
             type: 'chq',
             label: 'DEPOSITS REPORT — CHEQUE — GRAND TOTAL',
@@ -1366,6 +1803,11 @@ async function runChequeDepositsReport() {
             to: to.split('-').reverse().join('/'),
             bank: bank || ''
         });
+
+        // State mini cards
+        if (chqStateMiniHtml) {
+            html += `<div style="background:white;border:1.5px solid var(--slate-200);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.05);">${chqStateMiniHtml}</div>`;
+        }
 
         sortedDates.forEach((date, idx) => {
             const dd = gbd[date]; let dtv = 0;
@@ -1429,6 +1871,7 @@ async function runNeftDepositsReport() {
         const dateKey  = findKey(['date','DATE']) || 'date';
         const partyKey = findKey(['party','PARTY','customer','CLIENT','NAME']) || 'party';
         const amtKey   = findKey(['amount','AMOUNT','VALUE','₹','AMT']) || 'amount';
+        const stateKey = findKey(['state','STATE']) || null;
 
         const filtered = filterNeftData(rawData, from, to, partyFilter);
         const rs = document.getElementById('resultsSection');
@@ -1454,6 +1897,11 @@ async function runNeftDepositsReport() {
         filtered.forEach(r => { grandTotal += parseFloat(String(r[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0; });
         const avgPerRecord = filtered.length > 0 ? grandTotal / filtered.length : 0;
 
+        // State aggregation for NEFT
+        const neftStateAgg = stateKey ? buildStateAgg(filtered, stateKey, amtKey, true) : [];
+        const maxNeftStateVal = neftStateAgg.length ? neftStateAgg[0].value : 0;
+        const neftStateMiniHtml = neftStateAgg.length ? buildStateMiniCards(neftStateAgg, 'neft', maxNeftStateVal) : '';
+
         let html = buildGrandTotalBanner({
             type: 'neft',
             label: 'DEPOSITS REPORT — BANK RECEIPTS — GRAND TOTAL',
@@ -1463,6 +1911,11 @@ async function runNeftDepositsReport() {
             to: to.split('-').reverse().join('/'),
             bank: partyFilter ? `Party: ${partyFilter}` : ''
         });
+
+        // State mini cards for NEFT
+        if (neftStateMiniHtml) {
+            html += `<div style="background:white;border:1.5px solid #a5f3fc;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 4px 12px rgba(8,145,178,0.07);">${neftStateMiniHtml}</div>`;
+        }
 
         sortedDates.forEach((date, idx) => {
             html += generateNeftDayCard(date, gbd[date], idx, amtKey, keys);
@@ -1567,9 +2020,7 @@ document.getElementById('depositForm').addEventListener('submit', async function
 });
 document.getElementById('exportDepositBtn').addEventListener('click',()=>exportToCSV(lastFilterResults,'deposit_status_report'));
 
-// ==========================================
 // 6. GRAPHICAL REPORTS
-// ==========================================
 document.getElementById('chartReportForm').addEventListener('submit', async function(e) {
     e.preventDefault(); showLoading(); destroyCharts();
     const sheetId = document.getElementById('sheetId').value.trim();
@@ -1621,9 +2072,7 @@ document.getElementById('chartReportForm').addEventListener('submit', async func
             </div>
         </div>`;
 
-        // Build chart grid
         html += `<div class="chart-container">`;
-
         if (inclChq && inclNeft && chqData.length && neftData.length && neftAmtKey) {
             const legendHtml = `<div class="combined-legend">
                 <span class="legend-item"><span class="legend-dot" style="background:rgba(79,70,229,0.85);"></span>🏦 Cheque</span>
@@ -1643,7 +2092,6 @@ document.getElementById('chartReportForm').addEventListener('submit', async func
         }
         html += `</div>`;
 
-        // State cards for cheque
         if (inclChq && chqData.length) {
             const sd = aggregateData(chqData, 'State');
             html += `<div style="padding:0 16px 10px;">
@@ -1666,7 +2114,6 @@ document.getElementById('chartReportForm').addEventListener('submit', async func
         }
 
         rs.innerHTML = html;
-
         requestAnimationFrame(() => {
             if (inclChq && inclNeft && chqData.length && neftData.length && neftAmtKey) {
                 const merged = getMergedMonthlyTrend(chqData, 'Deposited Date', neftData, neftDateKey, neftAmtKey);
@@ -1690,9 +2137,7 @@ document.getElementById('chartReportForm').addEventListener('submit', async func
 });
 document.getElementById('exportChartBtn').addEventListener('click',()=>exportToCSV(lastFilterResults,'graphical_report_data'));
 
-// ==========================================
 // 7. AI & TREND ANALYSIS
-// ==========================================
 document.getElementById('aiAnalysisForm').addEventListener('submit', async function(e) {
     e.preventDefault(); showLoading(); destroyCharts();
     const sheetId = document.getElementById('sheetId').value.trim();
@@ -1778,7 +2223,6 @@ document.getElementById('aiAnalysisForm').addEventListener('submit', async funct
             }
         }
 
-        // AI Charts
         html += `<div class="chart-container">`;
         if (inclChq && inclNeft && chqData.length && neftData.length && neftAmtKey) {
             const legendHtml = `<div class="combined-legend">
@@ -1857,11 +2301,17 @@ async function populateDropdowns(sheetId) {
     } catch(err){console.error('Dropdown error',err);}
 }
 
+// ==========================================
+// INIT
+// ==========================================
 document.addEventListener('DOMContentLoaded', ()=>{
     const sheetId=document.getElementById('sheetId').value.trim();
+
+    // Set today's date as default for dashboard
+    const today = todayISO();
+    document.getElementById('dashboardDate').value = today;
+
     if(sheetId) setTimeout(()=>populateDropdowns(sheetId),500);
-    document.getElementById('chqSearch').style.display='block';
-    document.getElementById('chqSearch').classList.add('active');
     document.getElementById('chartTypeBarAI').checked=true;
     document.getElementById('chartTypeBarParty').checked=true;
     const t=new Date().toISOString().split('T')[0];
@@ -1877,6 +2327,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const el=document.getElementById(id);
         if(el) el.textContent = '📅 ' + fyLabel + ' (default)';
     });
+
+    // Load dashboard on startup
+    loadDashboard();
 });
 
 document.getElementById('printModal').addEventListener('click',function(e){if(e.target===this)closePrintModal();});

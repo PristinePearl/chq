@@ -48,6 +48,8 @@
         .tab-button.active { background:linear-gradient(90deg,rgba(79,70,229,0.08) 0%,rgba(79,70,229,0.02) 100%); font-weight:700; color:var(--indigo); border-left-color:var(--indigo); }
         .tab-button.neft-tab.active { border-left-color:var(--teal); color:var(--teal); background:linear-gradient(90deg,rgba(8,145,178,0.08) 0%,rgba(8,145,178,0.02) 100%); }
         .tab-button.neft-tab:hover:not(.active) { color:var(--teal); }
+        .tab-button.deposit-combined-tab.active { border-left-color:var(--violet-dark); color:var(--violet-dark); background:linear-gradient(90deg,rgba(124,58,237,0.08) 0%,rgba(124,58,237,0.02) 100%); }
+        .tab-button.deposit-combined-tab:hover:not(.active) { color:var(--violet-dark); }
 
         .search-section { padding:18px; background:var(--slate-50); flex:1; overflow-y:auto; }
         .tab-content { display:none; }
@@ -59,6 +61,13 @@
         .form-group input[type="radio"], .form-group input[type="checkbox"] { width:auto; height:auto; padding:0; margin:0 5px 0 0; border:none; }
         .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,0.15); }
         .form-group input::placeholder { color:var(--slate-300); }
+
+        /* Deposit type toggle tabs */
+        .deposit-type-toggle { display:flex; gap:0; background:var(--slate-100); border-radius:10px; padding:4px; margin-bottom:4px; }
+        .deposit-type-btn { flex:1; padding:8px 10px; border:none; border-radius:7px; cursor:pointer; font-size:0.78rem; font-weight:700; color:var(--slate-500); background:none; transition:all .2s ease; font-family:'Plus Jakarta Sans',sans-serif; text-align:center; }
+        .deposit-type-btn.active-chq { background:white; color:var(--indigo); box-shadow:0 2px 8px rgba(79,70,229,0.15); }
+        .deposit-type-btn.active-neft { background:white; color:var(--teal); box-shadow:0 2px 8px rgba(8,145,178,0.15); }
+        .deposit-type-btn.active-both { background:white; color:var(--violet-dark); box-shadow:0 2px 8px rgba(124,58,237,0.15); }
 
         .data-source-toggle { display:flex; flex-direction:column; gap:8px; background:white; border:2px solid var(--slate-200); border-radius:10px; padding:11px 13px; }
         .data-source-toggle > label { font-weight:700; color:var(--slate-500); font-size:0.73rem; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:2px; }
@@ -76,6 +85,8 @@
         .btn-secondary:hover { box-shadow:0 8px 24px rgba(139,92,246,0.4); transform:translateY(-2px); }
         .btn-neft { background:linear-gradient(135deg,var(--teal) 0%,var(--teal-light) 50%,#0e7490 100%); box-shadow:0 4px 14px rgba(8,145,178,0.3); }
         .btn-neft:hover { box-shadow:0 8px 24px rgba(8,145,178,0.4); transform:translateY(-2px); }
+        .btn-combined { background:linear-gradient(135deg,var(--indigo) 0%,var(--violet-dark) 50%,var(--teal) 100%); box-shadow:0 4px 14px rgba(124,58,237,0.3); }
+        .btn-combined:hover { box-shadow:0 8px 24px rgba(124,58,237,0.4); transform:translateY(-2px); }
 
         .results-section { padding:16px; flex:1; background:white; overflow-y:auto; }
         .loading { text-align:center; color:var(--slate-500); font-style:italic; padding:50px; font-size:0.95rem; animation:pulse 1.5s ease-in-out infinite; }
@@ -106,16 +117,30 @@
         .product-table tr:nth-child(even) td { background:var(--slate-50); }
         .neft-table th { background:linear-gradient(90deg,#0e7490,#0891b2); }
 
-        /* CHARTS */
-        .chart-container { display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:20px; }
-        .chart-box { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.07); height:400px; transition:all .3s cubic-bezier(.4,0,.2,1); border:1.5px solid var(--slate-200); }
-        .chart-box:hover { box-shadow:0 12px 32px rgba(0,0,0,0.1); transform:translateY(-4px); }
+        /* ==================== CHARTS — FIXED LAYOUT ==================== */
+        .chart-container { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:16px; }
+        .chart-box {
+            background:white;
+            padding:16px;
+            border-radius:12px;
+            box-shadow:0 4px 16px rgba(0,0,0,0.07);
+            border:1.5px solid var(--slate-200);
+            transition:all .3s cubic-bezier(.4,0,.2,1);
+            display:flex;
+            flex-direction:column;
+            min-height:0;
+        }
+        .chart-box:hover { box-shadow:0 12px 32px rgba(0,0,0,0.1); transform:translateY(-3px); }
         .chart-box.full-width { grid-column:1/-1; }
-        .chart-box h3 { font-size:0.95rem; font-weight:800; color:var(--indigo); margin-bottom:14px; padding-bottom:10px; border-bottom:2px solid var(--slate-100); }
+        .chart-box h3 { font-size:0.88rem; font-weight:800; color:var(--indigo); margin-bottom:10px; padding-bottom:8px; border-bottom:2px solid var(--slate-100); flex-shrink:0; }
         .chart-box.neft-chart h3 { color:var(--teal); }
         .chart-box.combined-chart h3 { color:var(--violet-dark); }
-        .section-separator { grid-column:1/-1; display:flex; align-items:center; gap:12px; }
-        .section-separator .sep-label { font-size:0.85rem; font-weight:800; color:var(--teal); white-space:nowrap; }
+        /* Canvas wrapper controls height */
+        .chart-canvas-wrapper { position:relative; flex:1; min-height:260px; max-height:340px; }
+        .chart-canvas-wrapper canvas { position:absolute; top:0; left:0; width:100% !important; height:100% !important; }
+
+        .section-separator { grid-column:1/-1; display:flex; align-items:center; gap:12px; padding:4px 0; }
+        .section-separator .sep-label { font-size:0.82rem; font-weight:800; color:var(--teal); white-space:nowrap; }
         .section-separator .sep-line { flex:1; height:2px; background:linear-gradient(90deg,var(--teal),#a5f3fc,transparent); border-radius:2px; }
 
         /* KPI */
@@ -143,15 +168,24 @@
         .status-represented { background:var(--violet); }
         .status-blank { background:var(--teal-light); }
 
-        /* SUMMARY CARDS */
+        /* SUMMARY CARDS — Cheque deposits */
         .summary-card { background:white; border:1.5px solid var(--slate-200); border-radius:10px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04); transition:all .25s ease; }
         .summary-card:hover { box-shadow:0 6px 18px rgba(0,0,0,0.08); border-color:var(--indigo); transform:translateY(-2px); }
-        .summary-card.neft-card { border-color:#a5f3fc; }
+
+        /* NEFT SUMMARY CARD — styled IDENTICAL to cheque summary card but teal accent */
+        .summary-card.neft-card { border-color:var(--slate-200); }
         .summary-card.neft-card:hover { border-color:var(--teal); box-shadow:0 6px 18px rgba(8,145,178,0.12); }
+
         .summary-header { display:flex; justify-content:space-between; align-items:center; padding:13px 16px; cursor:pointer; background:var(--slate-50); border-radius:10px 10px 0 0; transition:background .2s ease; }
-        .summary-card.neft-card .summary-header { background:linear-gradient(90deg,#ecfeff,#f0fdfa); }
+
+        /* Cheque header */
+        .summary-card:not(.neft-card) .summary-header { background:var(--slate-50); }
+        /* NEFT header — matches cheque header exactly but with teal tint */
+        .summary-card.neft-card .summary-header { background:linear-gradient(90deg,#f0fdff,#f8fffe); }
+
         .summary-header-item { font-size:0.88rem; font-weight:600; color:var(--slate-800); flex:1; min-width:80px; }
         .summary-header-item.chq-val { font-weight:800; color:var(--green); flex-grow:0; min-width:120px; text-align:right; padding-right:12px; }
+        .summary-header-item.neft-val { font-weight:800; color:var(--teal); flex-grow:0; min-width:140px; text-align:right; padding-right:12px; }
         .summary-header-item .field-label { margin-bottom:2px; font-size:0.62rem; color:var(--slate-400); font-weight:700; letter-spacing:0.05em; text-transform:uppercase; }
         .summary-header-item .field-value { font-size:0.88rem; }
         .summary-toggle-btn { background:linear-gradient(135deg,var(--violet) 0%,var(--violet-dark) 100%); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.7rem; font-weight:700; transition:all .2s ease; flex-shrink:0; margin-left:8px; font-family:'Plus Jakarta Sans',sans-serif; }
@@ -159,7 +193,29 @@
         .summary-toggle-btn.expanded::before { content:'– COLLAPSE'; }
         .summary-details { display:none; padding:14px; border-top:1.5px solid var(--slate-200); }
 
-        /* BANK RECEIPTS KPI BANNER */
+        /* GRAND TOTAL BANNER — shared base, color variants via modifier */
+        .grand-total-banner { border-radius:14px; margin-bottom:20px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.13); }
+        .grand-total-banner__header { padding:18px 22px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; }
+        .grand-total-banner__header--chq { background:linear-gradient(135deg,#064e3b 0%,#059669 60%,#34d399 100%); }
+        .grand-total-banner__header--neft { background:linear-gradient(135deg,#0c4a6e 0%,#0891b2 60%,#22d3ee 100%); }
+        .grand-total-banner__label { font-size:0.62rem; font-weight:700; opacity:.75; text-transform:uppercase; letter-spacing:.12em; color:white; margin-bottom:4px; }
+        .grand-total-banner__value { font-size:1.7rem; font-weight:800; color:white; letter-spacing:-0.02em; line-height:1.1; }
+        .grand-total-banner__sub { font-size:0.72rem; color:rgba(255,255,255,.72); margin-top:3px; font-weight:500; }
+        .grand-total-banner__pills { display:flex; gap:10px; flex-wrap:wrap; }
+        .grand-total-banner__pill { text-align:center; background:rgba(255,255,255,.15); border-radius:10px; padding:12px 18px; min-width:72px; }
+        .grand-total-banner__pill-val { font-size:1.5rem; font-weight:800; color:white; line-height:1.1; }
+        .grand-total-banner__pill-val--sm { font-size:1.1rem; }
+        .grand-total-banner__pill-label { font-size:0.6rem; font-weight:700; color:rgba(255,255,255,.75); text-transform:uppercase; letter-spacing:.08em; margin-top:3px; }
+        .grand-total-banner__footer { display:flex; gap:0; background:white; }
+        .grand-total-banner__footer--chq { border-top:1.5px solid #d1fae5; }
+        .grand-total-banner__footer--neft { border-top:1.5px solid #a5f3fc; }
+        .grand-total-banner__footer-item { flex:1; padding:12px 18px; border-right:1px solid #e2e8f0; }
+        .grand-total-banner__footer-item:last-child { border-right:none; }
+        .grand-total-banner__footer-item-label { font-size:0.62rem; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.07em; margin-bottom:3px; }
+        .grand-total-banner__footer-item-val--chq { font-size:0.88rem; font-weight:700; color:#065f46; }
+        .grand-total-banner__footer-item-val--neft { font-size:0.88rem; font-weight:700; color:#0e7490; }
+
+        /* BANK RECEIPTS KPI BANNER (legacy — keep for compatibility) */
         .neft-kpi-banner { background:linear-gradient(135deg,#ecfeff,#f0fdfa); border:2px solid #a5f3fc; border-radius:12px; padding:14px 18px; margin-bottom:14px; display:flex; gap:20px; flex-wrap:wrap; align-items:center; animation:slideInDown .4s ease; }
         .neft-kpi-item { display:flex; flex-direction:column; gap:2px; }
         .neft-kpi-item .nk-label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#0e7490; }
@@ -236,7 +292,7 @@
         .qr-hint { display:flex; align-items:center; gap:8px; padding:10px 18px; background:var(--slate-50); font-size:0.72rem; color:var(--slate-500); font-weight:500; border-top:1px solid var(--slate-100); }
 
         /* COMBINED CHART LEGEND */
-        .combined-legend { display:flex; gap:16px; flex-wrap:wrap; align-items:center; padding:8px 0 4px; }
+        .combined-legend { display:flex; gap:16px; flex-wrap:wrap; align-items:center; padding:4px 0 8px; flex-shrink:0; }
         .legend-dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; }
         .legend-item { display:flex; align-items:center; font-size:0.75rem; font-weight:700; color:var(--slate-600); }
 
@@ -284,6 +340,7 @@
             .main-container { flex-direction:column; }
             .left-panel { width:100%; height:auto; border-right:none; border-bottom:1px solid var(--slate-200); }
             .right-panel { height:60vh; }
+            .chart-container { grid-template-columns:1fr; }
         }
     </style>
 </head>
@@ -331,8 +388,7 @@
         <div class="tabs">
             <button class="tab-button active" onclick="openTab(event,'chqSearch')">🔍 Single Cheque Search</button>
             <button class="tab-button" onclick="openTab(event,'partyDate')">📜 Party / Date Report</button>
-            <button class="tab-button" onclick="openTab(event,'todayDeposits')">💰 Deposits Report – Cheque</button>
-            <button class="tab-button neft-tab" onclick="openTab(event,'neftDeposits')">🏧 Deposits Report – Bank Receipts</button>
+            <button class="tab-button deposit-combined-tab" onclick="openTab(event,'depositsReport')">💰 Deposits Report</button>
             <button class="tab-button" onclick="openTab(event,'bankValue')">🏦 Blank Chq Report</button>
             <button class="tab-button" onclick="openTab(event,'depositStatus')">✅ Deposit Status Report</button>
             <button class="tab-button" onclick="openTab(event,'graphicalReports')">📊 Graphical Reports</button>
@@ -341,7 +397,6 @@
         </div>
 
         <div class="search-section">
-            <!-- Single Cheque Search -->
             <div id="chqSearch" class="tab-content active">
                 <form class="search-form" id="searchForm">
                     <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--indigo-dark);font-weight:800;">Individual Cheque Search</h3>
@@ -358,7 +413,6 @@
                 </form>
             </div>
 
-            <!-- Party/Date Report -->
             <div id="partyDate" class="tab-content">
                 <form class="search-form" id="partyDateForm">
                     <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--indigo-dark);font-weight:800;">Party / Date Report</h3>
@@ -378,31 +432,38 @@
                 </form>
             </div>
 
-            <!-- Deposits Report - Cheque -->
-            <div id="todayDeposits" class="tab-content">
-                <form class="search-form" id="todayDepositsForm">
-                    <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--indigo-dark);font-weight:800;">Deposits Report</h3>
-                    <div class="form-group"><label>From Date (Deposited)</label><input type="date" id="depositFromDate"></div>
-                    <div class="form-group"><label>To Date (Deposited)</label><input type="date" id="depositToDate"></div>
-                    <div class="form-group"><label>Our Bank (Optional)</label><select id="depositedBankTodaySelect"><option value="">All Banks</option></select></div>
-                    <button type="submit" class="btn">Generate Report</button>
-                    <button type="button" class="btn btn-secondary" id="exportTodayBtn" style="display:none;">EXPORT</button>
+            <!-- ====== COMBINED DEPOSITS REPORT PANEL ====== -->
+            <div id="depositsReport" class="tab-content">
+                <form class="search-form" id="depositsReportForm">
+                    <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--violet-dark);font-weight:800;">💰 Deposits Report</h3>
+
+                    <!-- REPORT TYPE TOGGLE -->
+                    <div class="form-group">
+                        <label>Report Type</label>
+                        <div class="deposit-type-toggle">
+                            <button type="button" class="deposit-type-btn active-chq" id="depTypeChq" onclick="setDepositType('chq')">🏦 Cheque</button>
+                            <button type="button" class="deposit-type-btn" id="depTypeNeft" onclick="setDepositType('neft')">🏧 Bank Receipts</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group"><label>From Date</label><input type="date" id="depositFromDate"></div>
+                    <div class="form-group"><label>To Date</label><input type="date" id="depositToDate"></div>
+
+                    <!-- Cheque-specific filter -->
+                    <div id="depChqFilters">
+                        <div class="form-group"><label>Our Bank (Optional)</label><select id="depositedBankTodaySelect"><option value="">All Banks</option></select></div>
+                    </div>
+
+                    <!-- NEFT-specific filter -->
+                    <div id="depNeftFilters" style="display:none;">
+                        <div class="form-group"><label>Party Filter (Optional)</label><input type="text" id="neftPartyFilter" placeholder="Filter by party..." oninput="this.value=this.value.toUpperCase()"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-combined" id="depSubmitBtn">Generate Cheque Report</button>
+                    <button type="button" class="btn btn-secondary" id="exportDepositsBtn" style="display:none;">EXPORT</button>
                 </form>
             </div>
 
-            <!-- Bank Receipts Deposits -->
-            <div id="neftDeposits" class="tab-content">
-                <form class="search-form" id="neftDepositsForm">
-                    <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--teal);font-weight:800;">🏧 Bank Receipts / NEFT / Online</h3>
-                    <div class="form-group"><label>From Date</label><input type="date" id="neftFromDate"></div>
-                    <div class="form-group"><label>To Date</label><input type="date" id="neftToDate"></div>
-                    <div class="form-group"><label>Party Filter (Optional)</label><input type="text" id="neftPartyFilter" placeholder="Filter by party..." oninput="this.value=this.value.toUpperCase()"></div>
-                    <button type="submit" class="btn btn-neft">Generate Bank Receipts Report</button>
-                    <button type="button" class="btn btn-secondary" id="exportNeftBtn" style="display:none;">EXPORT</button>
-                </form>
-            </div>
-
-            <!-- Blank Cheque Report -->
             <div id="bankValue" class="tab-content">
                 <form class="search-form" id="bankValueForm">
                     <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--indigo-dark);font-weight:800;">Blank Cheque Report</h3>
@@ -420,7 +481,6 @@
                 </form>
             </div>
 
-            <!-- Deposit Status Report -->
             <div id="depositStatus" class="tab-content">
                 <form class="search-form" id="depositForm">
                     <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--indigo-dark);font-weight:800;">Deposit Status Report</h3>
@@ -443,7 +503,6 @@
                 </form>
             </div>
 
-            <!-- Graphical Reports -->
             <div id="graphicalReports" class="tab-content">
                 <form class="search-form" id="chartReportForm">
                     <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--indigo-dark);font-weight:800;">Graphical Reports</h3>
@@ -475,7 +534,6 @@
                 </form>
             </div>
 
-            <!-- AI Analysis -->
             <div id="aiAnalysis" class="tab-content">
                 <form class="search-form" id="aiAnalysisForm">
                     <h3 style="font-size:0.95rem;margin-bottom:4px;color:var(--indigo-dark);font-weight:800;">AI & Trend Analysis</h3>
@@ -505,7 +563,6 @@
                 </form>
             </div>
 
-            <!-- Bankers Details -->
             <div id="bankersDetails" class="tab-content">
                 <div class="banker-section-title">Our Company Bank Accounts</div>
                 <div id="bankerCardsContainer" class="banker-grid"></div>
@@ -533,23 +590,52 @@ const BANKS = {
 
 let lastSearchResults = [], lastFilterResults = [], lastNeftResults = [];
 let chartInstances = [], currentPrintData = null, selectedPrintBank = 'DBS';
+let currentDepositType = 'chq'; // 'chq' or 'neft'
+
+// ==========================================
+// DEPOSIT TYPE TOGGLE
+// ==========================================
+function setDepositType(type) {
+    currentDepositType = type;
+    const btnChq  = document.getElementById('depTypeChq');
+    const btnNeft = document.getElementById('depTypeNeft');
+    const chqFilters  = document.getElementById('depChqFilters');
+    const neftFilters = document.getElementById('depNeftFilters');
+    const submitBtn   = document.getElementById('depSubmitBtn');
+
+    // Reset both
+    btnChq.className  = 'deposit-type-btn';
+    btnNeft.className = 'deposit-type-btn';
+
+    if (type === 'chq') {
+        btnChq.classList.add('active-chq');
+        chqFilters.style.display  = '';
+        neftFilters.style.display = 'none';
+        submitBtn.textContent = 'Generate Cheque Report';
+        submitBtn.className = 'btn btn-combined';
+    } else {
+        btnNeft.classList.add('active-neft');
+        chqFilters.style.display  = 'none';
+        neftFilters.style.display = '';
+        submitBtn.textContent = 'Generate Bank Receipts Report';
+        submitBtn.className = 'btn btn-neft';
+    }
+    document.getElementById('exportDepositsBtn').style.display = 'none';
+    document.getElementById('resultsSection').innerHTML = '<div class="no-results">Run the report using the controls on the left.</div>';
+}
 
 // ==========================================
 // FINANCIAL YEAR HELPER
 // ==========================================
-/**
- * Returns { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD' } for the current Indian Financial Year
- * Indian FY runs April 1 → March 31
- */
 function getCurrentFY() {
     const today = new Date();
     const year = today.getFullYear();
-    const month = today.getMonth(); // 0-indexed, so April = 3
+    const month = today.getMonth();
     const fyStart = month >= 3 ? year : year - 1;
     const fyEnd = fyStart + 1;
     return {
         from: `${fyStart}-04-01`,
-        to: today.toISOString().split('T')[0],  // today as max
+        to: today.toISOString().split('T')[0],
         label: `FY ${fyStart}-${String(fyEnd).slice(2)}`
     };
 }
@@ -575,18 +661,21 @@ function formatDateDDMMYYYY(val) {
     if (!val) return '';
     if (val instanceof Date) {
         if (isNaN(val)) return '';
-        const dd = String(val.getDate()).padStart(2,'0');
-        const mm = String(val.getMonth()+1).padStart(2,'0');
+        const dd = String(val.getDate()).padStart(2, '0');
+        const mm = String(val.getMonth() + 1).padStart(2, '0');
         return `${dd}/${mm}/${val.getFullYear()}`;
     }
     const s = String(val).trim();
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
-    if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-        const d = new Date(s);
-        if (!isNaN(d)) return formatDateDDMMYYYY(d);
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+        const [d, m, y] = s.split('/');
+        return `${d.padStart(2,'0')}/${m.padStart(2,'0')}/${y}`;
     }
-    const d2 = new Date(s);
-    if (!isNaN(d2)) return formatDateDDMMYYYY(d2);
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        const dt = new Date(s);
+        if (!isNaN(dt)) return formatDateDDMMYYYY(dt);
+    }
+    const dt2 = new Date(s);
+    if (!isNaN(dt2)) return formatDateDDMMYYYY(dt2);
     return s;
 }
 
@@ -639,8 +728,12 @@ function openTab(evt, tabName) {
     rs.innerHTML = '<div class="no-results">Run the report using the controls on the left.</div>';
     rs.scrollTop = 0;
     hideAllExportButtons(); destroyCharts();
-    if (tabName === 'todayDeposits') { const t=new Date().toISOString().split('T')[0]; document.getElementById('depositFromDate').value=t; document.getElementById('depositToDate').value=t; }
-    if (tabName === 'neftDeposits') { const t=new Date().toISOString().split('T')[0]; document.getElementById('neftFromDate').value=t; document.getElementById('neftToDate').value=t; rs.innerHTML='<div class="no-results" style="border-color:#a5f3fc;color:var(--teal);">Select a date range and click Generate Bank Receipts Report.</div>'; }
+    if (tabName === 'depositsReport') {
+        const t=new Date().toISOString().split('T')[0];
+        document.getElementById('depositFromDate').value=t;
+        document.getElementById('depositToDate').value=t;
+        rs.innerHTML='<div class="no-results">Select date range and report type, then click Generate.</div>';
+    }
     if (tabName === 'bankersDetails') renderBankerCards();
 }
 
@@ -764,9 +857,6 @@ function aggregateNeftData(data, fieldKey, amtKey) {
     return { aggregatedArray:Object.keys(agg).map(k=>({key:k,value:agg[k]})).sort((a,b)=>b.value-a.value), totalValue:total };
 }
 
-/**
- * Returns monthly trend for cheque data (keyed by month)
- */
 function getMonthlyTrendData(data, dateKey) {
     const ma={};
     function mk(s){ if(!s)return null; const p=String(s).split('/'); if(p.length===3)return `${p[2]}-${p[1].padStart(2,'0')}`; return null; }
@@ -783,27 +873,16 @@ function getMonthlyTrendNeft(data, dateKey, amtKey) {
     return { labels:sk.map(k=>{const[y,m]=k.split('-');return new Date(y,m-1,1).toLocaleString('en-US',{month:'short',year:'numeric'});}), data:sk.map(k=>ma[k]), monthKeys:sk };
 }
 
-/**
- * Merges cheque and NEFT monthly data into a unified month list for combined charts
- * Returns { labels, chqData, neftData, combinedData }
- */
 function getMergedMonthlyTrend(chqData, chqDateKey, neftData, neftDateKey, neftAmtKey) {
-    // Build month maps
     const chqMap = {};
     function mkChq(s){ if(!s)return null; const p=String(s).split('/'); if(p.length===3)return `${p[2]}-${p[1].padStart(2,'0')}`; return null; }
     chqData.forEach(row=>{ const k=mkChq(row[chqDateKey]); const v=parseFloat((row['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; if(k&&!isNaN(v))chqMap[k]=(chqMap[k]||0)+v; });
-
     const neftMap = {};
     function mkNeft(s){ if(!s)return null; const p=String(s).trim().split('/'); if(p.length===3&&p[2].length===4)return `${p[2]}-${p[1].padStart(2,'0')}`; const d=new Date(s); if(!isNaN(d))return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; return null; }
     neftData.forEach(row=>{ const k=mkNeft(row[neftDateKey]); const v=parseFloat(String(row[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0; if(k&&!isNaN(v))neftMap[k]=(neftMap[k]||0)+v; });
-
-    // Union of all months
     const allKeys = Array.from(new Set([...Object.keys(chqMap), ...Object.keys(neftMap)])).sort();
     const labels = allKeys.map(k=>{ const[y,m]=k.split('-'); return new Date(y,m-1,1).toLocaleString('en-US',{month:'short',year:'numeric'}); });
-    const chqArr = allKeys.map(k=>chqMap[k]||0);
-    const neftArr = allKeys.map(k=>neftMap[k]||0);
-    const combinedArr = allKeys.map(k=>(chqMap[k]||0)+(neftMap[k]||0));
-    return { labels, chqArr, neftArr, combinedArr };
+    return { labels, chqArr:allKeys.map(k=>chqMap[k]||0), neftArr:allKeys.map(k=>neftMap[k]||0), combinedArr:allKeys.map(k=>(chqMap[k]||0)+(neftMap[k]||0)) };
 }
 
 function calculateAIKpis(data) {
@@ -835,17 +914,14 @@ function calculateNeftKpis(data, amtKey) {
 // ==========================================
 function showLoading() { document.getElementById('resultsSection').innerHTML='<div class="loading">Loading data, please wait…</div>'; hideAllExportButtons(); destroyCharts(); }
 function showError(msg) { document.getElementById('resultsSection').innerHTML=`<div class="error"><strong>⚠ Error:</strong> ${msg}</div>`; hideAllExportButtons(); destroyCharts(); }
-function hideAllExportButtons() { ['exportBtn','exportAllBtn','exportTodayBtn','exportNeftBtn','exportBankBtn','exportDepositBtn','exportChartBtn','exportAIReportBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';}); }
+function hideAllExportButtons() { ['exportBtn','exportAllBtn','exportDepositsBtn','exportBankBtn','exportDepositBtn','exportChartBtn','exportAIReportBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';}); }
 function destroyCharts() { chartInstances.forEach(c=>c.destroy()); chartInstances=[]; }
 
 // ==========================================
-// CHART CREATION
+// CHART CREATION — FIXED to use canvas wrapper
 // ==========================================
-/**
- * Standard single-dataset chart
- */
 function createChart(id, type, labels, data, title, colorSet) {
-    const ctx=document.getElementById(id); if(!ctx)return;
+    const ctx = document.getElementById(id); if(!ctx) return;
     const bgDefault=['rgba(79,70,229,.85)','rgba(139,92,246,.85)','rgba(168,85,247,.85)','rgba(59,130,246,.85)','rgba(6,182,212,.85)','rgba(16,185,129,.85)','rgba(34,197,94,.85)','rgba(251,191,36,.85)','rgba(249,115,22,.85)','rgba(244,63,94,.85)'];
     const bgNeft=['rgba(8,145,178,.85)','rgba(6,182,212,.85)','rgba(34,211,238,.85)','rgba(14,116,144,.85)','rgba(21,128,161,.85)','rgba(103,232,249,.85)','rgba(2,132,199,.85)','rgba(56,189,248,.85)','rgba(125,211,252,.85)','rgba(186,230,253,.85)'];
     const bg=colorSet==='neft'?bgNeft:bgDefault; const bc=bg.map(c=>c.replace('.85','1'));
@@ -853,144 +929,55 @@ function createChart(id, type, labels, data, title, colorSet) {
     if(type==='doughnut'){ds={label:'Value (₹)',data,backgroundColor:bg,borderColor:'#fff',borderWidth:3};}
     else if(type==='bar'){ds={label:'Value (₹)',data,backgroundColor:bg,borderColor:bc,borderWidth:1,borderRadius:6};}
     else{ds={label:'Value (₹)',data,backgroundColor:colorSet==='neft'?'rgba(8,145,178,.12)':'rgba(79,70,229,.12)',borderColor:bc[0],borderWidth:2.5,fill:true,tension:.45,pointRadius:4,pointBackgroundColor:bc[0],pointBorderColor:'#fff',pointBorderWidth:2};}
-    const c=new Chart(ctx,{type:type==='doughnut'?'doughnut':type,data:{labels,datasets:[ds]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type==='doughnut'||type==='bar',position:type==='doughnut'?'right':'top',labels:{font:{family:'Plus Jakarta Sans',size:11,weight:600},padding:12}},tooltip:{backgroundColor:'rgba(15,23,42,.95)',titleFont:{family:'Plus Jakarta Sans',size:12,weight:700},bodyFont:{family:'Plus Jakarta Sans',size:11},callbacks:{label:ctx=>{const v=ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed;return (ctx.dataset.label||'')+': ₹'+Number(v).toLocaleString('en-IN');}}}}},...(type!=='doughnut'?{scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+(v/100000).toFixed(0)+'L',font:{family:'Plus Jakarta Sans',size:10}},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans',size:10}}}}}:{})});
+    const opts = {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+            legend:{display:type==='doughnut'||type==='bar',position:type==='doughnut'?'right':'top',labels:{font:{family:'Plus Jakarta Sans',size:10,weight:600},padding:10}},
+            tooltip:{backgroundColor:'rgba(15,23,42,.95)',titleFont:{family:'Plus Jakarta Sans',size:12,weight:700},bodyFont:{family:'Plus Jakarta Sans',size:11},callbacks:{label:ctx=>{const v=ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed;return (ctx.dataset.label||'')+': ₹'+Number(v).toLocaleString('en-IN');}}}
+        }
+    };
+    if(type!=='doughnut'){
+        opts.scales={y:{beginAtZero:true,ticks:{callback:v=>'₹'+(v/100000).toFixed(0)+'L',font:{family:'Plus Jakarta Sans',size:9}},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans',size:9},maxRotation:45}}};
+    }
+    const c = new Chart(ctx, {type:type==='doughnut'?'doughnut':type, data:{labels, datasets:[ds]}, options:opts});
     chartInstances.push(c);
 }
 
-/**
- * Combined grouped bar / multi-line chart with Cheque + Bank Receipts breakup
- */
 function createCombinedChart(id, chartType, labels, chqValues, neftValues, combinedValues) {
     const ctx = document.getElementById(id); if(!ctx) return;
-
     const CHQ_COLOR   = 'rgba(79,70,229,0.85)';
     const NEFT_COLOR  = 'rgba(8,145,178,0.85)';
     const TOTAL_COLOR = 'rgba(124,58,237,0.85)';
-
     let datasets = [];
-
     if (chartType === 'bar') {
-        // Grouped bar: CHQ bar + Bank Receipts bar side by side
         datasets = [
-            {
-                label: '🏦 Cheque',
-                data: chqValues,
-                backgroundColor: CHQ_COLOR,
-                borderColor: 'rgba(79,70,229,1)',
-                borderWidth: 1,
-                borderRadius: 5,
-                order: 1
-            },
-            {
-                label: '🏧 Bank Receipts',
-                data: neftValues,
-                backgroundColor: NEFT_COLOR,
-                borderColor: 'rgba(8,145,178,1)',
-                borderWidth: 1,
-                borderRadius: 5,
-                order: 2
-            },
-            {
-                label: '📊 Combined Total',
-                data: combinedValues,
-                type: 'line',
-                backgroundColor: 'rgba(124,58,237,0.1)',
-                borderColor: TOTAL_COLOR,
-                borderWidth: 2.5,
-                fill: false,
-                tension: 0.4,
-                pointRadius: 5,
-                pointBackgroundColor: TOTAL_COLOR,
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                order: 0
-            }
+            { label:'🏦 Cheque', data:chqValues, backgroundColor:CHQ_COLOR, borderColor:'rgba(79,70,229,1)', borderWidth:1, borderRadius:5, order:1 },
+            { label:'🏧 Bank Receipts', data:neftValues, backgroundColor:NEFT_COLOR, borderColor:'rgba(8,145,178,1)', borderWidth:1, borderRadius:5, order:2 },
+            { label:'📊 Combined Total', data:combinedValues, type:'line', backgroundColor:'rgba(124,58,237,0.1)', borderColor:TOTAL_COLOR, borderWidth:2.5, fill:false, tension:0.4, pointRadius:5, pointBackgroundColor:TOTAL_COLOR, pointBorderColor:'#fff', pointBorderWidth:2, order:0 }
         ];
     } else {
-        // Multi-line
         datasets = [
-            {
-                label: '🏦 Cheque',
-                data: chqValues,
-                backgroundColor: 'rgba(79,70,229,0.12)',
-                borderColor: 'rgba(79,70,229,1)',
-                borderWidth: 2.5,
-                fill: true,
-                tension: 0.45,
-                pointRadius: 4,
-                pointBackgroundColor: 'rgba(79,70,229,1)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2
-            },
-            {
-                label: '🏧 Bank Receipts',
-                data: neftValues,
-                backgroundColor: 'rgba(8,145,178,0.12)',
-                borderColor: 'rgba(8,145,178,1)',
-                borderWidth: 2.5,
-                fill: true,
-                tension: 0.45,
-                pointRadius: 4,
-                pointBackgroundColor: 'rgba(8,145,178,1)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2
-            },
-            {
-                label: '📊 Combined Total',
-                data: combinedValues,
-                backgroundColor: 'rgba(124,58,237,0.08)',
-                borderColor: 'rgba(124,58,237,0.9)',
-                borderWidth: 3,
-                fill: false,
-                tension: 0.45,
-                pointRadius: 5,
-                pointBackgroundColor: 'rgba(124,58,237,1)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                borderDash: [5,3]
-            }
+            { label:'🏦 Cheque', data:chqValues, backgroundColor:'rgba(79,70,229,0.12)', borderColor:'rgba(79,70,229,1)', borderWidth:2.5, fill:true, tension:0.45, pointRadius:4, pointBackgroundColor:'rgba(79,70,229,1)', pointBorderColor:'#fff', pointBorderWidth:2 },
+            { label:'🏧 Bank Receipts', data:neftValues, backgroundColor:'rgba(8,145,178,0.12)', borderColor:'rgba(8,145,178,1)', borderWidth:2.5, fill:true, tension:0.45, pointRadius:4, pointBackgroundColor:'rgba(8,145,178,1)', pointBorderColor:'#fff', pointBorderWidth:2 },
+            { label:'📊 Combined Total', data:combinedValues, backgroundColor:'rgba(124,58,237,0.08)', borderColor:'rgba(124,58,237,0.9)', borderWidth:3, fill:false, tension:0.45, pointRadius:5, pointBackgroundColor:'rgba(124,58,237,1)', pointBorderColor:'#fff', pointBorderWidth:2, borderDash:[5,3] }
         ];
     }
-
-    const c = new Chart(ctx, {
-        type: chartType === 'bar' ? 'bar' : 'line',
-        data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: { font: { family:'Plus Jakarta Sans', size:11, weight:600 }, padding:14, usePointStyle:true }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(15,23,42,.95)',
-                    titleFont: { family:'Plus Jakarta Sans', size:12, weight:700 },
-                    bodyFont: { family:'Plus Jakarta Sans', size:11 },
-                    callbacks: {
-                        label: ctx => {
-                            const v = ctx.parsed.y !== undefined ? ctx.parsed.y : ctx.parsed;
-                            return (ctx.dataset.label||'')+': ₹'+Number(v).toLocaleString('en-IN');
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { callback: v=>'₹'+(v/100000).toFixed(0)+'L', font:{family:'Plus Jakarta Sans',size:10} },
-                    grid: { color:'rgba(0,0,0,.04)' }
-                },
-                x: {
-                    grid: { display:false },
-                    ticks: { font:{family:'Plus Jakarta Sans',size:10} }
-                }
-            }
-        }
-    });
+    const c = new Chart(ctx, { type:chartType==='bar'?'bar':'line', data:{ labels, datasets },
+        options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false },
+            plugins:{ legend:{ display:true, position:'top', labels:{ font:{ family:'Plus Jakarta Sans', size:10, weight:600 }, padding:10, usePointStyle:true } },
+                tooltip:{ backgroundColor:'rgba(15,23,42,.95)', titleFont:{ family:'Plus Jakarta Sans', size:12, weight:700 }, bodyFont:{ family:'Plus Jakarta Sans', size:11 }, callbacks:{ label:ctx=>{ const v=ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed; return (ctx.dataset.label||'')+': ₹'+Number(v).toLocaleString('en-IN'); } } } },
+            scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>'₹'+(v/100000).toFixed(0)+'L', font:{family:'Plus Jakarta Sans',size:9} }, grid:{ color:'rgba(0,0,0,.04)' } },
+                x:{ grid:{ display:false }, ticks:{ font:{family:'Plus Jakarta Sans',size:9}, maxRotation:45 } } } } });
     chartInstances.push(c);
+}
+
+// Helper to build a chart canvas wrapped in sizing div
+function makeChartBox(id, title, extraClass='', legendHtml='') {
+    return `<div class="chart-box${extraClass?(' '+extraClass):''}">
+        <h3>${title}</h3>
+        ${legendHtml}
+        <div class="chart-canvas-wrapper"><canvas id="${id}"></canvas></div>
+    </div>`;
 }
 
 // ==========================================
@@ -1060,17 +1047,94 @@ function createSimpleTableHtml(data, name, themeClass) {
     h+=`</tbody></table></div>`; return h;
 }
 
-function generateNeftDayCard(date, rows, idx, amtKey) {
-    let dayTotal=0; rows.forEach(r=>{ dayTotal+=parseFloat(String(r[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0; });
-    const did=`neft-${idx}`;
+// ==========================================
+// GRAND TOTAL BANNER BUILDER (shared)
+// ==========================================
+function buildGrandTotalBanner(opts) {
+    // opts: { type:'chq'|'neft', label, total, days, records, avg, from, to, bank, recordWord }
+    const isTeal = opts.type === 'neft';
+    const headerClass = isTeal ? 'grand-total-banner__header--neft' : 'grand-total-banner__header--chq';
+    const footerClass = isTeal ? 'grand-total-banner__footer--neft' : 'grand-total-banner__footer--chq';
+    const valClass    = isTeal ? 'grand-total-banner__footer-item-val--neft' : 'grand-total-banner__footer-item-val--chq';
+    const borderColor = isTeal ? '#a5f3fc' : '#6ee7b7';
+    return `
+    <div class="grand-total-banner" style="border:1.5px solid ${borderColor};">
+        <div class="grand-total-banner__header ${headerClass}">
+            <div>
+                <div class="grand-total-banner__label">${opts.label}</div>
+                <div class="grand-total-banner__value">₹${Number(opts.total).toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                <div class="grand-total-banner__sub">Total Collection Value</div>
+            </div>
+            <div class="grand-total-banner__pills">
+                <div class="grand-total-banner__pill">
+                    <div class="grand-total-banner__pill-val">${opts.days}</div>
+                    <div class="grand-total-banner__pill-label">Days</div>
+                </div>
+                <div class="grand-total-banner__pill">
+                    <div class="grand-total-banner__pill-val">${opts.records}</div>
+                    <div class="grand-total-banner__pill-label">${opts.recordWord || 'Cheques'}</div>
+                </div>
+                <div class="grand-total-banner__pill">
+                    <div class="grand-total-banner__pill-val grand-total-banner__pill-val--sm">₹${Number(opts.avg).toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
+                    <div class="grand-total-banner__pill-label">Avg / ${opts.recordWord || 'Chq'}</div>
+                </div>
+            </div>
+        </div>
+        <div class="grand-total-banner__footer ${footerClass}">
+            <div class="grand-total-banner__footer-item">
+                <div class="grand-total-banner__footer-item-label">Date Range</div>
+                <div class="${valClass}">${opts.from} → ${opts.to}</div>
+            </div>
+            ${opts.bank ? `<div class="grand-total-banner__footer-item">
+                <div class="grand-total-banner__footer-item-label">Filter</div>
+                <div class="${valClass}">${opts.bank}</div>
+            </div>` : ''}
+        </div>
+    </div>`;
+}
+
+// ==========================================
+// NEFT DAY CARD — styled exactly like cheque summary card
+// ==========================================
+function generateNeftDayCard(date, rows, idx, amtKey, keys) {
+    const sampleRow = rows[0] || {};
+    const rowKeys = keys || Object.keys(sampleRow);
+    function findKey(patterns) { for(const p of patterns){ const f=rowKeys.find(k=>k.toUpperCase().includes(p.toUpperCase())); if(f) return f; } return null; }
+    const partyKey = findKey(['party','PARTY','customer','CLIENT','NAME']) || null;
+
+    let dayTotal = 0;
+    rows.forEach(r=>{ dayTotal += parseFloat(String(r[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0; });
+
+    // get distinct parties for the subtitle
+    const parties = partyKey ? [...new Set(rows.map(r=>String(r[partyKey]||'').trim()).filter(Boolean))] : [];
+    const partyPreview = parties.length > 0
+        ? (parties.length <= 2 ? parties.join(', ') : parties.slice(0,2).join(', ') + ` +${parties.length-2} more`)
+        : '';
+
+    const did = `neft-${idx}`;
     return `<div class="summary-card neft-card">
         <div class="summary-header" onclick="toggleDetails('${did}-det',this.querySelector('.summary-toggle-btn'))">
-            <div class="summary-header-item" style="flex:2;"><div class="field-label">Receipt Date</div><div class="field-value" style="font-weight:800;color:var(--teal);">${date==='No Date'?'No Date':date}</div></div>
-            <div class="summary-header-item" style="flex:1;"><div class="field-label">Records</div><div class="field-value">${rows.length}</div></div>
-            <div class="summary-header-item chq-val" style="flex:0 0 160px;color:var(--teal);"><div class="field-label">Total Amount</div><div class="field-value">₹${dayTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div></div>
+            <div class="summary-header-item" style="flex:2;">
+                <div class="field-label">Receipt Date</div>
+                <div class="field-value" style="font-weight:800;color:#0e7490;">${date === 'No Date' ? 'No Date' : date}</div>
+            </div>
+            ${partyPreview ? `<div class="summary-header-item" style="flex:3;">
+                <div class="field-label">Parties</div>
+                <div class="field-value" style="font-size:0.8rem;color:var(--slate-600);">${partyPreview}</div>
+            </div>` : ''}
+            <div class="summary-header-item" style="flex:0 0 70px;">
+                <div class="field-label">Records</div>
+                <div class="field-value">${rows.length}</div>
+            </div>
+            <div class="summary-header-item neft-val" style="flex:0 0 160px;">
+                <div class="field-label">Total Amount</div>
+                <div class="field-value">₹${dayTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+            </div>
             <button class="summary-toggle-btn" type="button"></button>
         </div>
-        <div class="summary-details" id="${did}-det">${createSimpleTableHtml(rows.map(r=>{const o={};Object.keys(r).forEach(k=>o[k]=r[k]);return o;}), 'Bank Receipts Records', 'neft-table')}</div>
+        <div class="summary-details" id="${did}-det">
+            ${createSimpleTableHtml(rows.map(r=>{const o={};Object.keys(r).forEach(k=>o[k]=r[k]);return o;}), 'Bank Receipts Records', 'neft-table')}
+        </div>
     </div>`;
 }
 
@@ -1107,34 +1171,22 @@ function renderBankerCards() {
             <div class="banker-card-body">
                 <div class="banker-detail-row">
                     <div class="banker-detail-icon" style="background:#eff6ff;">🏢</div>
-                    <div class="banker-detail-info">
-                        <div class="banker-detail-label">Account Name</div>
-                        <div class="banker-detail-value" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:0.82rem;">${bank.acName}</div>
-                    </div>
+                    <div class="banker-detail-info"><div class="banker-detail-label">Account Name</div><div class="banker-detail-value" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:0.82rem;">${bank.acName}</div></div>
                     <button class="copy-btn" onclick="copyField('${bank.acName}',this)">Copy</button>
                 </div>
                 <div class="banker-detail-row">
                     <div class="banker-detail-icon" style="background:#ecfdf5;">🔢</div>
-                    <div class="banker-detail-info">
-                        <div class="banker-detail-label">Account Number</div>
-                        <div class="banker-detail-value">${bank.acNo}</div>
-                    </div>
+                    <div class="banker-detail-info"><div class="banker-detail-label">Account Number</div><div class="banker-detail-value">${bank.acNo}</div></div>
                     <button class="copy-btn" onclick="copyField('${bank.acNo}',this)">Copy</button>
                 </div>
                 <div class="banker-detail-row">
                     <div class="banker-detail-icon" style="background:#faf5ff;">🏷️</div>
-                    <div class="banker-detail-info">
-                        <div class="banker-detail-label">IFSC Code</div>
-                        <div class="banker-detail-value">${bank.ifsc}</div>
-                    </div>
+                    <div class="banker-detail-info"><div class="banker-detail-label">IFSC Code</div><div class="banker-detail-value">${bank.ifsc}</div></div>
                     <button class="copy-btn" onclick="copyField('${bank.ifsc}',this)">Copy</button>
                 </div>
                 <div class="banker-detail-row">
                     <div class="banker-detail-icon" style="background:#fff7ed;">📍</div>
-                    <div class="banker-detail-info">
-                        <div class="banker-detail-label">Branch</div>
-                        <div class="banker-detail-value" style="font-family:'Plus Jakarta Sans',sans-serif;">${bank.branch}, COIMBATORE</div>
-                    </div>
+                    <div class="banker-detail-info"><div class="banker-detail-label">Branch</div><div class="banker-detail-value" style="font-family:'Plus Jakarta Sans',sans-serif;">${bank.branch}, COIMBATORE</div></div>
                     <button class="copy-btn" onclick="copyField('${bank.branch}',this)">Copy</button>
                 </div>
             </div>
@@ -1260,87 +1312,166 @@ document.getElementById('partyDateForm').addEventListener('submit', async functi
 });
 document.getElementById('exportAllBtn').addEventListener('click',()=>exportToCSV(lastFilterResults,'party_date_report'));
 
-// 3. Deposits Report (Cheque)
-document.getElementById('todayDepositsForm').addEventListener('submit', async function(e) {
-    e.preventDefault(); showLoading();
-    const sheetId=document.getElementById('sheetId').value.trim();
-    const from=document.getElementById('depositFromDate').value; const to=document.getElementById('depositToDate').value;
-    const bank=document.getElementById('depositedBankTodaySelect').value;
-    if(!from||!to){showError("Please select date range.");return;}
+// ==========================================
+// 3. COMBINED DEPOSITS REPORT (Cheque + NEFT in one tab)
+// ==========================================
+document.getElementById('depositsReportForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (currentDepositType === 'chq') {
+        await runChequeDepositsReport();
+    } else {
+        await runNeftDepositsReport();
+    }
+});
+document.getElementById('exportDepositsBtn').addEventListener('click', () => {
+    if (currentDepositType === 'neft') exportToCSV(lastNeftResults, 'bank_receipts_report');
+    else exportToCSV(lastFilterResults, 'deposits_report');
+});
+
+async function runChequeDepositsReport() {
+    showLoading();
+    const sheetId = document.getElementById('sheetId').value.trim();
+    const from = document.getElementById('depositFromDate').value;
+    const to   = document.getElementById('depositToDate').value;
+    const bank = document.getElementById('depositedBankTodaySelect').value;
+    if (!from || !to) { showError("Please select date range."); return; }
     try {
-        const data=await fetchSheetData(sheetId);
-        const fd=filterDepositsReport(data,from,to,bank);
-        const rs=document.getElementById('resultsSection');
-        if(fd.length>0){
-            lastFilterResults=fd;
-            const gbd={};
-            fd.forEach(r=>{ const d=r._effectiveDate||'No Date'; if(!gbd[d])gbd[d]=[]; gbd[d].push(r); });
-            const sortedDates=Object.keys(gbd).sort((a,b)=>{ if(a==='No Date')return 1; if(b==='No Date')return -1; return new Date(b.split('/').reverse().join('-'))-new Date(a.split('/').reverse().join('-')); });
-            let gTotal=0; sortedDates.forEach(d=>gbd[d].forEach(r=>{ gTotal+=parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; }));
-            let html=`<div class="result-card" style="margin-bottom:18px;background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid var(--green);">
-                <h2 style="font-size:1rem;color:var(--green);margin-bottom:8px;">GRAND TOTAL SUMMARY</h2>
-                <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-                    <div><div class="field-label">Total Days</div><div class="field-value" style="font-size:1.05rem;font-weight:800;">${sortedDates.length}</div></div>
-                    <div><div class="field-label">Total Cheques</div><div class="field-value" style="font-size:1.05rem;font-weight:800;">${fd.length}</div></div>
-                    <div><div class="field-label">Grand Total</div><div class="field-value" style="font-size:1.2rem;font-weight:800;color:var(--green);">₹${gTotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}</div></div>
+        const data = await fetchSheetData(sheetId);
+        const fd = filterDepositsReport(data, from, to, bank);
+        const rs = document.getElementById('resultsSection');
+        if (!fd.length) { rs.innerHTML = `<div class="no-results">No cheque deposits found for ${from} to ${to}.</div>`; return; }
+        lastFilterResults = fd;
+
+        // Normalize & group by date
+        const gbd = {};
+        fd.forEach(r => {
+            const normDate = r._effectiveDate !== 'No Date' ? formatDateDDMMYYYY(r._effectiveDate) : 'No Date';
+            if (!gbd[normDate]) gbd[normDate] = [];
+            gbd[normDate].push({...r, _effectiveDate: normDate});
+        });
+        const sortedDates = Object.keys(gbd).sort((a,b) => {
+            if (a==='No Date') return 1; if (b==='No Date') return -1;
+            return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'));
+        });
+        let gTotal = 0;
+        sortedDates.forEach(d => gbd[d].forEach(r => { gTotal += parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; }));
+        const avgPerChq = fd.length > 0 ? gTotal / fd.length : 0;
+
+        let html = buildGrandTotalBanner({
+            type: 'chq',
+            label: 'DEPOSITS REPORT — CHEQUE — GRAND TOTAL',
+            total: gTotal, days: sortedDates.length, records: fd.length,
+            avg: avgPerChq, recordWord: 'Cheques',
+            from: from.split('-').reverse().join('/'),
+            to: to.split('-').reverse().join('/'),
+            bank: bank || ''
+        });
+
+        sortedDates.forEach((date, idx) => {
+            const dd = gbd[date]; let dtv = 0;
+            dd.forEach(r => { dtv += parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; });
+            const did = `dep-${idx}`;
+            const enc = encodeURIComponent(JSON.stringify(dd));
+            const hasRepresented = dd.some(r => r['Represent Date'] && !r['Return Date']);
+            html += `<div class="summary-card">
+                <div class="summary-header" onclick="toggleDetails('${did}-det',this.querySelector('.summary-toggle-btn'))">
+                    <div class="summary-header-item" style="flex:2;">
+                        <div class="field-label">Deposit Date${hasRepresented?' (incl. Represented)':''}</div>
+                        <div class="field-value" style="font-weight:800;color:var(--indigo-dark);">${date === 'No Date' ? 'No Deposit Date' : date}</div>
+                    </div>
+                    <div class="summary-header-item" style="flex:1;">
+                        <div class="field-label">Cheques</div>
+                        <div class="field-value">${dd.length}</div>
+                    </div>
+                    <div class="summary-header-item chq-val" style="flex:0 0 150px;">
+                        <div class="field-label">Total Value</div>
+                        <div class="field-value">₹${dtv.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}</div>
+                    </div>
+                    <button class="print-deposit-btn no-print" type="button"
+                        onclick="event.stopPropagation();openPrintModal('${date}','${enc}')">🖨️ Print</button>
+                    <button class="summary-toggle-btn" type="button"></button>
+                </div>
+                <div class="summary-details" id="${did}-det">
+                    ${createSimpleTableHtml(
+                        dd.map(r=>({
+                            'Chq No.'       : r['Chq Number'],
+                            'Chq Date'      : r['Chq Date'],
+                            'Party Name'    : r['Party Name'],
+                            'Party Bank'    : r['Bank Name (Party)'],
+                            'Chq Value (₹)' : r['Chq Value (₹)'],
+                            'Our Bank'      : r['Deposited Bank (Our Bank)'],
+                            'Remarks'       : formatFieldValue(r['Remarks'],'-')
+                        })),
+                        'Cheque Details'
+                    )}
                 </div>
             </div>`;
-            sortedDates.forEach((date,idx)=>{
-                const dd=gbd[date]; let dtv=0; dd.forEach(r=>{ dtv+=parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; });
-                const did=`dep-${idx}`; const enc=encodeURIComponent(JSON.stringify(dd));
-                const hasRepresented = dd.some(r=>r['Represent Date']&&!r['Return Date']);
-                html+=`<div class="summary-card">
-                    <div class="summary-header" onclick="toggleDetails('${did}-det',this.querySelector('.summary-toggle-btn'))">
-                        <div class="summary-header-item" style="flex:2;"><div class="field-label">Deposit Date${hasRepresented?' (incl. Represented)':''}</div><div class="field-value" style="font-weight:800;color:var(--indigo-dark);">${date==='No Date'?'No Deposit Date':date}</div></div>
-                        <div class="summary-header-item" style="flex:1;"><div class="field-label">Cheques</div><div class="field-value">${dd.length}</div></div>
-                        <div class="summary-header-item chq-val" style="flex:0 0 150px;"><div class="field-label">Total Value</div><div class="field-value">₹${dtv.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}</div></div>
-                        <button class="print-deposit-btn no-print" type="button" onclick="event.stopPropagation();openPrintModal('${date}','${enc}')">🖨️ Print</button>
-                        <button class="summary-toggle-btn" type="button"></button>
-                    </div>
-                    <div class="summary-details" id="${did}-det">
-                        ${createSimpleTableHtml(dd.map(r=>({'Chq No.':r['Chq Number'],'Chq Date':r['Chq Date'],'Party Name':r['Party Name'],'Party Bank':r['Bank Name (Party)'],'Chq Value (₹)':r['Chq Value (₹)'],'Our Bank':r['Deposited Bank (Our Bank)'],'Deposit/Represent Date':r._effectiveDate,'Type':r['Represent Date']?'Represented':'Deposited','Remarks':formatFieldValue(r['Remarks'],'-')})),'Cheque Details')}
-                    </div>
-                </div>`;
-            });
-            rs.innerHTML=html; document.getElementById('exportTodayBtn').style.display='block';
-        } else { rs.innerHTML=`<div class="no-results">No deposits found for ${from} to ${to}.</div>`; }
-    } catch(err){showError(err.message);}
-});
-document.getElementById('exportTodayBtn').addEventListener('click',()=>exportToCSV(lastFilterResults,'deposits_report'));
+        });
+        rs.innerHTML = html;
+        document.getElementById('exportDepositsBtn').style.display = 'block';
+    } catch(err) { showError(err.message); }
+}
 
-// 3b. Bank Receipts Report
-document.getElementById('neftDepositsForm').addEventListener('submit', async function(e) {
-    e.preventDefault(); showLoading();
-    const from=document.getElementById('neftFromDate').value; const to=document.getElementById('neftToDate').value;
-    const partyFilter=document.getElementById('neftPartyFilter').value.trim();
-    if(!from||!to){showError("Please select a date range.");return;}
+async function runNeftDepositsReport() {
+    showLoading();
+    const from = document.getElementById('depositFromDate').value;
+    const to   = document.getElementById('depositToDate').value;
+    const partyFilter = document.getElementById('neftPartyFilter').value.trim();
+    if (!from || !to) { showError("Please select a date range."); return; }
     try {
-        const rawData=await fetchNeftData();
-        if(!rawData.length){document.getElementById('resultsSection').innerHTML='<div class="no-results" style="border-color:#a5f3fc;color:var(--teal);">No Bank Receipts records found from the API.</div>';return;}
-        const keys=Object.keys(rawData[0]);
-        function findKey(patterns){for(const p of patterns){const f=keys.find(k=>k.toUpperCase().includes(p.toUpperCase()));if(f)return f;}return null;}
-        const dateKey=findKey(['date','DATE'])||'date';
-        const partyKey=findKey(['party','PARTY','customer','CLIENT','NAME'])||'party';
-        const amtKey=findKey(['amount','AMOUNT','VALUE','₹','AMT'])||'amount';
-        const filtered=filterNeftData(rawData,from,to,partyFilter);
-        const rs=document.getElementById('resultsSection');
-        if(!filtered.length){rs.innerHTML='<div class="no-results" style="border-color:#a5f3fc;color:var(--teal);">No Bank Receipts records found for the selected range.</div>';document.getElementById('exportNeftBtn').style.display='none';return;}
-        lastNeftResults=filtered;
-        const gbd={};
-        filtered.forEach(r=>{ const d=formatFieldValue(r[dateKey],'No Date'); if(!gbd[d])gbd[d]=[]; gbd[d].push(r); });
-        const sortedDates=Object.keys(gbd).sort((a,b)=>{ if(a==='No Date')return 1;if(b==='No Date')return -1; return new Date(b.split('/').reverse().join('-'))-new Date(a.split('/').reverse().join('-')); });
-        let grandTotal=0; filtered.forEach(r=>{grandTotal+=parseFloat(String(r[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0;});
-        let html=`<div class="neft-kpi-banner">
-            <span class="neft-badge">🏧 Bank Receipts</span>
-            <div class="neft-kpi-item"><span class="nk-label">Total Days</span><span class="nk-val">${sortedDates.length}</span></div>
-            <div class="neft-kpi-item"><span class="nk-label">Total Records</span><span class="nk-val">${filtered.length}</span></div>
-            <div class="neft-kpi-item"><span class="nk-label">Grand Total</span><span class="nk-val">₹${grandTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</span></div>
-        </div>`;
-        sortedDates.forEach((date,idx)=>{ html+=generateNeftDayCard(date,gbd[date],idx,amtKey); });
-        rs.innerHTML=html; document.getElementById('exportNeftBtn').style.display='block';
-    } catch(err){showError('Bank Receipts fetch failed: '+err.message);}
-});
-document.getElementById('exportNeftBtn').addEventListener('click',()=>exportToCSV(lastNeftResults,'bank_receipts_report'));
+        const rawData = await fetchNeftData();
+        if (!rawData.length) {
+            document.getElementById('resultsSection').innerHTML = '<div class="no-results" style="border-color:#a5f3fc;color:var(--teal);">No Bank Receipts records found from the API.</div>';
+            return;
+        }
+        const keys = Object.keys(rawData[0]);
+        function findKey(patterns){ for(const p of patterns){ const f=keys.find(k=>k.toUpperCase().includes(p.toUpperCase())); if(f) return f; } return null; }
+        const dateKey  = findKey(['date','DATE']) || 'date';
+        const partyKey = findKey(['party','PARTY','customer','CLIENT','NAME']) || 'party';
+        const amtKey   = findKey(['amount','AMOUNT','VALUE','₹','AMT']) || 'amount';
+
+        const filtered = filterNeftData(rawData, from, to, partyFilter);
+        const rs = document.getElementById('resultsSection');
+        if (!filtered.length) {
+            rs.innerHTML = '<div class="no-results" style="border-color:#a5f3fc;color:var(--teal);">No Bank Receipts records found for the selected range.</div>';
+            document.getElementById('exportDepositsBtn').style.display = 'none';
+            return;
+        }
+        lastNeftResults = filtered;
+
+        // Group by date
+        const gbd = {};
+        filtered.forEach(r => {
+            const d = formatFieldValue(r[dateKey], 'No Date');
+            if (!gbd[d]) gbd[d] = [];
+            gbd[d].push(r);
+        });
+        const sortedDates = Object.keys(gbd).sort((a,b) => {
+            if (a==='No Date') return 1; if (b==='No Date') return -1;
+            return new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'));
+        });
+        let grandTotal = 0;
+        filtered.forEach(r => { grandTotal += parseFloat(String(r[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0; });
+        const avgPerRecord = filtered.length > 0 ? grandTotal / filtered.length : 0;
+
+        let html = buildGrandTotalBanner({
+            type: 'neft',
+            label: 'DEPOSITS REPORT — BANK RECEIPTS — GRAND TOTAL',
+            total: grandTotal, days: sortedDates.length, records: filtered.length,
+            avg: avgPerRecord, recordWord: 'Receipts',
+            from: from.split('-').reverse().join('/'),
+            to: to.split('-').reverse().join('/'),
+            bank: partyFilter ? `Party: ${partyFilter}` : ''
+        });
+
+        sortedDates.forEach((date, idx) => {
+            html += generateNeftDayCard(date, gbd[date], idx, amtKey, keys);
+        });
+
+        rs.innerHTML = html;
+        document.getElementById('exportDepositsBtn').style.display = 'block';
+    } catch(err) { showError('Bank Receipts fetch failed: ' + err.message); }
+}
 
 // 4. Blank Cheque Report
 document.getElementById('bankValueForm').addEventListener('submit', async function(e) {
@@ -1437,7 +1568,7 @@ document.getElementById('depositForm').addEventListener('submit', async function
 document.getElementById('exportDepositBtn').addEventListener('click',()=>exportToCSV(lastFilterResults,'deposit_status_report'));
 
 // ==========================================
-// 6. GRAPHICAL REPORTS — Combined charts with CHQ + Bank Receipts breakup
+// 6. GRAPHICAL REPORTS
 // ==========================================
 document.getElementById('chartReportForm').addEventListener('submit', async function(e) {
     e.preventDefault(); showLoading(); destroyCharts();
@@ -1449,13 +1580,10 @@ document.getElementById('chartReportForm').addEventListener('submit', async func
     const ct      = document.querySelector('input[name="partyChartType"]:checked').value;
     const inclChq  = document.getElementById('chartIncludeChq').checked;
     const inclNeft = document.getElementById('chartIncludeNeft').checked;
-
     if (!inclChq && !inclNeft) { showError("Please select at least one data source."); return; }
-
     try {
         const rs = document.getElementById('resultsSection');
         let chqData = [], neftData = [], neftAmtKey = null, neftPartyKey = null, neftDateKey = null, neftStateKey = null;
-
         if (inclChq) {
             const data = await fetchSheetData(sheetId);
             chqData = filterChequeData(data, from, to, 'Deposited Date', party, state, null, null, null);
@@ -1474,22 +1602,18 @@ document.getElementById('chartReportForm').addEventListener('submit', async func
                 lastNeftResults = neftData;
             }
         }
-
         if (!chqData.length && !neftData.length) { rs.innerHTML = '<div class="no-results">No data found for the selected filters.</div>'; return; }
-
-        // ---- Build totals for combined KPI banner ----
         const chqTotal  = chqData.reduce((s, r) => s + (parseFloat((r['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g,'')) || 0), 0);
         const neftTotal = neftAmtKey ? neftData.reduce((s, r) => s + (parseFloat(String(r[neftAmtKey] || '0').replace(/[^0-9.-]+/g,'')) || 0), 0) : 0;
         const combinedTotal = chqTotal + neftTotal;
-
         const fy = getCurrentFY();
+
         let html = `
         <div style="padding:16px 16px 0;">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
                 <h3 style="font-size:1rem;font-weight:800;color:var(--violet-dark);margin:0;">📊 Combined Collection Analysis</h3>
                 <span class="fy-badge">📅 ${from ? from+' → '+to : fy.label}</span>
             </div>
-            <!-- COMBINED KPI CARDS -->
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px;">
                 <div class="kpi-card kpi-combined"><h4>📊 Combined Total</h4><div class="value" style="font-size:clamp(.9rem,1.5vw,1.5rem);">₹${combinedTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div><div class="sub-value">${chqData.length + neftData.length} records total</div></div>
                 ${inclChq ? `<div class="kpi-card kpi-total"><h4>🏦 Cheque Total</h4><div class="value" style="font-size:clamp(.9rem,1.5vw,1.5rem);">₹${chqTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div><div class="sub-value">${chqData.length} cheques · ${combinedTotal>0?((chqTotal/combinedTotal)*100).toFixed(1):0}% share</div></div>` : ''}
@@ -1497,88 +1621,77 @@ document.getElementById('chartReportForm').addEventListener('submit', async func
             </div>
         </div>`;
 
-        // ---- Combined monthly trend chart ----
-        if (inclChq && inclNeft && chqData.length && neftData.length && neftAmtKey) {
-            html += `
-            <div class="chart-container">
-                <div class="chart-box combined-chart full-width" style="height:400px;">
-                    <h3>📊 Combined Monthly Collection — Cheque + Bank Receipts Breakup</h3>
-                    <div class="combined-legend">
-                        <span class="legend-item"><span class="legend-dot" style="background:rgba(79,70,229,0.85);"></span>🏦 Cheque</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:rgba(8,145,178,0.85);"></span>🏧 Bank Receipts</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:rgba(124,58,237,0.85);"></span>📊 Combined Total</span>
-                    </div>
-                    <canvas id="combinedMonthlyChart"></canvas>
-                </div>
-            </div>`;
-        }
+        // Build chart grid
+        html += `<div class="chart-container">`;
 
-        // ---- Per-source individual charts ----
+        if (inclChq && inclNeft && chqData.length && neftData.length && neftAmtKey) {
+            const legendHtml = `<div class="combined-legend">
+                <span class="legend-item"><span class="legend-dot" style="background:rgba(79,70,229,0.85);"></span>🏦 Cheque</span>
+                <span class="legend-item"><span class="legend-dot" style="background:rgba(8,145,178,0.85);"></span>🏧 Bank Receipts</span>
+                <span class="legend-item"><span class="legend-dot" style="background:rgba(124,58,237,0.85);"></span>📊 Combined</span>
+            </div>`;
+            html += makeChartBox('combinedMonthlyChart', '📊 Combined Monthly Collection', 'combined-chart full-width', legendHtml);
+        }
         if (inclChq && chqData.length) {
-            const pd = aggregateData(chqData, 'Party Name');
+            html += makeChartBox('chqPartyChart', '🏦 Cheque — Top Parties by Value');
+            html += makeChartBox('chqStateChart', '🏦 Cheque — States by Value');
+        }
+        if (inclNeft && neftData.length && neftAmtKey) {
+            html += `<div class="section-separator"><span class="sep-label">🏧 Bank Receipts</span><div class="sep-line"></div></div>`;
+            html += makeChartBox('neftPartyChart', '🏧 Bank Receipts — Top Parties', 'neft-chart');
+            if (neftStateKey) html += makeChartBox('neftStateChart', '🏧 Bank Receipts — States', 'neft-chart');
+        }
+        html += `</div>`;
+
+        // State cards for cheque
+        if (inclChq && chqData.length) {
             const sd = aggregateData(chqData, 'State');
-            html += `
-            <div style="padding:0 20px;"><div class="section-separator"><span class="sep-label" style="color:var(--indigo);">🏦 Cheque Breakdown</span><div class="sep-line" style="background:linear-gradient(90deg,var(--indigo),#c7d2fe,transparent);"></div></div></div>
-            <div class="chart-container">
-                <div class="chart-box"><h3>Cheque — Top Parties by Value</h3><canvas id="chqPartyChart"></canvas></div>
-                <div class="chart-box"><h3>Cheque — States by Value</h3><canvas id="chqStateChart"></canvas></div>
-            </div>
-            <div style="padding:0 16px 10px;">
-                <h3 style="font-size:0.9rem;font-weight:800;color:var(--indigo);margin-bottom:12px;">Cheque — State-wise Summary</h3>
+            html += `<div style="padding:0 16px 10px;">
+                <h3 style="font-size:0.9rem;font-weight:800;color:var(--indigo);margin-bottom:12px;">🏦 Cheque — State-wise Summary</h3>
                 <div class="state-cards-container">
                     ${sd.aggregatedArray.map((s, i) => { const rec = chqData.filter(r => r.State === s.key).length; return `<div class="state-summary-card" style="animation-delay:${i*.04}s;"><div class="state-card-header"><div class="state-name">${s.key}</div><div class="state-rank">#${i+1}</div></div><div class="state-card-body"><div class="state-metric"><span class="metric-label">Total Value</span><span class="metric-value">₹${s.value.toLocaleString('en-IN')}</span></div><div class="state-metric"><span class="metric-label">Cheques</span><span class="metric-value">${rec}</span></div></div></div>`; }).join('')}
                 </div>
             </div>`;
         }
-
-        if (inclNeft && neftData.length && neftAmtKey) {
-            const npd = neftPartyKey ? aggregateNeftData(neftData, neftPartyKey, neftAmtKey) : { aggregatedArray: [] };
-            const nsd = neftStateKey ? aggregateNeftData(neftData, neftStateKey, neftAmtKey) : { aggregatedArray: [] };
-            html += `
-            <div style="padding:0 20px;"><div class="section-separator"><span class="sep-label">🏧 Bank Receipts Breakdown</span><div class="sep-line"></div></div></div>
-            <div class="chart-container" style="background:linear-gradient(135deg,#ecfeff,#f0fdfa,#e0f2fe);">
-                <div class="chart-box neft-chart"><h3>Bank Receipts — Top Parties</h3><canvas id="neftPartyChart"></canvas></div>
-                ${nsd.aggregatedArray.length ? `<div class="chart-box neft-chart"><h3>Bank Receipts — States</h3><canvas id="neftStateChart"></canvas></div>` : ''}
-            </div>
-            ${nsd.aggregatedArray.length ? `<div style="padding:0 16px 10px;">
-                <h3 style="font-size:0.9rem;font-weight:800;color:var(--teal);margin-bottom:12px;">Bank Receipts — State-wise Summary</h3>
-                <div class="state-cards-container">
-                    ${nsd.aggregatedArray.map((s,i) => { const rec = neftData.filter(r => String(r[neftStateKey]||'') === s.key).length; return `<div class="state-summary-card neft-state-card" style="animation-delay:${i*.04}s;"><div class="state-card-header"><div class="state-name">${s.key}</div><div class="state-rank">#${i+1}</div></div><div class="state-card-body"><div class="state-metric"><span class="metric-label">Total Amount</span><span class="metric-value">₹${s.value.toLocaleString('en-IN')}</span></div><div class="state-metric"><span class="metric-label">Records</span><span class="metric-value">${rec}</span></div></div></div>`; }).join('')}
-                </div>
-            </div>` : ''}`;
+        if (inclNeft && neftData.length && neftAmtKey && neftStateKey) {
+            const nsd = aggregateNeftData(neftData, neftStateKey, neftAmtKey);
+            if (nsd.aggregatedArray.length) {
+                html += `<div style="padding:0 16px 10px;">
+                    <h3 style="font-size:0.9rem;font-weight:800;color:var(--teal);margin-bottom:12px;">🏧 Bank Receipts — State-wise Summary</h3>
+                    <div class="state-cards-container">
+                        ${nsd.aggregatedArray.map((s,i) => { const rec = neftData.filter(r => String(r[neftStateKey]||'') === s.key).length; return `<div class="state-summary-card neft-state-card" style="animation-delay:${i*.04}s;"><div class="state-card-header"><div class="state-name">${s.key}</div><div class="state-rank">#${i+1}</div></div><div class="state-card-body"><div class="state-metric"><span class="metric-label">Total Amount</span><span class="metric-value">₹${s.value.toLocaleString('en-IN')}</span></div><div class="state-metric"><span class="metric-label">Records</span><span class="metric-value">${rec}</span></div></div></div>`; }).join('')}
+                    </div>
+                </div>`;
+            }
         }
 
         rs.innerHTML = html;
 
-        // ---- Render charts ----
         requestAnimationFrame(() => {
-            // Combined chart
             if (inclChq && inclNeft && chqData.length && neftData.length && neftAmtKey) {
                 const merged = getMergedMonthlyTrend(chqData, 'Deposited Date', neftData, neftDateKey, neftAmtKey);
-                if (document.getElementById('combinedMonthlyChart'))
-                    createCombinedChart('combinedMonthlyChart', ct === 'doughnut' ? 'bar' : ct, merged.labels, merged.chqArr, merged.neftArr, merged.combinedArr);
+                createCombinedChart('combinedMonthlyChart', ct === 'doughnut' ? 'bar' : ct, merged.labels, merged.chqArr, merged.neftArr, merged.combinedArr);
             }
             if (inclChq && chqData.length) {
                 const pd = aggregateData(chqData, 'Party Name');
                 const sd = aggregateData(chqData, 'State');
-                if (document.getElementById('chqPartyChart')) createChart('chqPartyChart', ct, pd.aggregatedArray.slice(0,10).map(d=>d.key), pd.aggregatedArray.slice(0,10).map(d=>d.value), '', 'chq');
-                if (document.getElementById('chqStateChart'))  createChart('chqStateChart',  ct, sd.aggregatedArray.map(d=>d.key), sd.aggregatedArray.map(d=>d.value), '', 'chq');
+                createChart('chqPartyChart', ct, pd.aggregatedArray.slice(0,10).map(d=>d.key), pd.aggregatedArray.slice(0,10).map(d=>d.value), '', 'chq');
+                createChart('chqStateChart', ct, sd.aggregatedArray.map(d=>d.key), sd.aggregatedArray.map(d=>d.value), '', 'chq');
             }
             if (inclNeft && neftData.length && neftAmtKey) {
                 const npd = neftPartyKey ? aggregateNeftData(neftData, neftPartyKey, neftAmtKey) : { aggregatedArray: [] };
                 const nsd = neftStateKey ? aggregateNeftData(neftData, neftStateKey, neftAmtKey) : { aggregatedArray: [] };
-                if (document.getElementById('neftPartyChart')) createChart('neftPartyChart', ct, npd.aggregatedArray.slice(0,10).map(d=>d.key), npd.aggregatedArray.slice(0,10).map(d=>d.value), '', 'neft');
-                if (document.getElementById('neftStateChart'))  createChart('neftStateChart',  ct, nsd.aggregatedArray.map(d=>d.key), nsd.aggregatedArray.map(d=>d.value), '', 'neft');
+                createChart('neftPartyChart', ct, npd.aggregatedArray.slice(0,10).map(d=>d.key), npd.aggregatedArray.slice(0,10).map(d=>d.value), '', 'neft');
+                if (neftStateKey) createChart('neftStateChart', ct, nsd.aggregatedArray.map(d=>d.key), nsd.aggregatedArray.map(d=>d.value), '', 'neft');
             }
         });
-
         document.getElementById('exportChartBtn').style.display = 'block';
     } catch(err) { showError(err.message); }
 });
 document.getElementById('exportChartBtn').addEventListener('click',()=>exportToCSV(lastFilterResults,'graphical_report_data'));
 
 // ==========================================
-// 7. AI & TREND ANALYSIS — Combined charts
+// 7. AI & TREND ANALYSIS
 // ==========================================
 document.getElementById('aiAnalysisForm').addEventListener('submit', async function(e) {
     e.preventDefault(); showLoading(); destroyCharts();
@@ -1589,13 +1702,10 @@ document.getElementById('aiAnalysisForm').addEventListener('submit', async funct
     const ct    = document.querySelector('input[name="trendChartType"]:checked').value;
     const inclChq  = document.getElementById('aiIncludeChq').checked;
     const inclNeft = document.getElementById('aiIncludeNeft').checked;
-
     if (!inclChq && !inclNeft) { showError("Please select at least one data source."); return; }
-
     try {
         const rs = document.getElementById('resultsSection');
         let chqData = [], neftData = [], neftAmtKey = null, neftPartyKey = null, neftDateKey = null, neftStateKey = null;
-
         if (inclChq) {
             const data = await fetchSheetData(sheetId);
             chqData = filterChequeData(data, from, to, 'Deposited Date', null, state, null, null, null);
@@ -1614,22 +1724,18 @@ document.getElementById('aiAnalysisForm').addEventListener('submit', async funct
                 lastNeftResults = neftData;
             }
         }
-
         if (!chqData.length && !neftData.length) { rs.innerHTML = '<div class="no-results">No data found.</div>'; return; }
-
         const chqTotal  = chqData.reduce((s, r) => s + (parseFloat((r['Chq Value (₹)'] || '0').replace(/[^0-9.-]+/g,'')) || 0), 0);
         const neftTotal = neftAmtKey ? neftData.reduce((s, r) => s + (parseFloat(String(r[neftAmtKey] || '0').replace(/[^0-9.-]+/g,'')) || 0), 0) : 0;
         const combinedTotal = chqTotal + neftTotal;
-
         const fy = getCurrentFY();
+
         let html = `<div style="padding:14px 16px 0;">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
                 <h3 style="font-size:1rem;font-weight:800;color:var(--violet-dark);margin:0;">📈 AI & Trend Analysis</h3>
                 <span class="fy-badge">📅 ${from ? from+' → '+to : fy.label}</span>
             </div>
         </div>`;
-
-        // Combined KPI row
         if (inclChq && inclNeft && combinedTotal > 0) {
             html += `<div class="kpi-container" style="margin:4px 16px 0;background:linear-gradient(135deg,#f5f3ff,#ecfeff);">
                 <div class="kpi-card kpi-combined"><h4>📊 Combined Total</h4><div class="value" data-target="${combinedTotal}">₹0</div><div class="sub-value">${chqData.length + neftData.length} total records</div></div>
@@ -1637,8 +1743,6 @@ document.getElementById('aiAnalysisForm').addEventListener('submit', async funct
                 <div class="kpi-card kpi-neft"><h4>🏧 Bank Receipts Share</h4><div class="value">${combinedTotal>0?((neftTotal/combinedTotal)*100).toFixed(1):0}%</div><div class="sub-value">₹${neftTotal.toLocaleString('en-IN',{maximumFractionDigits:0})}</div></div>
             </div>`;
         }
-
-        // CHQ KPIs
         if (inclChq && chqData.length) {
             const kpis = calculateAIKpis(chqData);
             html += `<div style="padding:14px 16px 0;"><span style="font-size:0.75rem;font-weight:800;color:var(--indigo);text-transform:uppercase;letter-spacing:.06em;">🏦 Cheque KPIs</span></div>
@@ -1650,8 +1754,6 @@ document.getElementById('aiAnalysisForm').addEventListener('submit', async funct
                 <div class="kpi-card kpi-total"><h4>Total Value</h4><div class="value" data-target="${kpis.totalValue}">₹0</div><div class="sub-value">${kpis.count} cheques</div></div>
             </div>`;
         }
-
-        // NEFT KPIs
         if (inclNeft && neftData.length && neftAmtKey) {
             const nkpis = calculateNeftKpis(neftData, neftAmtKey);
             html += `<div style="padding:14px 16px 0;margin-top:6px;"><span style="font-size:0.75rem;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;">🏧 Bank Receipts KPIs</span></div>
@@ -1661,16 +1763,12 @@ document.getElementById('aiAnalysisForm').addEventListener('submit', async funct
                 <div class="kpi-card" style="background:linear-gradient(135deg,#0f766e,#14b8a6);"><h4>Highest</h4><div class="value" data-target-neft="${nkpis.max}">₹0</div><div class="sub-value">single receipt</div></div>
             </div>`;
         }
-
-        // State cards — CHQ
         if (inclChq && chqData.length) {
             const sd = aggregateData(chqData, 'State');
             html += `<div class="statewise-summary-section" style="margin-top:16px;"><h3>🏦 State-wise Cheque Summary</h3><div class="state-cards-container">
                 ${sd.aggregatedArray.map((s,i)=>{ const rec=chqData.filter(r=>r.State===s.key).length; return `<div class="state-summary-card" style="animation-delay:${i*.04}s;"><div class="state-card-header"><div class="state-name">${s.key}</div><div class="state-rank">#${i+1}</div></div><div class="state-card-body"><div class="state-metric"><span class="metric-label">Total Value</span><span class="metric-value">₹${s.value.toLocaleString('en-IN')}</span></div><div class="state-metric"><span class="metric-label">Cheques</span><span class="metric-value">${rec}</span></div></div></div>`; }).join('')}
             </div></div>`;
         }
-
-        // State cards — NEFT
         if (inclNeft && neftData.length && neftAmtKey && neftStateKey) {
             const nsd = aggregateNeftData(neftData, neftStateKey, neftAmtKey);
             if (nsd.aggregatedArray.length) {
@@ -1680,57 +1778,48 @@ document.getElementById('aiAnalysisForm').addEventListener('submit', async funct
             }
         }
 
-        // Charts section
-        let chartHtml = '<div class="chart-container">';
+        // AI Charts
+        html += `<div class="chart-container">`;
         if (inclChq && inclNeft && chqData.length && neftData.length && neftAmtKey) {
-            chartHtml += `
-                <div class="chart-box combined-chart full-width" style="height:400px;">
-                    <h3>📊 Combined Monthly Trend — Cheque + Bank Receipts Breakup</h3>
-                    <div class="combined-legend">
-                        <span class="legend-item"><span class="legend-dot" style="background:rgba(79,70,229,0.85);"></span>🏦 Cheque</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:rgba(8,145,178,0.85);"></span>🏧 Bank Receipts</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:rgba(124,58,237,0.85);"></span>📊 Combined (line)</span>
-                    </div>
-                    <canvas id="aiCombinedChart"></canvas>
-                </div>`;
+            const legendHtml = `<div class="combined-legend">
+                <span class="legend-item"><span class="legend-dot" style="background:rgba(79,70,229,0.85);"></span>🏦 Cheque</span>
+                <span class="legend-item"><span class="legend-dot" style="background:rgba(8,145,178,0.85);"></span>🏧 Bank Receipts</span>
+                <span class="legend-item"><span class="legend-dot" style="background:rgba(124,58,237,0.85);"></span>📊 Combined</span>
+            </div>`;
+            html += makeChartBox('aiCombinedChart', '📊 Combined Monthly Trend', 'combined-chart full-width', legendHtml);
         }
         if (inclChq && chqData.length) {
-            chartHtml += `
-                <div class="chart-box full-width" style="height:320px;"><h3>🏦 Cheque Monthly Trend</h3><canvas id="trendChart"></canvas></div>
-                <div class="chart-box full-width" style="height:320px;"><h3>🏦 State Comparison</h3><canvas id="stateChart"></canvas></div>`;
+            html += makeChartBox('trendChart', '🏦 Cheque Monthly Trend', 'full-width');
+            html += makeChartBox('stateChart', '🏦 State Comparison', 'full-width');
         }
         if (inclNeft && neftData.length && neftAmtKey) {
-            chartHtml += `<div class="section-separator" style="grid-column:1/-1;"><span class="sep-label">🏧 Bank Receipts Trends</span><div class="sep-line"></div></div>
-                <div class="chart-box neft-chart full-width" style="height:320px;"><h3>🏧 Bank Receipts Monthly Trend</h3><canvas id="neftTrendChart"></canvas></div>`;
-            if (neftStateKey) { chartHtml += `<div class="chart-box neft-chart full-width" style="height:320px;"><h3>🏧 Bank Receipts — States</h3><canvas id="neftStateChart"></canvas></div>`; }
-            if (neftPartyKey) { chartHtml += `<div class="chart-box neft-chart full-width" style="height:320px;"><h3>🏧 Bank Receipts — Top Parties</h3><canvas id="neftPartyChart"></canvas></div>`; }
+            html += `<div class="section-separator"><span class="sep-label">🏧 Bank Receipts Trends</span><div class="sep-line"></div></div>`;
+            html += makeChartBox('neftTrendChart', '🏧 Bank Receipts Monthly Trend', 'neft-chart full-width');
+            if (neftStateKey) html += makeChartBox('neftStateChart', '🏧 Bank Receipts — States', 'neft-chart full-width');
+            if (neftPartyKey) html += makeChartBox('neftPartyChart', '🏧 Bank Receipts — Top Parties', 'neft-chart full-width');
         }
-        chartHtml += '</div>';
-        html += chartHtml;
+        html += `</div>`;
+
         rs.innerHTML = html;
-
         animateKPIValues(); animateNeftKpiValues();
-
         requestAnimationFrame(() => {
-            // Combined trend
             if (inclChq && inclNeft && chqData.length && neftData.length && neftAmtKey) {
                 const merged = getMergedMonthlyTrend(chqData, 'Deposited Date', neftData, neftDateKey, neftAmtKey);
-                if (document.getElementById('aiCombinedChart'))
-                    createCombinedChart('aiCombinedChart', ct, merged.labels, merged.chqArr, merged.neftArr, merged.combinedArr);
+                createCombinedChart('aiCombinedChart', ct, merged.labels, merged.chqArr, merged.neftArr, merged.combinedArr);
             }
             if (inclChq && chqData.length) {
                 const trend = getMonthlyTrendData(chqData, 'Deposited Date');
                 const sd    = aggregateData(chqData, 'State');
-                if (document.getElementById('trendChart')) createChart('trendChart', ct, trend.labels, trend.data, '', 'chq');
-                if (document.getElementById('stateChart')) createChart('stateChart', ct, sd.aggregatedArray.map(x=>x.key), sd.aggregatedArray.map(x=>x.value), '', 'chq');
+                createChart('trendChart', ct, trend.labels, trend.data, '', 'chq');
+                createChart('stateChart', ct, sd.aggregatedArray.map(x=>x.key), sd.aggregatedArray.map(x=>x.value), '', 'chq');
             }
             if (inclNeft && neftData.length && neftAmtKey) {
                 const nTrend = neftDateKey  ? getMonthlyTrendNeft(neftData, neftDateKey, neftAmtKey) : { labels:[], data:[] };
                 const nsd    = neftStateKey ? aggregateNeftData(neftData, neftStateKey, neftAmtKey)  : { aggregatedArray:[] };
                 const npd    = neftPartyKey ? aggregateNeftData(neftData, neftPartyKey, neftAmtKey)  : { aggregatedArray:[] };
-                if (document.getElementById('neftTrendChart'))  createChart('neftTrendChart',  ct, nTrend.labels, nTrend.data, '', 'neft');
-                if (document.getElementById('neftStateChart'))  createChart('neftStateChart',  ct, nsd.aggregatedArray.map(d=>d.key), nsd.aggregatedArray.map(d=>d.value), '', 'neft');
-                if (document.getElementById('neftPartyChart'))  createChart('neftPartyChart',  ct, npd.aggregatedArray.slice(0,10).map(d=>d.key), npd.aggregatedArray.slice(0,10).map(d=>d.value), '', 'neft');
+                createChart('neftTrendChart', ct, nTrend.labels, nTrend.data, '', 'neft');
+                if (neftStateKey) createChart('neftStateChart', ct, nsd.aggregatedArray.map(d=>d.key), nsd.aggregatedArray.map(d=>d.value), '', 'neft');
+                if (neftPartyKey) createChart('neftPartyChart', ct, npd.aggregatedArray.slice(0,10).map(d=>d.key), npd.aggregatedArray.slice(0,10).map(d=>d.value), '', 'neft');
             }
         });
         document.getElementById('exportAIReportBtn').style.display = 'block';
@@ -1771,26 +1860,18 @@ async function populateDropdowns(sheetId) {
 document.addEventListener('DOMContentLoaded', ()=>{
     const sheetId=document.getElementById('sheetId').value.trim();
     if(sheetId) setTimeout(()=>populateDropdowns(sheetId),500);
-
     document.getElementById('chqSearch').style.display='block';
     document.getElementById('chqSearch').classList.add('active');
     document.getElementById('chartTypeBarAI').checked=true;
     document.getElementById('chartTypeBarParty').checked=true;
-
     const t=new Date().toISOString().split('T')[0];
     document.getElementById('depositFromDate').value=t;
     document.getElementById('depositToDate').value=t;
-    document.getElementById('neftFromDate').value=t;
-    document.getElementById('neftToDate').value=t;
-
-    // Set Graphical Reports & AI Analysis to current FY by default
     const fy = getCurrentFY();
     document.getElementById('chartFromDate').value = fy.from;
     document.getElementById('chartToDate').value   = fy.to;
     document.getElementById('aiFromDate').value    = fy.from;
     document.getElementById('aiToDate').value      = fy.to;
-
-    // Update FY badge labels
     const fyLabel = fy.label;
     ['chartFyBadge','aiFyBadge'].forEach(id=>{
         const el=document.getElementById(id);

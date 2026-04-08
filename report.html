@@ -1196,32 +1196,7 @@ function buildGrandTotalBanner(opts) {
 // STATE MINI CARDS BUILDER (for Deposits Report)
 // ==========================================
 function buildStateMiniCards(stateAgg, type, maxVal) {
-    if (!stateAgg || !stateAgg.length) return '';
-    const isNeft = type === 'neft';
-    const headerClass = isNeft ? 'neft-header' : 'chq-header';
-    const barClass = isNeft ? 'neft-bar' : 'chq-bar';
-    const titleColor = isNeft ? 'neft-title' : '';
-    const titleLabel = isNeft ? '🏧 Bank Receipts — State-wise' : '🏦 Cheque — State-wise';
-
-    let html = `<div class="state-mini-section">
-        <h4 class="${titleColor}">${titleLabel}</h4>
-        <div class="state-mini-grid">`;
-    stateAgg.forEach((s, i) => {
-        const pct = maxVal > 0 ? Math.max(8, (s.value / maxVal) * 100) : 8;
-        html += `<div class="state-mini-card${isNeft ? ' neft-mini' : ''}" style="animation-delay:${i*0.04}s;">
-            <div class="state-mini-header ${headerClass}">
-                <span class="state-mini-name">${s.key}</span>
-                <span class="state-mini-rank">#${i+1}</span>
-            </div>
-            <div class="state-mini-body">
-                <div class="state-mini-val">₹${s.value.toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
-                <div class="state-mini-count">${s.count} ${isNeft?'receipts':'cheques'}</div>
-                <div class="state-mini-bar ${barClass}" style="width:${pct}%;"></div>
-            </div>
-        </div>`;
-    });
-    html += `</div></div>`;
-    return html;
+    return '';
 }
 
 // ==========================================
@@ -1511,7 +1486,7 @@ async function loadDashboard() {
             <div class="db-kpi-card db-kpi-records" style="animation-delay:.20s;">
                 <div class="db-kpi-label">Total Transactions</div>
                 <div class="db-kpi-value">${totalRecords}</div>
-                <div class="db-kpi-sub">${todayChq.length} CHQ + ${todayNeft.length} NEFT</div>
+                <div class="db-kpi-sub">${todayChq.length} CHQ + ${todayNeft.length} BANK RCPTS</div>
                 <div class="db-kpi-icon">📋</div>
             </div>
             <div class="db-kpi-card db-kpi-avg" style="animation-delay:.25s;">

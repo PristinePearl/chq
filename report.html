@@ -478,10 +478,15 @@
                     <h3 style="font-size:0.95rem;margin-bottom:4px;color:#b45309;font-weight:800;">🏠 Live Dashboard</h3>
                     <p style="font-size:0.8rem;color:var(--slate-500);line-height:1.5;">Combined day-wise view of Cheque + Bank Receipts. Defaults to today.</p>
                     <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="dashboardDate">
-                    </div>
-                    <button type="button" class="btn" style="background:linear-gradient(135deg,#b45309,#f59e0b,#d97706);box-shadow:0 4px 14px rgba(245,158,11,0.4);" onclick="loadDashboard()">🔄 Load Dashboard</button>
+    <label>From Date</label>
+    <input type="date" id="dashboardFromDate">
+</div>
+
+<div class="form-group">
+    <label>To Date</label>
+    <input type="date" id="dashboardToDate">
+</div>
+<button type="button" class="btn" style="background:linear-gradient(135deg,#b45309,#f59e0b,#d97706);box-shadow:0 4px 14px rgba(245,158,11,0.4);" onclick="loadDashboard()">🔄 Load Dashboard</button>
                 </div>
             </div>
 
@@ -812,7 +817,7 @@ function openTab(evt, tabName) {
 
     if (tabName === 'dashboardTab') {
         rs.className = 'results-section dashboard-mode';
-        loadDashboard();
+        loadDashboard(today);
         return;
     }
     rs.className = 'results-section';
@@ -1380,8 +1385,13 @@ async function loadDashboard() {
     const rs = document.getElementById('resultsSection');
     rs.className = 'results-section dashboard-mode';
     const sheetId = document.getElementById('sheetId').value.trim();
-    const dateInput = document.getElementById('dashboardDate').value || todayISO();
-    const displayDate = formatDateDDMMYYYY(new Date(dateInput + 'T12:00:00'));
+    const fromDate = document.getElementById('dashboardFromDate').value;
+const toDate = document.getElementById('dashboardToDate').value;
+
+if (!fromDate || !toDate) {
+    return;
+}
+    const displayDate = `${fromDate.split('-').reverse().join('/')} → ${toDate.split('-').reverse().join('/')}`;
 
     // Show skeleton loading
     rs.innerHTML = `
@@ -1417,8 +1427,8 @@ async function loadDashboard() {
         const neftStateKey = findNeftKey(['state']) || null;
 
         // Filter for selected date — using deposit date for CHQ, receipt date for NEFT
-        const todayChq = filterDepositsReport(allChq, dateInput, dateInput, '');
-        const todayNeft = filterNeftData(allNeft, dateInput, dateInput, '');
+        const todayChq = filterDepositsReport(allChq, fromDate, toDate, '');
+const todayNeft = filterNeftData(allNeft, fromDate, toDate, '');
 
         // Totals
         let chqTotal = 0, neftTotal = 0;
@@ -1455,11 +1465,6 @@ async function loadDashboard() {
                 <div class="dashboard-title">📊 Live Dashboard</div>
                 <div class="dashboard-date-badge">📅 ${displayDate}</div>
                 <button class="dashboard-refresh-btn" onclick="loadDashboard()"><span class="refresh-icon">🔄</span> Refresh</button>
-            </div>
-            <div class="dashboard-date-picker">
-                <label>Change Date:</label>
-                <input type="date" id="dashboardDate" value="${dateInput}">
-                <button class="db-load-btn" onclick="loadDashboard()">Load</button>
             </div>
         </div>`;
 
@@ -1513,7 +1518,7 @@ async function loadDashboard() {
                     </div>
                 </div>
                 <div class="db-split-card db-split-neft">
-                    <div class="db-split-title">🏧 Bank Receipts (NEFT)</div>
+                    <div class="db-split-title">🏧 Bank Receipts</div>
                     <div class="db-split-amount">₹${neftTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
                     <div class="db-split-meta">
                         <div class="db-split-meta-item"><span class="db-split-meta-label">Receipts</span><span class="db-split-meta-val">${todayNeft.length}</span></div>
@@ -1594,7 +1599,7 @@ async function loadDashboard() {
 
                 // Combined state cards
                 if (combinedStateArr.length) {
-                    html += `<div style="margin-bottom:8px;font-size:0.65rem;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;">Combined (CHQ + NEFT)</div>
+                    html += `<div style="margin-bottom:8px;font-size:0.65rem;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;">Combined</div>
                     <div class="db-state-cards">`;
                     combinedStateArr.forEach((s, i) => {
                         const pct = maxStateVal > 0 ? Math.max(10, (s.value / maxStateVal) * 100) : 10;
@@ -2284,11 +2289,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     // Set today's date as default for dashboard
     const today = todayISO();
-    document.getElementById('dashboardDate').value = today;
-
+    
+    if(document.getElementById('dashFromDate')) document.getElementById('dashFromDate').value = today;
+    if(document.getElementById('dashToDate')) document.getElementById('dashToDate').value = today;
+    
     if(sheetId) setTimeout(()=>populateDropdowns(sheetId),500);
     document.getElementById('chartTypeBarAI').checked=true;
     document.getElementById('chartTypeBarParty').checked=true;
+    
     const t=new Date().toISOString().split('T')[0];
     document.getElementById('depositFromDate').value=t;
     document.getElementById('depositToDate').value=t;
@@ -2304,10 +2312,30 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
 
     // Load dashboard on startup
-    loadDashboard();
+    loadDashboard(today);
 });
 
 document.getElementById('printModal').addEventListener('click',function(e){if(e.target===this)closePrintModal();});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const today = new Date().toISOString().split('T')[0];
+
+    const fromInput = document.getElementById("dashboardFromDate");
+    const toInput = document.getElementById("dashboardToDate");
+
+    if (fromInput && toInput) {
+        fromInput.value = today;
+        toInput.value = today;
+    }
+
+    // Small delay to ensure everything loads
+    setTimeout(() => {
+        if (typeof loadDashboard === "function") {
+            loadDashboard();
+        }
+    }, 300);
+});
+
 </script>
 </body>
 </html>

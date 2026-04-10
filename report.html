@@ -2070,6 +2070,18 @@ async function exportDashboardExcel() {
 async function exportDashboardImage() {
     const node = document.getElementById('resultsSection');
 
+    // ✅ SAVE ORIGINAL STYLES
+    const originalHeight = node.style.height;
+    const originalOverflow = node.style.overflow;
+    const originalMaxHeight = node.style.maxHeight;
+
+    // ✅ FORCE FULL SIZE
+    node.style.height = node.scrollHeight + 'px';
+    node.style.maxHeight = 'none';
+    node.style.overflow = 'visible';
+
+    window.scrollTo(0, 0); // IMPORTANT
+
     const fromDate = document.getElementById('dashboardFromDate').value;
     const toDate   = document.getElementById('dashboardToDate').value;
 
@@ -2078,13 +2090,16 @@ async function exportDashboardImage() {
         : new Date().toISOString().split('T')[0];
 
     try {
-        // wait for charts render
-        await new Promise(res => setTimeout(res, 500));
+        await new Promise(res => setTimeout(res, 600));
 
         const dataUrl = await htmlToImage.toPng(node, {
             cacheBust: true,
             pixelRatio: 2,
-            backgroundColor: '#0f172a'
+            backgroundColor: '#0f172a',
+
+            // ✅ ADD THESE (fix cropping)
+            width: node.scrollWidth,
+            height: node.scrollHeight
         });
 
         const link = document.createElement('a');
@@ -2096,8 +2111,12 @@ async function exportDashboardImage() {
         console.error(err);
         alert('Export failed: ' + err.message);
     }
-}
 
+    // ✅ RESTORE ORIGINAL STYLES (VERY IMPORTANT)
+    node.style.height = originalHeight;
+    node.style.overflow = originalOverflow;
+    node.style.maxHeight = originalMaxHeight;
+}
 
 function toggleDayInner(headerEl) {
     const body = headerEl.nextElementSibling;

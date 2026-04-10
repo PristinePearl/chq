@@ -1528,68 +1528,169 @@ const todayNeft = filterNeftData(allNeft, fromDate, toDate, '');
                 </div>
             </div>`;
 
-            // Day consolidated card
-            html += `<div class="db-section-label"><h3>📅 Day-wise Consolidated</h3></div>
-            <div class="db-day-card">
-                <div class="db-day-header" onclick="toggleDbDay(this)">
-                    <div>
-                        <div class="db-day-date">${displayDate}</div>
-                        <div class="db-day-badges" style="margin-top:5px;">
-                            ${todayChq.length ? `<span class="db-day-badge db-badge-chq">🏦 ${todayChq.length} Cheques</span>` : ''}
-                            ${todayNeft.length ? `<span class="db-day-badge db-badge-neft">🏧 ${todayNeft.length} Receipts</span>` : ''}
+                  // Day-wise consolidated
+            const chqByDay  = groupByDay(todayChq,  r => formatDateDDMMYYYY(r._effectiveDate || r['Deposited Date']));
+            const neftByDay = groupByDay(todayNeft, r => formatDateDDMMYYYY(r[neftDateKey]));
+            const allDays   = Array.from(new Set([...Object.keys(chqByDay), ...Object.keys(neftByDay)]))
+                .filter(d => d && d !== 'No Date')
+                .sort((a, b) => {
+                    const pa = a.split('/'), pb = b.split('/');
+                    return new Date(pb[2], pb[1]-1, pb[0]) - new Date(pa[2], pa[1]-1, pa[0]);
+                });
+            if (Object.keys(chqByDay).includes('No Date') || Object.keys(neftByDay).includes('No Date')) allDays.push('No Date');
+
+            html += `<div class="db-section-label"><h3>📅 Day-wise Consolidated</h3></div>`;
+
+             // Overall total banner (collapsed by default, expands to show day cards)
+            html += `
+            <div class="db-day-card" style="border:1.5px solid rgba(245,158,11,0.3);border-radius:16px;overflow:hidden;margin-bottom:14px;">
+                <div class="db-day-header" onclick="toggleDbDay(this)" style="cursor:pointer;padding:0;border-radius:0;">
+                    
+                    <!-- Top accent bar -->
+                    <div style="width:100%;display:flex;flex-direction:column;">
+                        
+                        <!-- Main header row -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;width:100%;box-sizing:border-box;">
+                            <div style="display:flex;align-items:center;gap:14px;">
+                                <div style="width:44px;height:44px;border-radius:12px;background:rgba(245,158,11,0.2);border:1.5px solid rgba(245,158,11,0.35);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📊</div>
+                                <div>
+                                    <div style="font-size:0.62rem;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px;">Day-wise Consolidated</div>
+                                    <div style="font-size:1.05rem;font-weight:800;color:white;letter-spacing:-0.01em;">Overall Total Collection</div>
+                                    <div style="font-size:0.68rem;color:rgba(255,255,255,0.4);margin-top:3px;font-weight:600;">${allDays.length} day${allDays.length!==1?'s':''} &nbsp;·&nbsp; ${totalRecords} transactions &nbsp;·&nbsp; Click to expand</div>
+                                </div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:16px;">
+                                <div style="text-align:right;">
+                                    <div style="font-size:1.75rem;font-weight:800;color:#fbbf24;letter-spacing:-0.03em;line-height:1.1;">₹${combined.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                                    <div style="font-size:0.6rem;font-weight:700;color:rgba(245,158,11,0.6);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Grand Total</div>
+                                </div>
+                                <div style="width:32px;height:32px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;">
+                                    <div class="db-day-chevron" style="color:#fbbf24;font-size:0.75rem;margin:0;">▼</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:16px;">
-                        <div class="db-day-total">₹${combined.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
-                        <div class="db-day-chevron">▼</div>
+
+                        <!-- Split summary strip (always visible) -->
+                        <div style="display:flex;border-top:1px solid rgba(255,255,255,0.06);">
+                            <div style="flex:1;padding:12px 22px;border-right:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;">
+                                <div style="width:8px;height:8px;border-radius:50%;background:#818cf8;flex-shrink:0;"></div>
+                                <div>
+                                    <div style="font-size:0.58rem;font-weight:700;color:rgba(165,180,252,0.7);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px;">🏦 Cheque Deposits</div>
+                                    <div style="font-size:1rem;font-weight:800;color:white;">₹${chqTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                                    <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);margin-top:1px;">${todayChq.length} cheque${todayChq.length!==1?'s':''} &nbsp;·&nbsp; ${combined>0?((chqTotal/combined)*100).toFixed(1):0}% share</div>
+                                </div>
+                            </div>
+                            <div style="flex:1;padding:12px 22px;border-right:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;">
+                                <div style="width:8px;height:8px;border-radius:50%;background:#22d3ee;flex-shrink:0;"></div>
+                                <div>
+                                    <div style="font-size:0.58rem;font-weight:700;color:rgba(103,232,249,0.7);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px;">🏧 Bank Receipts</div>
+                                    <div style="font-size:1rem;font-weight:800;color:white;">₹${neftTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                                    <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);margin-top:1px;">${todayNeft.length} receipt${todayNeft.length!==1?'s':''} &nbsp;·&nbsp; ${combined>0?((neftTotal/combined)*100).toFixed(1):0}% share</div>
+                                </div>
+                            </div>
+                            <div style="flex:0 0 140px;padding:12px 22px;display:flex;align-items:center;gap:12px;">
+                                <div style="width:8px;height:8px;border-radius:50%;background:#a78bfa;flex-shrink:0;"></div>
+                                <div>
+                                    <div style="font-size:0.58rem;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px;">Avg / Day</div>
+                                    <div style="font-size:1rem;font-weight:800;color:white;">₹${allDays.length>0?(combined/allDays.length).toLocaleString('en-IN',{maximumFractionDigits:0}):'0'}</div>
+                                    <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);margin-top:1px;">${allDays.length} day${allDays.length!==1?'s':''}</div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
+
                 <div class="db-day-body">
-                    <div class="db-day-inner">`;
+                    ${allDays.map((day, dayIdx) => {
+                        const dayChq  = chqByDay[day]  || [];
+                        const dayNeft = neftByDay[day] || [];
+                        let dayChqTotal = 0, dayNeftTotal = 0;
+                        dayChq.forEach(r  => { dayChqTotal  += parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; });
+                        dayNeft.forEach(r => { dayNeftTotal += parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0; });
+                        const dayTotal = dayChqTotal + dayNeftTotal;
 
-            // CHQ block
-            if (todayChq.length) {
-                html += `<div class="db-inner-block db-inner-chq">
-                    <div class="db-inner-title chq-color">🏦 CHEQUE DETAILS</div>
-                    <div class="db-inner-amount">₹${chqTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
-                    <div class="db-inner-records">${todayChq.length} cheques</div>
-                    <table class="db-mini-table">
-                        <thead><tr><th>Party</th><th>Bank</th><th style="text-align:right;">Value</th></tr></thead>
-                        <tbody>
-                            ${todayChq.slice(0,8).map(r=>{
-                                const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
-                                return `<tr><td>${(r['Party Name']||'N/A').substring(0,18)}</td><td>${(r['Bank Name (Party)']||'-').substring(0,12)}</td><td class="amt-cell">₹${v.toLocaleString('en-IN')}</td></tr>`;
-                            }).join('')}
-                            ${todayChq.length>8?`<tr><td colspan="3" style="color:rgba(255,255,255,0.35);font-size:0.65rem;padding:4px 8px;">+${todayChq.length-8} more…</td></tr>`:''}
-                        </tbody>
-                    </table>
-                </div>`;
-            } else {
-                html += `<div class="db-inner-block db-inner-chq" style="display:flex;align-items:center;justify-content:center;"><span style="color:rgba(255,255,255,0.3);font-size:0.82rem;">No cheque deposits</span></div>`;
-            }
+                        return `
+                        <div style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 20px;cursor:pointer;transition:background .2s;" onclick="toggleDayInner(this)" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:800;color:white;">${day}</div>
+                                    <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+                                        ${dayChq.length  ? `<span class="db-day-badge db-badge-chq" style="font-size:0.62rem;">🏦 ${dayChq.length} cheque${dayChq.length!==1?'s':''} · ₹${dayChqTotal.toLocaleString('en-IN')}</span>` : ''}
+                                        ${dayNeft.length ? `<span class="db-day-badge db-badge-neft" style="font-size:0.62rem;">🏧 ${dayNeft.length} receipt${dayNeft.length!==1?'s':''} · ₹${dayNeftTotal.toLocaleString('en-IN')}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <div style="text-align:right;">
+                                        <div style="font-size:1.05rem;font-weight:800;color:#fbbf24;">₹${dayTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                                        <div style="font-size:0.58rem;color:rgba(255,255,255,0.35);font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Total</div>
+                                    </div>
+                                    <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;transition:transform .25s;" class="inner-chevron">▼</div>
+                                </div>
+                            </div>
 
-            // NEFT block
-            if (todayNeft.length) {
-                html += `<div class="db-inner-block db-inner-neft">
-                    <div class="db-inner-title neft-color">🏧 BANK RECEIPTS</div>
-                    <div class="db-inner-amount">₹${neftTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
-                    <div class="db-inner-records">${todayNeft.length} receipts</div>
-                    <table class="db-mini-table">
-                        <thead><tr><th>Party</th><th style="text-align:right;">Amount</th></tr></thead>
-                        <tbody>
-                            ${todayNeft.slice(0,8).map(r=>{
-                                const v = parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0;
-                                return `<tr><td>${String(r[neftPartyKey]||'N/A').substring(0,22)}</td><td class="amt-cell neft-amt">₹${v.toLocaleString('en-IN')}</td></tr>`;
-                            }).join('')}
-                            ${todayNeft.length>8?`<tr><td colspan="2" style="color:rgba(255,255,255,0.35);font-size:0.65rem;padding:4px 8px;">+${todayNeft.length-8} more…</td></tr>`:''}
-                        </tbody>
-                    </table>
-                </div>`;
-            } else {
-                html += `<div class="db-inner-block db-inner-neft" style="display:flex;align-items:center;justify-content:center;"><span style="color:rgba(255,255,255,0.3);font-size:0.82rem;">No bank receipts</span></div>`;
-            }
+                            <div class="day-inner-body" style="display:none;">
+                                <!-- Summary strip -->
+                                <div style="display:flex;align-items:stretch;gap:0;background:rgba(0,0,0,0.2);border-top:1px solid rgba(255,255,255,0.05);">
+                                    <div style="flex:1;padding:11px 20px;border-right:1px solid rgba(255,255,255,0.05);">
+                                        <div style="font-size:0.58rem;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Total</div>
+                                        <div style="font-size:1rem;font-weight:800;color:#fbbf24;">₹${dayTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                                    </div>
+                                    <div style="flex:1;padding:11px 20px;border-right:1px solid rgba(255,255,255,0.05);">
+                                        <div style="font-size:0.58rem;font-weight:700;color:rgba(165,180,252,0.7);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">🏦 Cheque</div>
+                                        <div style="font-size:1rem;font-weight:800;color:white;">₹${dayChqTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                                        <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);margin-top:1px;">${dayChq.length} cheque${dayChq.length!==1?'s':''}</div>
+                                    </div>
+                                    <div style="flex:1;padding:11px 20px;">
+                                        <div style="font-size:0.58rem;font-weight:700;color:rgba(103,232,249,0.7);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">🏧 Bank Rcpts</div>
+                                        <div style="font-size:1rem;font-weight:800;color:white;">₹${dayNeftTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
+                                        <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);margin-top:1px;">${dayNeft.length} receipt${dayNeft.length!==1?'s':''}</div>
+                                    </div>
+                                </div>
 
-            html += `</div></div></div>`;
+                                <!-- Detail tables -->
+                                <div class="db-day-inner">
+                                    ${dayChq.length ? `
+                                    <div class="db-inner-block db-inner-chq">
+                                        <div class="db-inner-title chq-color">🏦 Cheque details</div>
+                                        <table class="db-mini-table">
+                                            <thead><tr><th>Party</th><th>Bank</th><th style="text-align:right;">Value</th></tr></thead>
+                                            <tbody>
+                                                ${dayChq.map(r => {
+                                                    const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
+                                                    return `<tr><td>${(r['Party Name']||'N/A').substring(0,20)}</td><td>${(r['Bank Name (Party)']||'-').substring(0,14)}</td><td class="amt-cell">₹${v.toLocaleString('en-IN')}</td></tr>`;
+                                                }).join('')}
+                                                <tr style="border-top:1px solid rgba(255,255,255,0.12);">
+                                                    <td colspan="2" style="color:rgba(165,180,252,0.8);font-weight:700;font-size:0.72rem;">Subtotal</td>
+                                                    <td class="amt-cell" style="font-size:0.82rem;">₹${dayChqTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>` : `<div class="db-inner-block db-inner-chq" style="display:flex;align-items:center;justify-content:center;"><span style="color:rgba(255,255,255,0.25);font-size:0.82rem;">No cheque deposits</span></div>`}
+
+                                    ${dayNeft.length ? `
+                                    <div class="db-inner-block db-inner-neft">
+                                        <div class="db-inner-title neft-color">🏧 Bank receipt details</div>
+                                        <table class="db-mini-table">
+                                            <thead><tr><th>Party</th><th style="text-align:right;">Amount</th></tr></thead>
+                                            <tbody>
+                                                ${dayNeft.map(r => {
+                                                    const v = parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0;
+                                                    return `<tr><td>${String(r[neftPartyKey]||'N/A').substring(0,26)}</td><td class="amt-cell neft-amt">₹${v.toLocaleString('en-IN')}</td></tr>`;
+                                                }).join('')}
+                                                <tr style="border-top:1px solid rgba(255,255,255,0.12);">
+                                                    <td style="color:rgba(103,232,249,0.8);font-weight:700;font-size:0.72rem;">Subtotal</td>
+                                                    <td class="amt-cell neft-amt" style="font-size:0.82rem;">₹${dayNeftTotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>` : `<div class="db-inner-block db-inner-neft" style="display:flex;align-items:center;justify-content:center;"><span style="color:rgba(255,255,255,0.25);font-size:0.82rem;">No bank receipts</span></div>`}
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
 
             // STATE SECTION
             if (combinedStateArr.length) {
@@ -1677,6 +1778,16 @@ function buildStateAgg(data, stateKey, amtKey, isNeft) {
     return Object.entries(map).map(([k,v])=>({key:k,...v})).sort((a,b)=>b.value-a.value);
 }
 
+function groupByDay(rows, dateExtractor) {
+    const map = {};
+    rows.forEach(r => {
+        const d = dateExtractor(r) || 'No Date';
+        if (!map[d]) map[d] = [];
+        map[d].push(r);
+    });
+    return map;
+}
+
 function toggleDbDay(headerEl) {
     const body = headerEl.nextElementSibling;
     const chev = headerEl.querySelector('.db-day-chevron');
@@ -1684,6 +1795,18 @@ function toggleDbDay(headerEl) {
         body.classList.remove('open'); body.style.display='none'; chev.classList.remove('open');
     } else {
         body.classList.add('open'); body.style.display='block'; chev.classList.add('open');
+    }
+}
+
+function toggleDayInner(headerEl) {
+    const body = headerEl.nextElementSibling;
+    const chev = headerEl.querySelector('.inner-chevron');
+    if (body.style.display === 'none' || body.style.display === '') {
+        body.style.display = 'block';
+        if (chev) chev.style.transform = 'rotate(180deg)';
+    } else {
+        body.style.display = 'none';
+        if (chev) chev.style.transform = 'rotate(0deg)';
     }
 }
 

@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         :root {
@@ -1467,7 +1468,16 @@ const todayNeft = filterNeftData(allNeft, fromDate, toDate, '');
                 <button class="dashboard-refresh-btn" onclick="loadDashboard()"><span class="refresh-icon">🔄</span> Refresh</button>
             </div>
         </div>`;
-
+ html += `
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 24px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;">
+            <span style="font-size:0.65rem;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.1em;margin-right:4px;">Export</span>
+            <button onclick="exportDashboardExcel()" style="display:flex;align-items:center;gap:7px;padding:8px 16px;background:rgba(5,150,105,0.15);border:1px solid rgba(5,150,105,0.35);border-radius:8px;color:#34d399;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s;" onmouseover="this.style.background='rgba(5,150,105,0.28)'" onmouseout="this.style.background='rgba(5,150,105,0.15)'">
+                <span style="font-size:14px;">📊</span> Export Excel
+            </button>
+            <button onclick="exportDashboardImage()" style="display:flex;align-items:center;gap:7px;padding:8px 16px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.35);border-radius:8px;color:#a5b4fc;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s;" onmouseover="this.style.background='rgba(99,102,241,0.28)'" onmouseout="this.style.background='rgba(99,102,241,0.15)'">
+                <span style="font-size:14px;">🖼️</span> Save as Image
+            </button>
+        </div>`;
         // KPI row
         html += `<div class="db-kpi-row">
             <div class="db-kpi-card db-kpi-combined" style="animation-delay:.05s;">
@@ -1797,6 +1807,225 @@ function toggleDbDay(headerEl) {
         body.classList.add('open'); body.style.display='block'; chev.classList.add('open');
     }
 }
+async function exportDashboardExcel() {
+    const sheetId = document.getElementById('sheetId').value.trim();
+    const fromDate = document.getElementById('dashboardFromDate').value;
+    const toDate   = document.getElementById('dashboardToDate').value;
+    if (!fromDate || !toDate) { alert('Please load the dashboard first.'); return; }
+
+    try {
+        const [chqRes, neftRes] = await Promise.allSettled([fetchSheetData(sheetId), fetchNeftData()]);
+        const allChq  = chqRes.status  === 'fulfilled' ? chqRes.value  : [];
+        const allNeft = neftRes.status === 'fulfilled' ? neftRes.value : [];
+
+        const neftKeys = allNeft.length ? Object.keys(allNeft[0]) : [];
+        function findNK(patterns) { for(const p of patterns){ const f=neftKeys.find(k=>k.toUpperCase().includes(p.toUpperCase())); if(f)return f; } return null; }
+        const neftDateKey  = findNK(['date']) || 'date';
+        const neftAmtKey   = findNK(['amount','value','₹','amt']) || 'amount';
+        const neftStateKey = findNK(['state']) || null;
+
+        const todayChq  = filterDepositsReport(allChq, fromDate, toDate, '');
+        const todayNeft = filterNeftData(allNeft, fromDate, toDate, '');
+
+        let chqTotal = 0, neftTotal = 0;
+        todayChq.forEach(r  => { chqTotal  += parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; });
+        todayNeft.forEach(r => { neftTotal += parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0; });
+        const combined = chqTotal + neftTotal;
+
+        const chqByDay  = groupByDay(todayChq,  r => formatDateDDMMYYYY(r._effectiveDate || r['Deposited Date']));
+        const neftByDay = groupByDay(todayNeft, r => formatDateDDMMYYYY(r[neftDateKey]));
+        const allDays   = Array.from(new Set([...Object.keys(chqByDay), ...Object.keys(neftByDay)]))
+            .filter(d => d && d !== 'No Date')
+            .sort((a,b) => { const pa=a.split('/'),pb=b.split('/'); return new Date(pa[2],pa[1]-1,pa[0])-new Date(pb[2],pb[1]-1,pb[0]); });
+
+        const wb = XLSX.utils.book_new();
+        const bdr = () => ({ top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} });
+
+        function c(v, bold=false, fillRgb=null, color=null, alignH='left', sz=11, numFmt=null) {
+            const obj = { v, t: typeof v==='number'?'n':'s' };
+            obj.s = {
+                font: { name:'Calibri', sz, bold, color: color?{rgb:color}:undefined },
+                fill: fillRgb ? { patternType:'solid', fgColor:{rgb:fillRgb} } : undefined,
+                alignment: { horizontal:alignH, vertical:'center', wrapText:true },
+                border: bdr(),
+                numFmt: numFmt||undefined
+            };
+            if (numFmt) obj.t = 'n';
+            return obj;
+        }
+
+        function sc(ws, row, col, cellObj) { ws[XLSX.utils.encode_cell({r:row,c:col})] = cellObj; }
+        function mr(ws, r1, c1, r2, c2) { if(!ws['!merges'])ws['!merges']=[]; ws['!merges'].push({s:{r:r1,c:c1},e:{r:r2,c:c2}}); }
+
+        // ── SHEET 1: SUMMARY ──
+        const ws1 = {};
+        let row = 0;
+
+        sc(ws1,row,0,c('PRISTINE PEARL PHARMA — DASHBOARD SUMMARY',true,'1E293B','F8FAFC','center',14)); mr(ws1,row,0,row,6); row++;
+        sc(ws1,row,0,c(`Date: ${fromDate.split('-').reverse().join('/')} to ${toDate.split('-').reverse().join('/')}`,false,'334155','CBD5E1','center',10)); mr(ws1,row,0,row,6); row++; row++;
+
+        sc(ws1,row,0,c('OVERALL TOTALS',true,'312E81','E0E7FF','center',11)); mr(ws1,row,0,row,6); row++;
+        ['Metric','Value'].forEach((h,ci)=>{ sc(ws1,row,ci,c(h,true,'1E293B','F1F5F9','center')); }); mr(ws1,row,1,row,6); row++;
+
+        [
+            ['Grand Total (Chq + Bank Rcpts)', combined,         '"₹"#,##0.00','065F46'],
+            ['Cheque Deposits Total',           chqTotal,         '"₹"#,##0.00','065F46'],
+            ['Bank Receipts Total',             neftTotal,        '"₹"#,##0.00','0E7490'],
+            ['Total Cheques',                   todayChq.length,  null,         '1E293B'],
+            ['Total Bank Receipts',             todayNeft.length, null,         '1E293B'],
+            ['Total Transactions',              todayChq.length+todayNeft.length, null, '1E293B'],
+            ['Number of Days',                  allDays.length,   null,         '1E293B'],
+            ['Avg Collection / Day',            allDays.length>0?combined/allDays.length:0, '"₹"#,##0.00','312E81'],
+            ['Cheque Share %',                  combined>0?(chqTotal/combined)*100:0, '0.00"%"','92400E'],
+            ['Bank Receipts Share %',           combined>0?(neftTotal/combined)*100:0,'0.00"%"','92400E'],
+        ].forEach(([label,val,fmt,col],i)=>{
+            const bg = i%2===0?'F8FAFC':null;
+            sc(ws1,row,0,c(label,false,bg,'334155','left'));
+            mr(ws1,row,0,row,0);
+            const vc=c(val,true,bg,col,'right',11,fmt||null);
+            vc.t='n'; vc.v=typeof val==='number'?val:0;
+            sc(ws1,row,1,vc); mr(ws1,row,1,row,6); row++;
+        });
+        row++;
+
+        sc(ws1,row,0,c('DAY-WISE SUMMARY',true,'0C4A6E','E0F2FE','center',11)); mr(ws1,row,0,row,6); row++;
+        ['Date','Chq Count','Chq Total (₹)','Rcpt Count','Bank Rcpts Total (₹)','Combined Total (₹)','Chq %'].forEach((h,ci)=>{
+            sc(ws1,row,ci,c(h,true,'1E293B','E2E8F0','center',10));
+        }); row++;
+
+        allDays.forEach((day,i)=>{
+            const dc=chqByDay[day]||[], dn=neftByDay[day]||[];
+            let dtc=0,dtn=0;
+            dc.forEach(r=>{ dtc+=parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; });
+            dn.forEach(r=>{ dtn+=parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0; });
+            const dtotal=dtc+dtn;
+            const bg=i%2===0?'F8FAFC':null;
+            [
+                c(day,false,bg,'334155','center'),
+                c(dc.length,false,bg,'1E293B','center'),
+                c(dtc,false,bg,'065F46','right',11,'"₹"#,##0.00'),
+                c(dn.length,false,bg,'1E293B','center'),
+                c(dtn,false,bg,'0E7490','right',11,'"₹"#,##0.00'),
+                c(dtotal,true,bg,'312E81','right',11,'"₹"#,##0.00'),
+                c(dtotal>0?(dtc/dtotal)*100:0,false,bg,'92400E','right',11,'0.00"%"'),
+            ].forEach((cell,ci)=>{ cell.t= ci>=2?'n':cell.t; sc(ws1,row,ci,cell); }); row++;
+        });
+
+        const grandChq = todayChq.reduce((s,r)=>s+(parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0),0);
+        const grandNeft= todayNeft.reduce((s,r)=>s+(parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0),0);
+        [
+            c('TOTAL',true,'1E293B','E2E8F0','center'),
+            c(todayChq.length,true,'1E293B','E2E8F0','center'),
+            c(grandChq,true,'1E293B','E2E8F0','right',11,'"₹"#,##0.00'),
+            c(todayNeft.length,true,'1E293B','E2E8F0','center'),
+            c(grandNeft,true,'1E293B','E2E8F0','right',11,'"₹"#,##0.00'),
+            c(grandChq+grandNeft,true,'312E81','EDE9FE','right',11,'"₹"#,##0.00'),
+            c(grandChq+grandNeft>0?(grandChq/(grandChq+grandNeft))*100:0,true,'1E293B','E2E8F0','right',11,'0.00"%"'),
+        ].forEach((cell,ci)=>{ cell.t=ci===0?'s':'n'; sc(ws1,row,ci,cell); });
+
+        ws1['!ref']=XLSX.utils.encode_range({r:0,c:0},{r:row,c:6});
+        ws1['!cols']=[{wch:32},{wch:14},{wch:22},{wch:12},{wch:24},{wch:22},{wch:12}];
+        XLSX.utils.book_append_sheet(wb,ws1,'Summary');
+
+        // ── SHEET 2: DETAILED ──
+        const ws2={};
+        let row2=0;
+
+        sc(ws2,row2,0,c('DETAILED TRANSACTIONS',true,'1E293B','F8FAFC','center',13)); mr(ws2,row2,0,row2,8); row2++; row2++;
+
+        if (todayChq.length) {
+            sc(ws2,row2,0,c('CHEQUE DEPOSITS',true,'312E81','EEF2FF','center',11)); mr(ws2,row2,0,row2,8); row2++;
+            ['Deposit Date','Chq No.','Party Name','Party Bank','State','Chq Value (₹)','Our Bank','Remarks','Status'].forEach((h,ci)=>{
+                sc(ws2,row2,ci,c(h,true,'1E293B','E2E8F0','center',10));
+            }); row2++;
+            todayChq.forEach((row,i)=>{
+                const v=parseFloat((row['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
+                const bg=i%2===0?'F8FAFC':null;
+                [
+                    c(row._effectiveDate||row['Deposited Date']||'-',false,bg,'334155','center',10),
+                    c(row['Chq Number']||'-',false,bg,'334155','center',10),
+                    c(row['Party Name']||'-',false,bg,'1E293B','left',10),
+                    c(row['Bank Name (Party)']||'-',false,bg,'334155','left',10),
+                    c(row['State']||'-',false,bg,'334155','center',10),
+                    c(v,false,bg,'065F46','right',10,'"₹"#,##0.00'),
+                    c(row['Deposited Bank (Our Bank)']||'-',false,bg,'334155','center',10),
+                    c(row['Remarks']||'-',false,bg,'334155','left',10),
+                    c(getChequeStatus(row).status,false,bg,'334155','center',10),
+                ].forEach((cell,ci)=>{ if(ci===5)cell.t='n'; sc(ws2,row2,ci,cell); }); row2++;
+            });
+            const chqSub=todayChq.reduce((s,r)=>s+(parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0),0);
+            sc(ws2,row2,0,c('Cheque Subtotal',true,'1E293B','DBEAFE','right')); mr(ws2,row2,0,row2,4);
+            const csCell=c(chqSub,true,'DBEAFE','1E3A5F','right',11,'"₹"#,##0.00'); csCell.t='n'; sc(ws2,row2,5,csCell);
+            row2++; row2++;
+        }
+
+        if (todayNeft.length) {
+            sc(ws2,row2,0,c('BANK RECEIPTS',true,'0C4A6E','ECFEFF','center',11)); mr(ws2,row2,0,row2,8); row2++;
+            const nCols=Object.keys(todayNeft[0]||{});
+            nCols.forEach((h,ci)=>{ sc(ws2,row2,ci,c(h,true,'0E7490','CFFAFE','center',10)); }); row2++;
+            todayNeft.forEach((row,i)=>{
+                const bg=i%2===0?'F0FDFF':null;
+                nCols.forEach((k,ci)=>{
+                    const v=row[k]||'-';
+                    const isAmt=k.toLowerCase().includes('amount')||k.toLowerCase().includes('value')||k.includes('₹');
+                    const num=isAmt?parseFloat(String(v).replace(/[^0-9.-]+/g,''))||0:null;
+                    const cell=isAmt?c(num,false,bg,'0E7490','right',10,'"₹"#,##0.00'):c(String(v),false,bg,'334155','left',10);
+                    if(isAmt)cell.t='n';
+                    sc(ws2,row2,ci,cell);
+                }); row2++;
+            });
+            const neftSub=todayNeft.reduce((s,r)=>s+(parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0),0);
+            const nCnt=Object.keys(todayNeft[0]||{}).length;
+            sc(ws2,row2,0,c('Bank Receipts Subtotal',true,'0E7490','CFFAFE','right')); mr(ws2,row2,0,row2,nCnt-2);
+            const nsCell=c(neftSub,true,'CFFAFE','0C4A6E','right',11,'"₹"#,##0.00'); nsCell.t='n'; sc(ws2,row2,nCnt-1,nsCell);
+            row2++; row2++;
+        }
+
+        const gt=todayChq.reduce((s,r)=>s+(parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0),0)
+                +todayNeft.reduce((s,r)=>s+(parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0),0);
+        sc(ws2,row2,0,c('GRAND TOTAL',true,'312E81','EDE9FE','right',12)); mr(ws2,row2,0,row2,7);
+        const gtCell=c(gt,true,'EDE9FE','312E81','right',12,'"₹"#,##0.00'); gtCell.t='n'; sc(ws2,row2,8,gtCell);
+
+        ws2['!ref']=XLSX.utils.encode_range({r:0,c:0},{r:row2,c:9});
+        ws2['!cols']=[{wch:14},{wch:14},{wch:28},{wch:22},{wch:14},{wch:18},{wch:18},{wch:22},{wch:14},{wch:14}];
+        XLSX.utils.book_append_sheet(wb,ws2,'Detailed');
+
+        const dateLabel=`${fromDate.split('-').reverse().join('-')}_to_${toDate.split('-').reverse().join('-')}`;
+        XLSX.writeFile(wb,`PRISTINE_Dashboard_${dateLabel}.xlsx`);
+
+    } catch(err){ console.error(err); alert('Export failed: '+err.message); }
+}
+
+async function exportDashboardImage() {
+    const rs = document.getElementById('resultsSection');
+    const allBtns = rs.querySelectorAll('button');
+    allBtns.forEach(b => b.style.visibility = 'hidden');
+    try {
+        const canvas = await html2canvas(rs, {
+            backgroundColor: '#0f172a',
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            scrollY: 0,
+            windowHeight: rs.scrollHeight,
+            height: rs.scrollHeight
+        });
+        allBtns.forEach(b => b.style.visibility = 'visible');
+        const fromDate = document.getElementById('dashboardFromDate').value;
+        const toDate   = document.getElementById('dashboardToDate').value;
+        const dateLabel = fromDate && toDate
+            ? `${fromDate.split('-').reverse().join('-')}_to_${toDate.split('-').reverse().join('-')}`
+            : new Date().toISOString().split('T')[0];
+        const link = document.createElement('a');
+        link.download = `PRISTINE_Dashboard_${dateLabel}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch(err) {
+        allBtns.forEach(b => b.style.visibility = 'visible');
+        console.error(err); alert('Image export failed: '+err.message);
+    }
+}
+
 
 function toggleDayInner(headerEl) {
     const body = headerEl.nextElementSibling;

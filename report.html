@@ -1867,10 +1867,6 @@ async function exportDashboardExcel() {
 
         sc(ws1,row,0,c('OVERALL TOTALS',true,'312E81','E0E7FF','center',11)); mr(ws1,row,0,row,6); row++;
         ['Metric','Value'].forEach((h,ci)=>{ sc(ws1,row,ci,c(h,true,'1E293B','F1F5F9','center')); }); mr(ws1,row,1,row,6); row++;
-        // ✅ FIX HEADER MERGE BORDER
-for (let col = 1; col <= 6; col++) {
-    sc(ws1, row-1, col, c('', false, 'F1F5F9'));
-}
 
         [
             ['Grand Total (Chq + Bank Rcpts)', combined,         '"₹"#,##0.00','065F46'],
@@ -1885,24 +1881,13 @@ for (let col = 1; col <= 6; col++) {
             ['Bank Receipts Share %',           combined>0?(neftTotal/combined)*100:0,'0.00"%"','92400E'],
         ].forEach(([label,val,fmt,col],i)=>{
             const bg = i%2===0?'F8FAFC':null;
-           sc(ws1,row,0,c(label,false,bg,'334155','left'));
-
-// ✅ FIX LEFT CELL (no change)
-mr(ws1,row,0,row,0);
-
-const vc=c(val,true,bg,col,'right',11,fmt||null);
-vc.t='n'; vc.v=typeof val==='number'?val:0;
-
-// ✅ APPLY VALUE CELL
-sc(ws1,row,1,vc);
-mr(ws1,row,1,row,6);
-
-// ✅ ADD THIS BLOCK (VERY IMPORTANT)
-for (let col = 2; col <= 6; col++) {
-    sc(ws1, row, col, c('', false, bg));
-}
-
-row++;
+            sc(ws1,row,0,c(label,false,bg,'334155','left'));
+            mr(ws1,row,0,row,0);
+            const vc=c(val,true,bg,col,'right',11,fmt||null);
+            vc.t='n'; vc.v=typeof val==='number'?val:0;
+            sc(ws1,row,1,vc); mr(ws1,row,1,row,6); row++;
+        });
+        row++;
 
         sc(ws1,row,0,c('DAY-WISE SUMMARY',true,'0C4A6E','E0F2FE','center',11)); mr(ws1,row,0,row,6); row++;
         ['Date','Chq Count','Chq Total (₹)','Rcpt Count','Bank Rcpts Total (₹)','Combined Total (₹)','Chq %'].forEach((h,ci)=>{
@@ -2077,7 +2062,7 @@ row++;
         XLSX.utils.book_append_sheet(wb,ws2,'Detailed');
 
         const dateLabel=`${fromDate.split('-').reverse().join('-')}_to_${toDate.split('-').reverse().join('-')}`;
-        XLSX.writeFile(wb,`PRISTINE - COLLECTION SUMMARY ${dateLabel}.xlsx`);
+        XLSX.writeFile(wb,`PRISTINE_Dashboard_${dateLabel}.xlsx`);
 
     } catch(err){ console.error(err); alert('Export failed: '+err.message); }
 }
@@ -2118,7 +2103,7 @@ async function exportDashboardImage() {
         });
 
         const link = document.createElement('a');
-        link.download = `PRISTINE - COLLECTION SUMMARY ${dateLabel}.png`;
+        link.download = `PRISTINE_Dashboard_${dateLabel}.png`;
         link.href = dataUrl;
         link.click();
 

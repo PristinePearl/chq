@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/html-to-image"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         :root {
@@ -2067,88 +2068,33 @@ async function exportDashboardExcel() {
 }
 
 async function exportDashboardImage() {
-    const rs = document.getElementById('resultsSection');
+    const node = document.getElementById('resultsSection');
 
-    // Hide buttons
-    const allBtns = rs.querySelectorAll('button');
-    allBtns.forEach(b => b.style.visibility = 'hidden');
+    const fromDate = document.getElementById('dashboardFromDate').value;
+    const toDate   = document.getElementById('dashboardToDate').value;
 
-    // Hide any zero-size or chart canvases to avoid html2canvas crash
-    const allCanvases = rs.querySelectorAll('canvas');
-    const hiddenCanvases = [];
-    allCanvases.forEach(cv => {
-        if (cv.width === 0 || cv.height === 0 || cv.offsetWidth === 0 || cv.offsetHeight === 0) {
-            cv.style.display = 'none';
-            hiddenCanvases.push(cv);
-        }
-    });
-
-    // Temporarily replace chart canvases with static images
-    const chartReplacements = [];
-    rs.querySelectorAll('canvas').forEach(cv => {
-        if (cv.width > 0 && cv.height > 0) {
-            try {
-                const img = document.createElement('img');
-                img.src = cv.toDataURL('image/png');
-                img.style.width  = cv.offsetWidth  + 'px';
-                img.style.height = cv.offsetHeight + 'px';
-                img.style.display = 'block';
-                cv.parentNode.insertBefore(img, cv);
-                cv.style.display = 'none';
-                chartReplacements.push({ canvas: cv, img });
-            } catch(e) {
-                cv.style.display = 'none';
-                hiddenCanvases.push(cv);
-            }
-        }
-    });
-
-    const restore = () => {
-        allBtns.forEach(b => b.style.visibility = 'visible');
-        hiddenCanvases.forEach(cv => cv.style.display = '');
-        chartReplacements.forEach(({ canvas, img }) => {
-            canvas.style.display = '';
-            if (img.parentNode) img.parentNode.removeChild(img);
-        });
-    };
+    const dateLabel = fromDate && toDate
+        ? `${fromDate.split('-').reverse().join('-')}_to_${toDate.split('-').reverse().join('-')}`
+        : new Date().toISOString().split('T')[0];
 
     try {
-        const scrollTop = rs.scrollTop;
-        rs.scrollTop = 0;
+        // wait for charts render
+        await new Promise(res => setTimeout(res, 500));
 
-        const canvas = await html2canvas(rs, {
-            backgroundColor: '#0f172a',
-            scale: 2,
-            useCORS: true,
-            allowTaint: false,
-            logging: false,
-            ignoreElements: el => el.tagName === 'CANVAS',
-            width:  rs.scrollWidth,
-            height: rs.scrollHeight,
-            windowWidth:  rs.scrollWidth,
-            windowHeight: rs.scrollHeight,
-            x: 0,
-            y: 0
+        const dataUrl = await htmlToImage.toPng(node, {
+            cacheBust: true,
+            pixelRatio: 2,
+            backgroundColor: '#0f172a'
         });
-
-        rs.scrollTop = scrollTop;
-        restore();
-
-        const fromDate = document.getElementById('dashboardFromDate').value;
-        const toDate   = document.getElementById('dashboardToDate').value;
-        const dateLabel = fromDate && toDate
-            ? `${fromDate.split('-').reverse().join('-')}_to_${toDate.split('-').reverse().join('-')}`
-            : new Date().toISOString().split('T')[0];
 
         const link = document.createElement('a');
         link.download = `PRISTINE_Dashboard_${dateLabel}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.href = dataUrl;
         link.click();
 
-    } catch(err) {
-        restore();
+    } catch (err) {
         console.error(err);
-        alert('Image export failed: ' + err.message);
+        alert('Export failed: ' + err.message);
     }
 }
 

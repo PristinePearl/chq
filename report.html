@@ -1923,6 +1923,76 @@ async function exportDashboardExcel() {
             c(grandChq+grandNeft>0?(grandChq/(grandChq+grandNeft))*100:0,true,'1E293B','E2E8F0','right',11,'0.00"%"'),
         ].forEach((cell,ci)=>{ cell.t=ci===0?'s':'n'; sc(ws1,row,ci,cell); });
 
+  // ── STATE-WISE SUMMARY ──
+        row++; row++;
+        sc(ws1,row,0,c('STATE-WISE SUMMARY',true,'1E293B','F8FAFC','center',12)); mr(ws1,row,0,row,6); row++;
+
+        // Headers
+        ['State','Chq Count','Chq Total (₹)','Bank Rcpts Count','Bank Rcpts Total (₹)','Combined Total (₹)','Chq %'].forEach((h,ci)=>{
+            sc(ws1,row,ci,c(h,true,'1E293B','E2E8F0','center',10));
+        }); row++;
+
+        // Build state map — CHQ
+        const chqStateMap = {};
+        todayChq.forEach(r => {
+            const st = r['State']||'Unknown';
+            if (!chqStateMap[st]) chqStateMap[st] = { count:0, total:0 };
+            chqStateMap[st].count++;
+            chqStateMap[st].total += parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
+        });
+
+        // Build state map — NEFT
+        const neftStateMap = {};
+        todayNeft.forEach(r => {
+            const st = neftStateKey ? (r[neftStateKey]||'Unknown') : 'Unknown';
+            if (!neftStateMap[st]) neftStateMap[st] = { count:0, total:0 };
+            neftStateMap[st].count++;
+            neftStateMap[st].total += parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0;
+        });
+
+        // Merge all states
+        const allStates = Array.from(new Set([...Object.keys(chqStateMap), ...Object.keys(neftStateMap)])).sort();
+
+        let stChqGrand=0, stNeftGrand=0;
+        allStates.forEach((st, i) => {
+            const chq  = chqStateMap[st]  || { count:0, total:0 };
+            const neft = neftStateMap[st] || { count:0, total:0 };
+            const stCombined = chq.total + neft.total;
+            const bg = i%2===0 ? 'F8FAFC' : null;
+            stChqGrand  += chq.total;
+            stNeftGrand += neft.total;
+            [
+                c(st,                false, bg, '334155', 'left'),
+                c(chq.count,         false, bg, '1E293B', 'center'),
+                c(chq.total,         false, bg, '065F46', 'right', 11, '"₹"#,##0.00'),
+                c(neft.count,        false, bg, '1E293B', 'center'),
+                c(neft.total,        false, bg, '0E7490', 'right', 11, '"₹"#,##0.00'),
+                c(stCombined,        true,  bg, '312E81', 'right', 11, '"₹"#,##0.00'),
+                c(stCombined>0?(chq.total/stCombined)*100:0, false, bg, '92400E', 'right', 11, '0.00"%"'),
+            ].forEach((cell, ci) => {
+                if (ci >= 2) cell.t = 'n';
+                sc(ws1, row, ci, cell);
+            });
+            row++;
+        });
+
+        // State totals row
+        const stGrandCombined = stChqGrand + stNeftGrand;
+        [
+            c('TOTAL',          true, '1E293B', 'E2E8F0', 'center'),
+            c(todayChq.length,  true, '1E293B', 'E2E8F0', 'center'),
+            c(stChqGrand,       true, '065F46', 'DCFCE7', 'right', 11, '"₹"#,##0.00'),
+            c(todayNeft.length, true, '1E293B', 'E2E8F0', 'center'),
+            c(stNeftGrand,      true, '0E7490', 'ECFEFF', 'right', 11, '"₹"#,##0.00'),
+            c(stGrandCombined,  true, '312E81', 'EDE9FE', 'right', 11, '"₹"#,##0.00'),
+            c(stGrandCombined>0?(stChqGrand/stGrandCombined)*100:0, true, '92400E', 'FEF3C7', 'right', 11, '0.00"%"'),
+        ].forEach((cell, ci) => {
+            if (ci >= 2) cell.t = 'n';
+            if (ci === 0) cell.t = 's';
+            sc(ws1, row, ci, cell);
+        });
+        row++;
+
         ws1['!ref']=XLSX.utils.encode_range({r:0,c:0},{r:row,c:6});
         ws1['!cols']=[{wch:32},{wch:14},{wch:22},{wch:12},{wch:24},{wch:22},{wch:12}];
         XLSX.utils.book_append_sheet(wb,ws1,'Summary');
@@ -1998,31 +2068,87 @@ async function exportDashboardExcel() {
 
 async function exportDashboardImage() {
     const rs = document.getElementById('resultsSection');
+
+    // Hide buttons
     const allBtns = rs.querySelectorAll('button');
     allBtns.forEach(b => b.style.visibility = 'hidden');
+
+    // Hide any zero-size or chart canvases to avoid html2canvas crash
+    const allCanvases = rs.querySelectorAll('canvas');
+    const hiddenCanvases = [];
+    allCanvases.forEach(cv => {
+        if (cv.width === 0 || cv.height === 0 || cv.offsetWidth === 0 || cv.offsetHeight === 0) {
+            cv.style.display = 'none';
+            hiddenCanvases.push(cv);
+        }
+    });
+
+    // Temporarily replace chart canvases with static images
+    const chartReplacements = [];
+    rs.querySelectorAll('canvas').forEach(cv => {
+        if (cv.width > 0 && cv.height > 0) {
+            try {
+                const img = document.createElement('img');
+                img.src = cv.toDataURL('image/png');
+                img.style.width  = cv.offsetWidth  + 'px';
+                img.style.height = cv.offsetHeight + 'px';
+                img.style.display = 'block';
+                cv.parentNode.insertBefore(img, cv);
+                cv.style.display = 'none';
+                chartReplacements.push({ canvas: cv, img });
+            } catch(e) {
+                cv.style.display = 'none';
+                hiddenCanvases.push(cv);
+            }
+        }
+    });
+
+    const restore = () => {
+        allBtns.forEach(b => b.style.visibility = 'visible');
+        hiddenCanvases.forEach(cv => cv.style.display = '');
+        chartReplacements.forEach(({ canvas, img }) => {
+            canvas.style.display = '';
+            if (img.parentNode) img.parentNode.removeChild(img);
+        });
+    };
+
     try {
+        const scrollTop = rs.scrollTop;
+        rs.scrollTop = 0;
+
         const canvas = await html2canvas(rs, {
             backgroundColor: '#0f172a',
             scale: 2,
             useCORS: true,
-            allowTaint: true,
-            scrollY: 0,
+            allowTaint: false,
+            logging: false,
+            ignoreElements: el => el.tagName === 'CANVAS',
+            width:  rs.scrollWidth,
+            height: rs.scrollHeight,
+            windowWidth:  rs.scrollWidth,
             windowHeight: rs.scrollHeight,
-            height: rs.scrollHeight
+            x: 0,
+            y: 0
         });
-        allBtns.forEach(b => b.style.visibility = 'visible');
+
+        rs.scrollTop = scrollTop;
+        restore();
+
         const fromDate = document.getElementById('dashboardFromDate').value;
         const toDate   = document.getElementById('dashboardToDate').value;
         const dateLabel = fromDate && toDate
             ? `${fromDate.split('-').reverse().join('-')}_to_${toDate.split('-').reverse().join('-')}`
             : new Date().toISOString().split('T')[0];
+
         const link = document.createElement('a');
         link.download = `PRISTINE_Dashboard_${dateLabel}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
+
     } catch(err) {
-        allBtns.forEach(b => b.style.visibility = 'visible');
-        console.error(err); alert('Image export failed: '+err.message);
+        restore();
+        console.error(err);
+        alert('Image export failed: ' + err.message);
     }
 }
 

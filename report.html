@@ -1351,6 +1351,46 @@ function doPrint() {
     window.print();
     document.querySelector('.main-container').style.display='flex'; pa.style.display='none'; pa.innerHTML='';
 }
+
+function emailDepositSlip(date, chequesJson) {
+    const cheques = JSON.parse(decodeURIComponent(chequesJson));
+    let total = 0;
+    cheques.forEach(r => { total += parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; });
+
+    const dateLabel = date !== 'No Date' ? date : new Date().toLocaleDateString('en-IN');
+    const totalFormatted = total.toLocaleString('en-IN', {minimumFractionDigits:2});
+
+    let rows = cheques.map((r, i) => {
+        const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
+        return `${i+1}. ${r['Chq Number']||''} | ${r['Chq Date']||''} | ${r['Party Name']||''} | ${r['Bank Name (Party)']||''} | ₹${v.toLocaleString('en-IN',{minimumFractionDigits:2})}`;
+    }).join('\n');
+
+    const subject = `Cheque Deposit Details — ${dateLabel} — ₹${totalFormatted}`;
+
+    const body = `Dear Sir,
+
+We are sending herewith cheque details from Depot division for ${dateLabel}
+
+DEPOSITS REPORT — CHEQUE — GRAND TOTAL
+₹${totalFormatted}
+
+DATE RANGE: ${dateLabel}
+CHEQUES: ${cheques.length}
+TOTAL VALUE: ₹${totalFormatted}
+
+--------------------------------------------------
+S.NO | CHQ NO. | CHQ DATE | PARTY NAME | BANK | AMOUNT
+--------------------------------------------------
+${rows}
+--------------------------------------------------
+TOTAL: ₹${totalFormatted}
+
+Regards,
+Pristine Pearl Pharma Pvt. Ltd.`;
+
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, '_blank');
+}
 function doExportExcel() {
     if(!currentPrintData||!currentPrintData.cheques||!currentPrintData.cheques.length){alert('No data to export.');return;}
     try {
@@ -2262,6 +2302,8 @@ async function runChequeDepositsReport() {
                     <button class="print-deposit-btn no-print" type="button"
                         onclick="event.stopPropagation();openPrintModal('${date}','${enc}')">🖨️ Print</button>
                     <button class="summary-toggle-btn" type="button"></button>
+                <button class="print-deposit-btn no-print" type="button" style="background:linear-gradient(135deg,#4338ca,#6366f1);margin-left:4px;"
+    onclick="event.stopPropagation();emailDepositSlip('${date}','${enc}')">📧 Email</button>
                 </div>
                 <div class="summary-details" id="${did}-det">
                     ${createSimpleTableHtml(

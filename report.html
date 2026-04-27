@@ -106,9 +106,11 @@
         .product-table-container { overflow-x:auto; border-radius:8px; border:1.5px solid var(--slate-200); }
         .product-table { width:100%; border-collapse:collapse; font-size:0.8rem; min-width:600px; }
         .product-table th, .product-table td { border-bottom:1px solid var(--slate-200); padding:9px 11px; text-align:left; }
-        .product-table th { background:var(--slate-800); font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.05em; font-size:0.72rem; }
+        .product-table th { background:linear-gradient(135deg,#1e3a5f,#2563eb); font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em; font-size:0.72rem; border-bottom:2px solid #1d4ed8; }
         .product-table tr:last-child td { border-bottom:none; }
-        .product-table tr:nth-child(even) td { background:var(--slate-50); }
+        .product-table tr:nth-child(even) td { background:#f0f7ff; }
+.product-table td { transition:background .15s ease; }
+.product-table tr:hover td { background:#dbeafe !important; }
         .neft-table th { background:linear-gradient(90deg,#0e7490,#0891b2); }
         .chart-container { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:16px; }
         .chart-box { background:white; padding:16px; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.07); border:1.5px solid var(--slate-200); transition:all .3s cubic-bezier(.4,0,.2,1); display:flex; flex-direction:column; min-height:0; }
@@ -156,8 +158,8 @@
         .summary-header-item .field-label { margin-bottom:2px; font-size:0.62rem; color:var(--slate-400); font-weight:700; letter-spacing:0.05em; text-transform:uppercase; }
         .summary-header-item .field-value { font-size:0.88rem; }
         .summary-toggle-btn { background:linear-gradient(135deg,var(--violet) 0%,var(--violet-dark) 100%); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.7rem; font-weight:700; transition:all .2s ease; flex-shrink:0; margin-left:8px; font-family:'Plus Jakarta Sans',sans-serif; }
-        .summary-toggle-btn::before { content:'+ DETAILS'; }
-        .summary-toggle-btn.expanded::before { content:'– COLLAPSE'; }
+        .summary-toggle-btn::before { content:'+'; }
+        .summary-toggle-btn.expanded::before { content:'–'; }
         .summary-details { display:none; padding:14px; border-top:1.5px solid var(--slate-200); }
         .grand-total-banner { border-radius:14px; margin-bottom:20px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.13); }
         .grand-total-banner__header { padding:18px 22px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; }
@@ -1144,12 +1146,17 @@ function createSimpleTableHtml(data, name, themeClass) {
     h+=`</tr></thead><tbody>`;
     data.forEach(row=>{ h+=`<tr>`;
         headers.forEach(hd=>{ let v=formatFieldValue(row[hd],'-');
-            if((hd.toLowerCase().includes('value')||hd.toLowerCase().includes('amount')||hd.toLowerCase().includes('total'))&&!isNaN(parseFloat(String(row[hd]).replace(/[^0-9.-]+/g,'')))){
-                const n=parseFloat(String(row[hd]).replace(/[^0-9.-]+/g,'')); v=n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
-                h+=`<td style="text-align:right;font-weight:700;color:var(--green);">₹${v}</td>`; return;
+            if(hd.toLowerCase().includes('value')||hd.toLowerCase().includes('amount')||hd.toLowerCase().includes('total')){
+                const raw=String(row[hd]||'').replace(/[^0-9.-]+/g,'');
+                const n=parseFloat(raw);
+                if(!isNaN(n)&&n>0){
+                    const inr=n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+                    h+=`<td style="text-align:right;font-weight:800;color:#065f46;background:#ecfdf5;border-left:2px solid #a7f3d0;white-space:nowrap;">₹${inr}</td>`; return;
+                }
             }
-            h+=`<td>${v}</td>`;
-        }); h+=`</tr>`;
+           h+=`<td>${v}</td>`;
+        });
+        h+=`</tr>`;
     });
     h+=`</tbody></table></div>`; return h;
 }
@@ -1169,7 +1176,7 @@ function buildGrandTotalBanner(opts) {
             <div>
                 <div class="grand-total-banner__label">${opts.label}</div>
                 <div class="grand-total-banner__value">₹${Number(opts.total).toLocaleString('en-IN',{minimumFractionDigits:2})}</div>
-                <div class="grand-total-banner__sub">Total Collection Value</div>
+                <div class="grand-total-banner__sub">Total Deposit Value</div>
             </div>
             <div class="grand-total-banner__pills">
                 <div class="grand-total-banner__pill">
@@ -2250,7 +2257,7 @@ async function runChequeDepositsReport() {
                     </div>
                     <div class="summary-header-item chq-val" style="flex:0 0 150px;">
                         <div class="field-label">Total Value</div>
-                        <div class="field-value">₹${dtv.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}</div>
+                        <div class="field-value">₹${dtv.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
                     </div>
                     <button class="print-deposit-btn no-print" type="button"
                         onclick="event.stopPropagation();openPrintModal('${date}','${enc}')">🖨️ Print</button>

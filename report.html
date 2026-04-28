@@ -242,6 +242,16 @@
         .state-mini-bar.chq-bar { background:linear-gradient(90deg,var(--indigo),var(--indigo-light)); }
         .state-mini-bar.neft-bar { background:linear-gradient(90deg,var(--teal),var(--teal-light)); }
 
+@keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-10px); }
+    40%      { transform: translateX(10px); }
+    60%      { transform: translateX(-8px); }
+    80%      { transform: translateX(8px); }
+}
+
+
+
         /* ==============================
            DASHBOARD STYLES
            ============================== */
@@ -457,11 +467,15 @@
         <div style="font-size:2.5rem;margin-bottom:12px;">🔒</div>
         <h2>Pristine Cheque Viewer</h2>
         <p>Enter password to access</p>
-        <input type="password" id="lockInput" placeholder="••••••••"
-            onkeydown="if(event.key==='Enter')checkPassword()">
-        <button onclick="checkPassword()">Unlock →</button>
-        <div class="lock-error" id="lockError">❌ Incorrect password. Try again.</div>
-    </div>
+       <input type="password" id="lockInput" placeholder="••••••••"
+    onkeydown="if(event.key==='Enter')checkPassword()"
+    autocomplete="off" autocorrect="off" spellcheck="false">
+<button onclick="checkPassword()">Unlock →</button>
+<div style="font-size:0.65rem;color:rgba(255,255,255,0.2);margin-bottom:12px;">
+    🔒 5 attempts allowed · Auto-lock on failure
+</div>
+<div class="lock-error" id="lockError"></div>
+           </div>
 </div>
 
 <div class="modal-overlay" id="printModal">
@@ -707,23 +721,79 @@
 
 <script>
 
-function checkPassword() {
-    const val = document.getElementById('lockInput').value;
-    if (val === 'pearl#chq') {
-        document.getElementById('lockScreen').style.display = 'none';
-        sessionStorage.setItem('ppp_auth', '1');
-    } else {
+// ── SECURITY CONFIG ──
+const _a = 'pearl';
+const _b = '#chq';
+const _h = btoa(unescape(encodeURIComponent(_a + _b)));
+
+let _attempts = 0;
+let _lockUntil = 0;
+
+async function _sha(str) {
+    const buf = await crypto.subtle.digest('SHA-256',
+        new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkPassword() {
+    const now = Date.now();
+    if (now < _lockUntil) {
+        const secs = Math.ceil((_lockUntil - now) / 1000);
+        document.getElementById('lockError').textContent =
+            `⏳ Too many attempts. Wait ${secs}s`;
         document.getElementById('lockError').style.display = 'block';
+        return;
+    }
+
+    const val = document.getElementById('lockInput').value;
+    const inputHash = await _sha(val);
+    const correctHash = await _sha(atob(_h));
+
+    if (inputHash === correctHash) {
+        _attempts = 0;
+        const token = btoa(Date.now() + ':ppp:' + navigator.userAgent.length);
+        sessionStorage.setItem('ppp_auth', token);
+        sessionStorage.setItem('ppp_ts', Date.now().toString());
+
+        document.getElementById('lockScreen').style.display = 'none';
+    } else {
+        _attempts++;
         document.getElementById('lockInput').value = '';
         document.getElementById('lockInput').focus();
+
+        if (_attempts >= 5) {
+            _lockUntil = Date.now() + (30 * 1000); // 30 second lockout
+            _attempts = 0;
+            document.getElementById('lockError').textContent =
+                '🔒 Too many wrong attempts. Locked for 30 seconds.';
+        } else {
+            document.getElementById('lockError').textContent =
+                `❌ Wrong password. ${5 - _attempts} attempt${5-_attempts!==1?'s':''} remaining.`;
+        }
+        document.getElementById('lockError').style.display = 'block';
+
+        // Shake animation
+        const box = document.querySelector('.lock-box');
+        box.style.animation = 'shake 0.4s ease';
+        setTimeout(() => box.style.animation = '', 400);
     }
 }
+
+// Validate existing session (max 8 hour session)
 (function() {
-    if (sessionStorage.getItem('ppp_auth') === '1') {
+    const token = sessionStorage.getItem('ppp_auth');
+    const ts    = sessionStorage.getItem('ppp_ts');
+    const eightHours = 8 * 60 * 60 * 1000;
+
+    if (token && ts && (Date.now() - parseInt(ts)) < eightHours) {
         document.addEventListener('DOMContentLoaded', () => {
             const ls = document.getElementById('lockScreen');
             if (ls) ls.style.display = 'none';
         });
+    } else {
+        sessionStorage.removeItem('ppp_auth');
+        sessionStorage.removeItem('ppp_ts');
     }
 })();
 

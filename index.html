@@ -1110,7 +1110,7 @@
     });
     addRowBtn.addEventListener('click', newRow);
     submitBtn.addEventListener('click', submitDataToSheet);
-    reportBtn.addEventListener('click', showPasswordModal);
+    reportBtn.addEventListener('click', () => window.open('report.html', '_blank'));
     modifyBtn.addEventListener('click', () => window.open('modify.html', '_blank'));
 
     window.addEventListener('DOMContentLoaded', () => {

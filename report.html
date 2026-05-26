@@ -1492,69 +1492,72 @@ async function emailDepositSlip(date, chequesJson) {
     const dateLabel = date !== 'No Date' ? date : new Date().toLocaleDateString('en-IN');
     const totalFormatted = total.toLocaleString('en-IN', {minimumFractionDigits:2});
 
-    // Build HTML table rows
-    const tableRows = cheques.map(r => {
+    const TO_LIST = [
+        'saleema.pearl@gmail.com',
+        'sivaprakashn.pearl@gmail.com',
+        'indhumathi.pearl@gmail.com',
+        'manirathnam.pearl@gmail.com'
+    ];
+    const CC_LIST = [
+        'ashikahmed@pristinepearl.com',
+        'ayoob@pristinepearl.com',
+        'shan.pristinepearl@gmail.com'
+    ];
+
+    const tableRows = cheques.map((r, i) => {
         const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
-        const rowBg = cheques.indexOf(r) % 2 === 0 ? '#f0fdf4' : '#ffffff';
-        return `<tr style="background:${rowBg};">
+        const bg = i % 2 === 0 ? '#f0fdf4' : '#ffffff';
+        return `<tr style="background:${bg};">
             <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;font-family:Arial,sans-serif;font-size:13px;">${r['Chq Number']||''}</td>
             <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;font-family:Arial,sans-serif;font-size:13px;">${r['Chq Date']||''}</td>
             <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;font-family:Arial,sans-serif;font-size:13px;">${r['Party Name']||''}</td>
             <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;font-family:Arial,sans-serif;font-size:13px;">${r['Bank Name (Party)']||''}</td>
-            <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700;color:#059669;font-family:Arial,sans-serif;font-size:13px;">₹${v.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+            <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700;color:#059669;font-family:Arial,sans-serif;font-size:13px;">&#8377;${v.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
             <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;font-family:Arial,sans-serif;font-size:13px;">${r['Deposited Bank (Our Bank)']||'DBS'}</td>
             <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;font-family:Arial,sans-serif;font-size:13px;">${r['Remarks']||'-'}</td>
         </tr>`;
     }).join('');
 
-    const htmlBody = `
-<p style="font-family:Arial,sans-serif;font-size:14px;color:#1e293b;">Dear Sir,</p>
+    const htmlBody = `<p style="font-family:Arial,sans-serif;font-size:14px;color:#1e293b;">Dear Sir,</p>
 <p style="font-family:Arial,sans-serif;font-size:14px;color:#1e293b;">We are sending herewith cheque details from Depot division for ${dateLabel.replace(/\//g,'.')}.</p>
-
-<!-- GREEN HEADER BANNER -->
 <div style="background:linear-gradient(135deg,#064e3b,#059669,#34d399);border-radius:12px;padding:24px 28px;margin:18px 0 10px;">
     <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">DEPOSITS REPORT — CHEQUE — GRAND TOTAL</div>
-    <div style="font-size:32px;font-weight:800;color:white;letter-spacing:-0.5px;">₹${totalFormatted}</div>
+    <div style="font-size:32px;font-weight:800;color:white;letter-spacing:-0.5px;">&#8377;${totalFormatted}</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;">Total Deposit Value</div>
 </div>
-
-<!-- DATE RANGE BOX -->
 <div style="border:1.5px solid #d1fae5;border-radius:10px;padding:14px 18px;margin-bottom:18px;background:#f0fdf4;">
     <div style="font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">DATE RANGE</div>
-    <div style="font-size:15px;font-weight:700;color:#065f46;">${dateLabel} → ${dateLabel}</div>
+    <div style="font-size:15px;font-weight:700;color:#065f46;">${dateLabel} &#8594; ${dateLabel}</div>
 </div>
-
-<!-- CHEQUE TABLE -->
-<table style="width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;">
+<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;">
     <thead>
         <tr style="background:#1e40af;">
-            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">CHQ NO.</th>
-            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">CHQ DATE</th>
-            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">PARTY NAME</th>
-            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">PARTY BANK</th>
-            <th style="padding:12px;text-align:right;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">CHQ VALUE (₹)</th>
-            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">OUR BANK</th>
-            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">REMARKS</th>
+            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;">CHQ NO.</th>
+            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;">CHQ DATE</th>
+            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;">PARTY NAME</th>
+            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;">PARTY BANK</th>
+            <th style="padding:12px;text-align:right;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;">CHQ VALUE (&#8377;)</th>
+            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;">OUR BANK</th>
+            <th style="padding:12px;text-align:left;color:white;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;">REMARKS</th>
         </tr>
     </thead>
     <tbody>${tableRows}</tbody>
     <tfoot>
         <tr style="background:#f8fafc;border-top:2px solid #e2e8f0;">
             <td colspan="4" style="padding:12px;font-weight:700;font-family:Arial,sans-serif;font-size:13px;color:#374151;text-align:right;">TOTAL (${cheques.length} cheque${cheques.length!==1?'s':''})</td>
-            <td style="padding:12px;text-align:right;font-weight:800;font-size:15px;color:#059669;font-family:Arial,sans-serif;">₹${totalFormatted}</td>
+            <td style="padding:12px;text-align:right;font-weight:800;font-size:15px;color:#059669;font-family:Arial,sans-serif;">&#8377;${totalFormatted}</td>
             <td colspan="2"></td>
         </tr>
     </tfoot>
 </table>
+<p style="font-family:Arial,sans-serif;font-size:13px;color:#64748b;margin-top:20px;">Regards,<br>
+<strong style="color:#1e293b;">Pristine Pearl Pharma Pvt. Ltd.</strong></p>`;
 
-<p style="font-family:Arial,sans-serif;font-size:13px;color:#64748b;margin-top:20px;">
-    Regards,<br>
-    <strong style="color:#1e293b;">Pristine Pearl Pharma Pvt. Ltd.</strong>
-</p>`;
-
-    // 🔴 REPLACE THIS with the actual recipient email
-const TO_EMAIL = 'saleema.pearl@gmail.com,sivaprakashn.pearl@gmail.com,indhumathi.pearl@gmail.com,manirathnam.pearl@gmail.com';
-const CC_EMAIL = 'ashikahmed@pristinepearl.com,ayoob@pristinepearl.com,shan.pristinepearl@gmail.com';
+    // Show sending indicator
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Sending...';
+    btn.disabled = true;
 
     try {
         const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -1563,34 +1566,65 @@ const CC_EMAIL = 'ashikahmed@pristinepearl.com,ayoob@pristinepearl.com,shan.pris
             body: JSON.stringify({
                 model: "claude-sonnet-4-20250514",
                 max_tokens: 1000,
-                mcp_servers: [{ type: "url", url: "https://gmailmcp.googleapis.com/mcp/v1", name: "gmail-mcp" }],
+                mcp_servers: [{ 
+                    type: "url", 
+                    url: "https://gmailmcp.googleapis.com/mcp/v1", 
+                    name: "gmail-mcp" 
+                }],
                 messages: [{
                     role: "user",
-                    content: `Send an email using Gmail with these exact details:
-TO: ${TO_EMAIL}
+                    content: `Send an HTML email via Gmail with EXACTLY these details:
+
+TO: ${TO_LIST.join(', ')}
+CC: ${CC_LIST.join(', ')}
 SUBJECT: Cheque Deposit Report — ${dateLabel} — ₹${totalFormatted}
-HTML BODY: ${htmlBody}
-Send it now and confirm.`
+HTML_BODY: ${htmlBody}
+
+Use the Gmail send tool now. Do not ask for confirmation.`
                 }]
             })
         });
 
+        const result = await response.json();
+        
+        // Check if MCP tool was used successfully
+        const toolUsed = result.content && result.content.some(c => 
+            c.type === 'tool_use' || c.type === 'mcp_tool_use' || 
+            (c.type === 'text' && c.text && c.text.toLowerCase().includes('sent'))
+        );
+
         if (response.ok) {
-            alert('✅ Email sent successfully to ' + TO_EMAIL);
+            btn.innerHTML = '✅ Sent!';
+            btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; btn.style.background = ''; }, 3000);
+            alert(`✅ Email sent successfully!\n\nTo: ${TO_LIST.join('\n    ')}\nCC: ${CC_LIST.join('\n    ')}`);
         } else {
-            // Fallback: open Gmail compose with the HTML content
-            const subject = `Cheque Deposit Report — ${dateLabel} — ₹${totalFormatted}`;
-            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(TO_EMAIL)}&su=${encodeURIComponent(subject)}`, '_blank');
-            alert('Note: Gmail opened — paste the formatted content manually if needed.');
+            throw new Error(result.error?.message || 'API error');
         }
+
     } catch(err) {
-        console.error('Email error:', err);
-        alert('Could not send automatically. Opening Gmail instead...');
+        console.error('Email send error:', err);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        // Fallback to Gmail compose
         const subject = `Cheque Deposit Report — ${dateLabel} — ₹${totalFormatted}`;
-        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(TO_EMAIL)}&su=${encodeURIComponent(subject)}`, '_blank');
+        const plainBody = `Dear Sir,\n\nWe are sending herewith cheque details from Depot division for ${dateLabel}.\n\nTOTAL: ₹${totalFormatted}\nCHEQUES: ${cheques.length}\n\n` +
+            cheques.map((r,i) => {
+                const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
+                return `${i+1}. ${r['Chq Number']} | ${r['Chq Date']} | ${r['Party Name']} | ₹${v.toLocaleString('en-IN',{minimumFractionDigits:2})}`;
+            }).join('\n') +
+            `\n\nRegards,\nPristine Pearl Pharma Pvt. Ltd.`;
+        window.open(
+            `https://mail.google.com/mail/?view=cm&fs=1` +
+            `&to=${encodeURIComponent(TO_LIST.join(','))}` +
+            `&cc=${encodeURIComponent(CC_LIST.join(','))}` +
+            `&su=${encodeURIComponent(subject)}` +
+            `&body=${encodeURIComponent(plainBody)}`,
+            '_blank'
+        );
+        alert('⚠️ Auto-send failed. Gmail opened as fallback with To & CC pre-filled.\n\nNote: Gmail URL cannot inject HTML formatting — body will be plain text.');
     }
 }
-
 function doExportExcel() {
     if(!currentPrintData||!currentPrintData.cheques||!currentPrintData.cheques.length){alert('No data to export.');return;}
     try {

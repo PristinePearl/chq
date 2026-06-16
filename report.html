@@ -596,11 +596,13 @@
                     <div class="form-group"><label>From Date</label><input type="date" id="depositFromDate"></div>
                     <div class="form-group"><label>To Date</label><input type="date" id="depositToDate"></div>
                     <div id="depChqFilters">
-                        <div class="form-group"><label>Our Bank (Optional)</label><select id="depositedBankTodaySelect"><option value="">All Banks</option></select></div>
-                    </div>
+    <div class="form-group"><label>Our Bank (Optional)</label><select id="depositedBankTodaySelect"><option value="">All Banks</option></select></div>
+    <div class="form-group"><label>State (Optional)</label><select id="depStateSelect"><option value="">All States</option></select></div>
+</div>
                     <div id="depNeftFilters" style="display:none;">
-                        <div class="form-group"><label>Party Filter (Optional)</label><input type="text" id="neftPartyFilter" placeholder="Filter by party..." oninput="this.value=this.value.toUpperCase()"></div>
-                    </div>
+    <div class="form-group"><label>Party Filter (Optional)</label><input type="text" id="neftPartyFilter" placeholder="Filter by party..." oninput="this.value=this.value.toUpperCase()"></div>
+    <div class="form-group"><label>State (Optional)</label><select id="depNeftStateSelect"><option value="">All States</option></select></div>
+</div>
                     <button type="submit" class="btn btn-combined" id="depSubmitBtn">Generate Cheque Report</button>
                     <button type="button" class="btn btn-secondary" id="exportDepositsBtn" style="display:none;">EXPORT</button>
                 </form>
@@ -1043,7 +1045,7 @@ function filterChequeData(data, from, to, dateKey, party, state, bank, status, r
     });
 }
 
-function filterDepositsReport(data, from, to, bank) {
+function filterDepositsReport(data, from, to, bank, state) {
     const fd = from ? new Date(from+'T00:00:00') : null;
     const td = to ? new Date(to+'T23:59:59') : null;
     const result = [];
@@ -1054,12 +1056,13 @@ function filterDepositsReport(data, from, to, bank) {
         if (fd && (!d || d < fd)) return;
         if (td && (!d || d > td)) return;
         if (bank && !row['Deposited Bank (Our Bank)'].toUpperCase().includes(bank.toUpperCase())) return;
+        if (state && !String(row['State']||'').toUpperCase().includes(state.toUpperCase())) return;
         result.push({ ...row, _effectiveDate: effDateStr });
     });
     return result;
 }
 
-function filterNeftData(data, from, to, partyFilter) {
+function filterNeftData(data, from, to, partyFilter, stateFilter) {
     const fd = from ? new Date(from+'T00:00:00') : null;
     const td = to ? new Date(to+'T23:59:59') : null;
     const sampleRow = data[0]||{};
@@ -1067,11 +1070,13 @@ function filterNeftData(data, from, to, partyFilter) {
     function findKey(patterns) { for(const p of patterns){ const f=keys.find(k=>k.toUpperCase().includes(p.toUpperCase())); if(f) return f; } return null; }
     const dateKey  = findKey(['date','DATE']) || 'date';
     const partyKey = findKey(['party','PARTY','customer','CLIENT','NAME']) || 'party';
+    const stateKey = findKey(['state','STATE']) || 'state';
     return data.filter(row => {
         let dm = true;
         if (fd||td) { const d=parseDDMMYYYY(row[dateKey]); if(fd&&(!d||d<fd))dm=false; if(td&&(!d||d>td))dm=false; }
         const pm = partyFilter ? String(row[partyKey]||'').toUpperCase().includes(partyFilter.toUpperCase()) : true;
-        return dm&&pm;
+        const sm = stateFilter ? String(row[stateKey]||'').toUpperCase().includes(stateFilter.toUpperCase()) : true;
+        return dm&&pm&&sm;
     });
 }
 
@@ -2469,11 +2474,12 @@ async function runChequeDepositsReport() {
     const sheetId = document.getElementById('sheetId').value.trim();
     const from = document.getElementById('depositFromDate').value;
     const to   = document.getElementById('depositToDate').value;
-    const bank = document.getElementById('depositedBankTodaySelect').value;
+     const bank = document.getElementById('depositedBankTodaySelect').value;
+    const state = document.getElementById('depStateSelect').value;
     if (!from || !to) { showError("Please select date range."); return; }
     try {
         const data = await fetchSheetData(sheetId);
-        const fd = filterDepositsReport(data, from, to, bank);
+        const fd = filterDepositsReport(data, from, to, bank, state);
         const rs = document.getElementById('resultsSection');
         if (!fd.length) { rs.innerHTML = `<div class="no-results">No cheque deposits found for ${from} to ${to}.</div>`; return; }
         lastFilterResults = fd;
@@ -2505,9 +2511,8 @@ async function runChequeDepositsReport() {
             avg: avgPerChq, recordWord: 'Cheques',
             from: from.split('-').reverse().join('/'),
             to: to.split('-').reverse().join('/'),
-            bank: bank || ''
+            bank: [bank, state ? ('State: '+state) : ''].filter(Boolean).join(' · ')
         });
-
         // State mini cards
         if (chqStateMiniHtml) {
             html += `<div style="background:white;border:1.5px solid var(--slate-200);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.05);">${chqStateMiniHtml}</div>`;
@@ -2565,6 +2570,7 @@ async function runNeftDepositsReport() {
     const from = document.getElementById('depositFromDate').value;
     const to   = document.getElementById('depositToDate').value;
     const partyFilter = document.getElementById('neftPartyFilter').value.trim();
+    const stateFilter = document.getElementById('depNeftStateSelect').value;
     if (!from || !to) { showError("Please select a date range."); return; }
     try {
         const rawData = await fetchNeftData();
@@ -2579,7 +2585,7 @@ async function runNeftDepositsReport() {
         const amtKey   = findKey(['amount','AMOUNT','VALUE','₹','AMT']) || 'amount';
         const stateKey = findKey(['state','STATE']) || null;
 
-        const filtered = filterNeftData(rawData, from, to, partyFilter);
+       const filtered = filterNeftData(rawData, from, to, partyFilter, stateFilter);
         const rs = document.getElementById('resultsSection');
         if (!filtered.length) {
             rs.innerHTML = '<div class="no-results" style="border-color:#a5f3fc;color:var(--teal);">No Bank Receipts records found for the selected range.</div>';
@@ -2615,7 +2621,7 @@ async function runNeftDepositsReport() {
             avg: avgPerRecord, recordWord: 'Receipts',
             from: from.split('-').reverse().join('/'),
             to: to.split('-').reverse().join('/'),
-            bank: partyFilter ? `Party: ${partyFilter}` : ''
+            bank: [partyFilter ? `Party: ${partyFilter}` : '', stateFilter ? `State: ${stateFilter}` : ''].filter(Boolean).join(' · ')
         });
 
         // State mini cards for NEFT
@@ -3003,7 +3009,8 @@ async function populateDropdowns(sheetId) {
         const sp=Array.from(parties).sort(); const sdb=Array.from(depBanks).sort(); const ss=Array.from(states).sort();
         [['partySelect',sp],['blankPartySelect',sp],['chartPartySelect',sp]].forEach(([id,items])=>{ const el=document.getElementById(id); if(!el)return; items.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; el.appendChild(o); }); });
         [['stateSelectParty',ss],['chartStateSelect',ss],['aiStateSelect',ss]].forEach(([id,items])=>{ const el=document.getElementById(id); if(!el)return; el.innerHTML='<option value="">All States</option>'; items.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; el.appendChild(o); }); });
-        [['depositedBankTodaySelect',sdb],['depositedBankSelect',sdb]].forEach(([id,items])=>{ const el=document.getElementById(id); if(!el)return; items.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; el.appendChild(o); }); });
+       [['depositedBankTodaySelect',sdb],['depositedBankSelect',sdb]].forEach(([id,items])=>{ const el=document.getElementById(id); if(!el)return; items.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; el.appendChild(o); }); });
+        [['depStateSelect',ss],['depNeftStateSelect',ss]].forEach(([id,items])=>{ const el=document.getElementById(id); if(!el)return; items.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; el.appendChild(o); }); });
     } catch(err){console.error('Dropdown error',err);}
 }
 

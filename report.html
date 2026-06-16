@@ -1040,7 +1040,15 @@ function filterChequeData(data, from, to, dateKey, party, state, bank, status, r
             stm = s === (statusMap[status] || status.toUpperCase());
         }
         let rm = true;
-        if (remarks) { rm=(row['Remarks']+' '+row['Return Remarks']).toUpperCase().includes(remarks.toUpperCase()); }
+        if (remarks) {
+            const haystack = [
+                row['Remarks'],
+                row['Return Remarks'],
+                row['Party Name'],
+                row['State']
+            ].join(' ').toUpperCase();
+            rm = haystack.includes(remarks.toUpperCase());
+        }
         return dm&&pm&&sm&&bm&&stm&&rm;
     });
 }

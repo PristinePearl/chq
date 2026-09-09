@@ -382,6 +382,15 @@
         .banker-detail-info { flex:1; }
         .banker-detail-label { font-size:0.65rem; color:var(--slate-400); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
         .banker-detail-value { font-size:0.92rem; font-weight:700; color:var(--slate-800); margin-top:2px; font-family:'Courier New',monospace; letter-spacing:0.03em; }
+        .qr-grid { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+        .qr-card { flex:1; min-width:180px; background:white; border:1.5px solid var(--slate-200); border-radius:14px; padding:22px 18px; text-align:center; cursor:pointer; transition:all .25s ease; box-shadow:0 4px 14px rgba(0,0,0,0.05); }
+        .qr-card:hover { transform:translateY(-4px); box-shadow:0 12px 30px rgba(79,70,229,0.16); border-color:var(--indigo); }
+        .qr-card .qr-icon { font-size:1.9rem; margin-bottom:8px; }
+        .qr-card .qr-title { font-size:0.95rem; font-weight:800; color:var(--slate-800); }
+        .qr-card .qr-sub { font-size:0.7rem; color:var(--slate-500); margin-top:5px; display:flex; align-items:center; justify-content:center; gap:4px; }
+        .qr-pass-input { width:100%; padding:11px 13px; border:2px solid var(--slate-200); border-radius:8px; font-size:0.95rem; margin-bottom:8px; font-family:'Plus Jakarta Sans',sans-serif; }
+        .qr-pass-input:focus { outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,0.15); }
+        .qr-pass-error { color:var(--red); font-size:0.78rem; font-weight:600; margin-bottom:8px; display:none; }
         .copy-btn { background:none; border:1.5px solid var(--slate-200); border-radius:7px; padding:5px 11px; font-size:0.68rem; font-weight:700; color:var(--slate-500); cursor:pointer; transition:all .2s ease; font-family:'Plus Jakarta Sans',sans-serif; letter-spacing:0.03em; }
         .copy-btn:hover { background:var(--indigo); color:white; border-color:var(--indigo); }
         .copy-btn.copied { background:var(--green-light); color:white; border-color:var(--green-light); }
@@ -497,6 +506,30 @@
             <button class="btn" onclick="doPrint()" style="background:linear-gradient(135deg,var(--teal),var(--teal-light));">🖨️ Print</button>
             <button class="btn btn-secondary" onclick="doExportExcel()">📊 Excel</button>
             <button class="btn" onclick="closePrintModal()" style="background:linear-gradient(135deg,var(--slate-600),var(--slate-500));">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="qrPasswordModal">
+    <div class="modal-box" style="position:relative;max-width:380px;">
+        <button class="modal-close-btn" onclick="closeQrPasswordModal()">✕</button>
+        <h3>🔒 Enter Password</h3>
+        <p style="font-size:0.82rem;color:var(--slate-500);margin-bottom:14px;">This QR code is password protected. Please enter the password to view it.</p>
+        <input type="password" id="qrPassInput" class="qr-pass-input" placeholder="Enter password" onkeydown="if(event.key==='Enter'){event.preventDefault();submitQrPassword();}">
+        <div class="qr-pass-error" id="qrPassError">Incorrect password. Please try again.</div>
+        <div class="modal-actions">
+            <button class="btn" onclick="submitQrPassword()">Unlock</button>
+            <button class="btn" onclick="closeQrPasswordModal()" style="background:linear-gradient(135deg,var(--slate-600),var(--slate-500));">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="qrViewModal">
+    <div class="modal-box" style="position:relative;width:440px;max-width:95vw;">
+        <button class="modal-close-btn" onclick="closeQrViewModal()">✕</button>
+        <h3 id="qrViewTitle">QR Code</h3>
+        <div style="border-radius:10px;overflow:hidden;border:1.5px solid var(--slate-200);background:var(--slate-50);">
+            <iframe id="qrViewFrame" src="" style="width:100%;height:440px;border:none;display:block;" allow="autoplay"></iframe>
         </div>
     </div>
 </div>
@@ -710,6 +743,20 @@
             <div id="bankersDetails" class="tab-content">
                 <div class="banker-section-title">Our Company Bank Accounts</div>
                 <div id="bankerCardsContainer" class="banker-grid"></div>
+
+                <div class="banker-section-title" style="margin-top:22px;">Bank QR Codes</div>
+                <div class="qr-grid">
+                    <div class="qr-card" onclick="openQrPasswordModal('qr1')">
+                        <div class="qr-icon">📱</div>
+                        <div class="qr-title">QR 1</div>
+                        <div class="qr-sub">🔒 Password protected · Click to view</div>
+                    </div>
+                    <div class="qr-card" onclick="openQrPasswordModal('qr2')">
+                        <div class="qr-icon">📱</div>
+                        <div class="qr-title">QR 2</div>
+                        <div class="qr-sub">🔒 Password protected · Click to view</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1455,6 +1502,50 @@ function renderBankerCards() {
             <div class="qr-hint">💡 Use IFSC <strong style="margin:0 4px;">${bank.ifsc}</strong> for NEFT / RTGS / IMPS transfers</div>
         </div>
     `).join('') + `</div>`;
+}
+
+// ==========================================
+// QR CODE VIEWER (PASSWORD PROTECTED)
+// ==========================================
+const QR_CODES = {
+    qr1: { title:'QR 1', driveId:'1o2OX3pwQffq_YO-WyiqU28LvugwGexa3' },
+    qr2: { title:'QR 2', driveId:'1hHu_ynidHlcY1bh3f2ySUKFM9okKb6-5' }
+};
+const QR_PASSWORD = 'pearlqr';
+let pendingQrKey = null;
+
+function openQrPasswordModal(key) {
+    pendingQrKey = key;
+    const input = document.getElementById('qrPassInput');
+    input.value = '';
+    document.getElementById('qrPassError').style.display = 'none';
+    document.getElementById('qrPasswordModal').classList.add('active');
+    setTimeout(()=>input.focus(), 100);
+}
+function closeQrPasswordModal() {
+    document.getElementById('qrPasswordModal').classList.remove('active');
+    pendingQrKey = null;
+}
+function submitQrPassword() {
+    const val = document.getElementById('qrPassInput').value;
+    if (val === QR_PASSWORD) {
+        const key = pendingQrKey;
+        closeQrPasswordModal();
+        openQrViewModal(key);
+    } else {
+        document.getElementById('qrPassError').style.display = 'block';
+    }
+}
+function openQrViewModal(key) {
+    const qr = QR_CODES[key];
+    if (!qr) return;
+    document.getElementById('qrViewTitle').textContent = qr.title;
+    document.getElementById('qrViewFrame').src = `https://drive.google.com/file/d/${qr.driveId}/preview`;
+    document.getElementById('qrViewModal').classList.add('active');
+}
+function closeQrViewModal() {
+    document.getElementById('qrViewModal').classList.remove('active');
+    document.getElementById('qrViewFrame').src = '';
 }
 
 function copyField(text, btn) {
@@ -3057,6 +3148,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 document.getElementById('printModal').addEventListener('click',function(e){if(e.target===this)closePrintModal();});
+document.getElementById('qrPasswordModal').addEventListener('click',function(e){if(e.target===this)closeQrPasswordModal();});
+document.getElementById('qrViewModal').addEventListener('click',function(e){if(e.target===this)closeQrViewModal();});
 
 document.addEventListener("DOMContentLoaded", function () {
     const today = new Date().toISOString().split('T')[0];

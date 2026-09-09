@@ -382,6 +382,15 @@
         .banker-detail-info { flex:1; }
         .banker-detail-label { font-size:0.65rem; color:var(--slate-400); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
         .banker-detail-value { font-size:0.92rem; font-weight:700; color:var(--slate-800); margin-top:2px; font-family:'Courier New',monospace; letter-spacing:0.03em; }
+        .quick-search-bar { padding:12px 16px; background:linear-gradient(135deg,#eef2ff,#f5f3ff); border-bottom:1px solid var(--slate-200); flex-shrink:0; }
+        .quick-search-wrap { display:flex; align-items:center; gap:6px; background:white; border:2px solid var(--slate-200); border-radius:10px; padding:4px 4px 4px 12px; transition:border-color .2s ease,box-shadow .2s ease; }
+        .quick-search-wrap:focus-within { border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,0.12); }
+        .quick-search-icon { font-size:0.85rem; opacity:.6; flex-shrink:0; }
+        .quick-search-wrap input { flex:1; min-width:0; border:none; outline:none; font-size:0.85rem; padding:8px 4px; font-family:'Plus Jakarta Sans',sans-serif; color:var(--slate-800); background:transparent; }
+        .quick-search-wrap input::placeholder { color:var(--slate-400); font-weight:500; }
+        .quick-search-btn { background:linear-gradient(135deg,var(--indigo) 0%,var(--indigo-light) 100%); color:white; border:none; border-radius:7px; padding:8px 14px; font-size:0.78rem; font-weight:700; cursor:pointer; flex-shrink:0; font-family:'Plus Jakarta Sans',sans-serif; transition:all .2s ease; }
+        .quick-search-btn:hover { box-shadow:0 4px 12px rgba(79,70,229,0.3); transform:translateY(-1px); }
+        .quick-search-hint { font-size:0.65rem; color:var(--slate-400); margin-top:5px; padding-left:2px; font-weight:600; }
         .qr-grid { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
         .qr-card { flex:1; min-width:180px; background:white; border:1.5px solid var(--slate-200); border-radius:14px; padding:22px 18px; text-align:center; cursor:pointer; transition:all .25s ease; box-shadow:0 4px 14px rgba(0,0,0,0.05); }
         .qr-card:hover { transform:translateY(-4px); box-shadow:0 12px 30px rgba(79,70,229,0.16); border-color:var(--indigo); }
@@ -496,12 +505,15 @@
             <div class="modal-bank-btn selected" onclick="selectBank('DBS')" id="bankBtn_DBS">
                 <div class="bank-btn-name">🏦 DBS</div>
                 <div class="bank-btn-acc">A/C: 8570200000016816</div>
+                <div class="bank-btn-count" id="bankCount_DBS" style="font-size:0.68rem;font-weight:700;color:var(--slate-500);margin-top:5px;"></div>
             </div>
             <div class="modal-bank-btn" onclick="selectBank('ICICI')" id="bankBtn_ICICI">
                 <div class="bank-btn-name">🏦 ICICI</div>
                 <div class="bank-btn-acc">A/C: 536651000006</div>
+                <div class="bank-btn-count" id="bankCount_ICICI" style="font-size:0.68rem;font-weight:700;color:var(--slate-500);margin-top:5px;"></div>
             </div>
         </div>
+        <p style="font-size:0.7rem;color:var(--slate-400);margin:-10px 0 14px;">Only cheques whose "Our Bank" column matches the selected bank will be included.</p>
         <div class="modal-actions">
             <button class="btn" onclick="doPrint()" style="background:linear-gradient(135deg,var(--teal),var(--teal-light));">🖨️ Print</button>
             <button class="btn btn-secondary" onclick="doExportExcel()">📊 Excel</button>
@@ -550,16 +562,27 @@
             </div>
         </div>
 
+        <div class="quick-search-bar">
+            <div class="quick-search-wrap">
+                <span class="quick-search-icon">🔍</span>
+                <input type="text" id="quickChqSearch" placeholder="Quick cheque number search…" autocomplete="off"
+                    oninput="this.value=this.value.toUpperCase()"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();quickChequeSearch();}">
+                <button type="button" class="quick-search-btn" onclick="quickChequeSearch()">Go</button>
+            </div>
+            <div class="quick-search-hint">Works from any tab · press Enter</div>
+        </div>
+
         <div class="tabs">
-            <button class="tab-button dashboard-tab active" onclick="openTab(event,'dashboardTab')">🏠 Dashboard</button>
-            <button class="tab-button" onclick="openTab(event,'chqSearch')">🔍 Single Cheque Search</button>
-            <button class="tab-button" onclick="openTab(event,'partyDate')">📜 Party / Date Report</button>
-            <button class="tab-button deposit-combined-tab" onclick="openTab(event,'depositsReport')">💰 Deposits Report</button>
-            <button class="tab-button" onclick="openTab(event,'bankValue')">🏦 Blank Chq Report</button>
-            <button class="tab-button" onclick="openTab(event,'depositStatus')">✅ Deposit Status Report</button>
-            <button class="tab-button" onclick="openTab(event,'graphicalReports')">📊 Graphical Reports</button>
-            <button class="tab-button" onclick="openTab(event,'aiAnalysis')">📈 AI & Trend Analysis</button>
-            <button class="tab-button" onclick="openTab(event,'bankersDetails')">🏛️ Bankers Details</button>
+            <button class="tab-button dashboard-tab active" data-tab="dashboardTab" onclick="openTab(event,'dashboardTab')">🏠 Dashboard</button>
+            <button class="tab-button" data-tab="chqSearch" onclick="openTab(event,'chqSearch')">🔍 Single Cheque Search</button>
+            <button class="tab-button" data-tab="partyDate" onclick="openTab(event,'partyDate')">📜 Party / Date Report</button>
+            <button class="tab-button deposit-combined-tab" data-tab="depositsReport" onclick="openTab(event,'depositsReport')">💰 Deposits Report</button>
+            <button class="tab-button" data-tab="bankValue" onclick="openTab(event,'bankValue')">🏦 Blank Chq Report</button>
+            <button class="tab-button" data-tab="depositStatus" onclick="openTab(event,'depositStatus')">✅ Deposit Status Report</button>
+            <button class="tab-button" data-tab="graphicalReports" onclick="openTab(event,'graphicalReports')">📊 Graphical Reports</button>
+            <button class="tab-button" data-tab="aiAnalysis" onclick="openTab(event,'aiAnalysis')">📈 AI & Trend Analysis</button>
+            <button class="tab-button" data-tab="bankersDetails" onclick="openTab(event,'bankersDetails')">🏛️ Bankers Details</button>
         </div>
 
         <div class="search-section">
@@ -968,8 +991,11 @@ function getChequeStatus(row) {
     const hasDeposit = !!row['Deposited Date'];
     const hasReturn  = !!row['Return Date'];
     const hasRepresent = !!row['Represent Date'];
-    if (hasReturn) return { status:'RETURNED', color:'#ef4444', class:'status-returned' };
+    // A Represent Date means the cheque has been re-submitted after any earlier bounce,
+    // so it takes priority over a Return Date — otherwise a re-presented cheque would be
+    // stuck showing as RETURNED forever even after you've re-deposited it.
     if (hasRepresent) return { status:'REPRESENTED', color:'#8b5cf6', class:'status-represented' };
+    if (hasReturn) return { status:'RETURNED', color:'#ef4444', class:'status-returned' };
     if (hasDeposit) return { status:'DEPOSITED', color:'#10b981', class:'status-deposited' };
     const v = parseFloat((row['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
     if (v === 0 || !row['Chq Value (₹)']) return { status:'BLANK', color:'#06b6d4', class:'status-blank' };
@@ -977,8 +1003,10 @@ function getChequeStatus(row) {
 }
 
 function getEffectiveDepositDate(row) {
-    if (row['Return Date']) return null;
+    // Represent Date wins over Return Date: once a bounced cheque is re-presented,
+    // it should reflect in the deposits report on the represent date, not stay excluded.
     if (row['Represent Date']) return row['Represent Date'];
+    if (row['Return Date']) return null;
     if (row['Deposited Date']) return row['Deposited Date'];
     return null;
 }
@@ -992,12 +1020,16 @@ function formatFieldValue(value, defaultValue='N/A') {
 // ==========================================
 // TAB NAVIGATION
 // ==========================================
-function openTab(evt, tabName) {
+function activateTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el=>{ el.style.display='none'; el.classList.remove('active'); });
     document.querySelectorAll('.tab-button').forEach(el=>el.classList.remove('active'));
     const el = document.getElementById(tabName);
-    el.style.display='block'; el.classList.add('active');
-    evt.currentTarget.classList.add('active');
+    if (el) { el.style.display='block'; el.classList.add('active'); }
+    const btn = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+    if (btn) btn.classList.add('active');
+}
+function openTab(evt, tabName) {
+    activateTab(tabName);
     const rs = document.getElementById('resultsSection');
 
     if (tabName === 'dashboardTab') {
@@ -1560,10 +1592,31 @@ function openPrintModal(dateKey, chequesJson) {
     selectedPrintBank = 'DBS';
     document.getElementById('bankBtn_DBS').classList.add('selected');
     document.getElementById('bankBtn_ICICI').classList.remove('selected');
+    updateBankCounts();
     document.getElementById('printModal').classList.add('active');
 }
 function closePrintModal() { document.getElementById('printModal').classList.remove('active'); currentPrintData=null; }
 function selectBank(bankKey) { selectedPrintBank=bankKey; document.querySelectorAll('.modal-bank-btn').forEach(b=>b.classList.remove('selected')); document.getElementById(`bankBtn_${bankKey}`).classList.add('selected'); }
+
+// Returns only the cheques whose "Deposited Bank (Our Bank)" column matches the given bank
+// (DBS -> only DBS cheques, ICICI -> only ICICI cheques). Prevents mixing banks in print/export.
+function getBankFilteredCheques(bankKey) {
+    if (!currentPrintData || !currentPrintData.cheques) return [];
+    return currentPrintData.cheques.filter(r => {
+        const ob = (r['Deposited Bank (Our Bank)'] || '').toUpperCase();
+        return ob.includes(bankKey.toUpperCase());
+    });
+}
+function updateBankCounts() {
+    if (!currentPrintData) return;
+    Object.keys(BANKS).forEach(key => {
+        const el = document.getElementById(`bankCount_${key}`);
+        if (el) {
+            const n = getBankFilteredCheques(key).length;
+            el.textContent = `${n} cheque${n!==1?'s':''}`;
+        }
+    });
+}
 
 function buildSlipHtml(bank, cheques, date) {
     const totalAmount=cheques.reduce((s,r)=>s+(parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0),0);
@@ -1580,7 +1633,9 @@ function buildSlipHtml(bank, cheques, date) {
 }
 function doPrint() {
     if(!currentPrintData)return; const bank=BANKS[selectedPrintBank];
-    const html=buildSlipHtml(bank,currentPrintData.cheques,currentPrintData.date);
+    const cheques = getBankFilteredCheques(selectedPrintBank);
+    if(!cheques.length){ alert(`No cheques deposited in ${bank.name} for this date. Nothing to print.`); return; }
+    const html=buildSlipHtml(bank,cheques,currentPrintData.date);
     const pa=document.getElementById('printArea'); pa.innerHTML=html; pa.style.display='block';
     document.querySelector('.main-container').style.display='none';
     document.getElementById('printModal').classList.remove('active');
@@ -1732,7 +1787,8 @@ Use the Gmail send tool now. Do not ask for confirmation.`
 function doExportExcel() {
     if(!currentPrintData||!currentPrintData.cheques||!currentPrintData.cheques.length){alert('No data to export.');return;}
     try {
-        const bank=BANKS[selectedPrintBank]; const cheques=currentPrintData.cheques;
+        const bank=BANKS[selectedPrintBank]; const cheques=getBankFilteredCheques(selectedPrintBank);
+        if(!cheques.length){ alert(`No cheques deposited in ${bank.name} for this date. Nothing to export.`); return; }
         const dateLabel=(currentPrintData.date&&currentPrintData.date!=='No Date')?currentPrintData.date:new Date().toLocaleDateString('en-IN');
         const bdr=(style)=>({top:{style},bottom:{style},left:{style},right:{style}});
         function makeCell(v,font={},fillRgb=null,border=null,alignH='left',numFmt=null){const cell={v,t:typeof v==='number'?'n':'s'};const s={};s.font=Object.assign({name:'Calibri',sz:11},font);if(fillRgb)s.fill={patternType:'solid',fgColor:{rgb:fillRgb}};if(border)s.border=border;s.alignment={horizontal:alignH,vertical:'center',wrapText:true};if(numFmt){s.numFmt=numFmt;cell.t='n';}cell.s=s;return cell;}
@@ -2520,11 +2576,10 @@ function toggleDayInner(headerEl) {
 // ==========================================
 
 // 1. Single Cheque Search
-document.getElementById('searchForm').addEventListener('submit', async function(e) {
-    e.preventDefault(); showLoading();
-    const sheetId=document.getElementById('sheetId').value.trim();
-    const chqNum=document.getElementById('ChqNumber').value.trim();
+async function performChequeNumberSearch(chqNum) {
     if(!chqNum){showError("Please enter a Cheque Number.");return;}
+    showLoading();
+    const sheetId=document.getElementById('sheetId').value.trim();
     try {
         const data=await fetchSheetData(sheetId);
         const found=data.filter(r=>r['Chq Number']&&r['Chq Number'].toUpperCase()===chqNum.toUpperCase());
@@ -2532,8 +2587,22 @@ document.getElementById('searchForm').addEventListener('submit', async function(
         if(found.length>0){lastSearchResults=found;rs.innerHTML=found.map(generateCheckCardHtml).join('');document.getElementById('exportBtn').style.display='block';}
         else{rs.innerHTML=`<div class="no-results">Cheque <strong>${chqNum}</strong> not found.</div>`;lastSearchResults=[];}
     } catch(err){showError(err.message);}
+}
+document.getElementById('searchForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    await performChequeNumberSearch(document.getElementById('ChqNumber').value.trim());
 });
 document.getElementById('exportBtn').addEventListener('click',()=>exportToCSV(lastSearchResults,'single_cheque'));
+
+// Quick cheque search (always visible in sidebar, works from any tab)
+function quickChequeSearch() {
+    const input = document.getElementById('quickChqSearch');
+    const chqNum = input.value.trim();
+    if (!chqNum) { input.focus(); return; }
+    activateTab('chqSearch');
+    document.getElementById('ChqNumber').value = chqNum;
+    performChequeNumberSearch(chqNum);
+}
 
 // 2. Party/Date Report
 document.getElementById('partyDateForm').addEventListener('submit', async function(e) {

@@ -1063,7 +1063,7 @@ async function fetchSheetData(sheetId) {
     for (const url of urls) {
         try { const r = await fetch(url,{method:'GET',mode:'cors',headers:{Accept:'text/csv,*/*'}}); if(r.ok) return parseCSV(await r.text()); } catch(e){}
     }
-    throw new Error('Failed to fetch data from Google Sheets.');
+    throw new Error('Failed to fetch data from Server.');
 }
 
 async function fetchNeftData() {

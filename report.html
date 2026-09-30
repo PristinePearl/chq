@@ -476,7 +476,85 @@
 .lock-box button:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(79,70,229,0.4); }
 .lock-error { color:#f87171; font-size:0.78rem; margin-top:8px; display:none; font-weight:600; }
         
-        </style>
+        
+/* === ENHANCEMENTS === */
+.product-table-container{max-height:70vh;overflow:auto}
+.product-table thead th{position:sticky;top:0;z-index:2;cursor:pointer;user-select:none}
+.product-table thead th.sort-asc::after{content:" ▲";font-size:.65rem}
+.product-table thead th.sort-desc::after{content:" ▼";font-size:.65rem}
+.product-table tbody tr:nth-child(even){background:rgba(148,163,184,.08)}
+.product-table tbody tr:hover{background:rgba(37,99,235,.10)}
+.tbl-filter{margin:6px 0;padding:7px 12px;width:260px;max-width:100%;border:1px solid #cbd5e1;border-radius:8px;font-size:.85rem}
+.tbl-count{margin-left:10px;font-size:.78rem;color:#64748b}
+#backTopBtn{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border:0;border-radius:50%;background:#2563eb;color:#fff;font-size:18px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);display:none;z-index:999}
+@media print{.tbl-filter,.tbl-count,#backTopBtn{display:none!important}.product-table-container{max-height:none!important;overflow:visible!important}}
+
+/* === LEDGER / MONTH CARDS / PRESETS === */
+.mc-wrap{padding:6px 16px 0}
+.mc-title{font-size:.9rem;font-weight:800;color:#4c1d95;margin:8px 0}
+.mc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.mc-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px;box-shadow:0 2px 8px rgba(15,23,42,.06);border-top:4px solid #6366f1}
+.mc-card.best{border-top-color:#059669}.mc-card.low{border-top-color:#dc2626}
+.mc-m{font-size:.75rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
+.mc-v{font-size:1.15rem;font-weight:800;color:#1e293b;margin:4px 0}
+.mc-r{display:flex;justify-content:space-between;font-size:.72rem;color:#475569}
+.mc-d{font-size:.72rem;font-weight:700;margin-top:4px}.mc-up{color:#059669}.mc-dn{color:#dc2626}
+.ledger-link{cursor:pointer;text-decoration:underline dotted #6366f1;text-underline-offset:3px}
+#ledgerPanel{position:fixed;top:0;right:-560px;width:540px;max-width:100vw;height:100%;background:#fff;z-index:10000;box-shadow:-6px 0 24px rgba(0,0,0,.25);transition:right .25s;display:flex;flex-direction:column}
+#ledgerPanel.open{right:0}
+.lg-head{padding:14px 16px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lg-head h3{margin:0;font-size:1rem}.lg-head button{background:rgba(255,255,255,.2);border:0;color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer}
+.lg-body{overflow:auto;padding:12px 14px;flex:1}
+.lg-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.lg-kpi{background:#f1f5f9;border-radius:10px;padding:8px;text-align:center}
+.lg-kpi b{display:block;font-size:.95rem;color:#1e293b}.lg-kpi span{font-size:.68rem;color:#64748b;text-transform:uppercase}
+.lg-bars{margin:8px 0 12px}.lg-bar{display:flex;align-items:center;gap:6px;font-size:.7rem;margin:2px 0}
+.lg-bar i{display:block;height:9px;background:#6366f1;border-radius:4px}
+.lg-tbl{width:100%;border-collapse:collapse;font-size:.76rem}
+.lg-tbl th{background:#e2e8f0;text-align:left;padding:6px}.lg-tbl td{padding:5px 6px;border-bottom:1px solid #e2e8f0}
+.lg-tbl td.r{text-align:right;font-weight:700;white-space:nowrap}
+.preset-row{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 8px}
+.preset-row button{border:1px solid #c7d2fe;background:#eef2ff;color:#3730a3;border-radius:14px;padding:3px 10px;font-size:.72rem;cursor:pointer;font-weight:600}
+.preset-row button:hover{background:#c7d2fe}
+@media print{#ledgerPanel,.preset-row{display:none!important}}
+
+/* === COMPACT TABS === */
+.tabs{display:grid!important;grid-template-columns:1fr 1fr;gap:0;max-height:none}
+.tab-button{padding:8px 8px!important;font-size:.73rem!important;text-align:center!important;border-left:0!important;border-bottom:3px solid transparent;line-height:1.25}
+.tab-button:hover:not(.active){transform:none!important}
+.tab-button.active{border-bottom-color:var(--indigo)}
+.tab-button.neft-tab.active{border-bottom-color:var(--teal)}.tab-button.deposit-combined-tab.active{border-bottom-color:var(--violet-dark)}.tab-button.dashboard-tab.active{border-bottom-color:#f59e0b}
+.tab-button.ledger-tab.active{border-bottom-color:#0d9488;color:#0f766e}
+.header{padding:10px 14px!important}.header-sub{display:none}
+.search-section{padding:12px 14px!important}
+.lg-note{font-size:.72rem;color:#64748b;margin-top:-6px}
+
+/* === TOP TAB BAR === */
+#topTabs{display:flex!important;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:4px;padding:6px 10px;background:linear-gradient(135deg,#1e1b4b,#312e81);border-bottom:0;height:50px;box-sizing:border-box;align-items:center;position:relative;z-index:50;scrollbar-width:thin}
+#topTabs .tab-button{flex:0 0 auto;white-space:nowrap;padding:8px 14px!important;font-size:.78rem!important;border-radius:20px;border:0!important;color:#c7d2fe;background:rgba(255,255,255,.07);transition:all .2s}
+#topTabs .tab-button:hover:not(.active){background:rgba(255,255,255,.18);color:#fff;transform:none!important}
+#topTabs .tab-button.active,#topTabs .tab-button.neft-tab.active,#topTabs .tab-button.deposit-combined-tab.active,#topTabs .tab-button.dashboard-tab.active,#topTabs .tab-button.ledger-tab.active{background:#fff;color:#312e81;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+@media (min-width:769px){.main-container{height:calc(100vh - 50px)!important}}
+@media print{#topTabs{display:none!important}}
+
+/* === SLIMMER LEFT PANEL === */
+@media (min-width:769px){
+.left-panel{width:270px!important}
+.search-section{padding:10px 10px!important}
+.search-section .form-group label{font-size:.68rem}
+.search-section input,.search-section select{font-size:.8rem;padding:7px 9px}
+.search-form{gap:9px}
+.search-section .btn{padding:8px 12px;font-size:.8rem}
+.header h1,.header div[style*="font-size:1.05rem"]{font-size:.9rem!important}
+.company-logo{width:34px;height:34px}
+}
+
+.condensed-party-row{cursor:pointer}
+.condensed-party-row .party-name-condensed::before{content:"▸ ";color:#6366f1;font-size:.8em}
+.condensed-party-row.open .party-name-condensed::before{content:"▾ "}
+.condensed-party-row.open{background:#eef2ff}
+.party-detail{margin:0 0 8px 34px;border:1px solid #c7d2fe;border-radius:10px;background:#fff;overflow:auto;animation:fadeIn .2s}
+</style>
 </head>
 <body>
   
@@ -548,6 +626,18 @@
 
 <div id="printArea"></div>
 
+<div class="tabs" id="topTabs">
+            <button class="tab-button dashboard-tab active" data-tab="dashboardTab" onclick="openTab(event,'dashboardTab')">🏠 Dashboard</button>
+            <button class="tab-button" data-tab="chqSearch" onclick="openTab(event,'chqSearch')">🔍 Single Cheque Search</button>
+            <button class="tab-button" data-tab="partyDate" onclick="openTab(event,'partyDate')">📜 Party / Date Report</button>
+            <button class="tab-button deposit-combined-tab" data-tab="depositsReport" onclick="openTab(event,'depositsReport')">💰 Deposits Report</button>
+            <button class="tab-button" data-tab="bankValue" onclick="openTab(event,'bankValue')">🏦 Blank Chq Report</button>
+            <button class="tab-button" data-tab="depositStatus" onclick="openTab(event,'depositStatus')">✅ Deposit Status Report</button>
+            <button class="tab-button" data-tab="graphicalReports" onclick="openTab(event,'graphicalReports')">📊 Graphical Reports</button>
+            <button class="tab-button" data-tab="aiAnalysis" onclick="openTab(event,'aiAnalysis')">📈 AI & Trend Analysis</button>
+            <button class="tab-button ledger-tab" data-tab="ledgerTab" onclick="openTab(event,'ledgerTab');initLedgerTab()">📒 Party Ledger</button>
+            <button class="tab-button" data-tab="bankersDetails" onclick="openTab(event,'bankersDetails')">🏛️ Bankers Details</button>
+        </div>
 <div class="main-container">
     <div class="left-panel">
         <div class="header">
@@ -573,17 +663,7 @@
             <div class="quick-search-hint">Works from any tab · press Enter</div>
         </div>
 
-        <div class="tabs">
-            <button class="tab-button dashboard-tab active" data-tab="dashboardTab" onclick="openTab(event,'dashboardTab')">🏠 Dashboard</button>
-            <button class="tab-button" data-tab="chqSearch" onclick="openTab(event,'chqSearch')">🔍 Single Cheque Search</button>
-            <button class="tab-button" data-tab="partyDate" onclick="openTab(event,'partyDate')">📜 Party / Date Report</button>
-            <button class="tab-button deposit-combined-tab" data-tab="depositsReport" onclick="openTab(event,'depositsReport')">💰 Deposits Report</button>
-            <button class="tab-button" data-tab="bankValue" onclick="openTab(event,'bankValue')">🏦 Blank Chq Report</button>
-            <button class="tab-button" data-tab="depositStatus" onclick="openTab(event,'depositStatus')">✅ Deposit Status Report</button>
-            <button class="tab-button" data-tab="graphicalReports" onclick="openTab(event,'graphicalReports')">📊 Graphical Reports</button>
-            <button class="tab-button" data-tab="aiAnalysis" onclick="openTab(event,'aiAnalysis')">📈 AI & Trend Analysis</button>
-            <button class="tab-button" data-tab="bankersDetails" onclick="openTab(event,'bankersDetails')">🏛️ Bankers Details</button>
-        </div>
+        
 
         <div class="search-section">
             <!-- DASHBOARD TAB -->
@@ -731,6 +811,20 @@
                     </div>
                     <button type="submit" class="btn">Generate Charts</button>
                     <button type="button" class="btn btn-secondary" id="exportChartBtn" style="display:none;">EXPORT DATA</button>
+                </form>
+            </div>
+
+            <div id="ledgerTab" class="tab-content">
+                <form class="search-form" id="ledgerForm">
+                    <h3 style="font-size:0.95rem;margin-bottom:4px;color:#0f766e;font-weight:800;">📒 Party Ledger</h3>
+                    <div class="form-group"><label>Party Name</label><input type="text" id="lgParty" list="lgParties" placeholder="Type or pick a party" autocomplete="off" required></div>
+                    <datalist id="lgParties"></datalist>
+                    <div class="form-group"><label>From Date (Optional)</label><input type="date" id="lgFrom"></div>
+                    <div class="form-group"><label>To Date (Optional)</label><input type="date" id="lgTo"></div>
+                    <div class="form-group"><label>Type</label><select id="lgType"><option value="">Cheque + Bank Receipts</option><option value="Cheque">Cheque only</option><option value="Bank Receipt">Bank Receipts only</option></select></div>
+                    <div class="form-group"><label>Cheque Status</label><select id="lgStatus"><option value="">All</option><option value="DEPOSITED">Deposited</option><option value="PENDING">Pending</option><option value="RETURNED">Returned</option><option value="REPRESENTED">Represented</option></select></div>
+                    <button type="submit" class="btn">Show Ledger</button>
+                    <button type="button" class="btn btn-secondary" id="lgExportBtn" style="display:none;">EXPORT</button>
                 </form>
             </div>
 
@@ -1013,7 +1107,7 @@ function getEffectiveDepositDate(row) {
 
 function isSecurityCheque(row) { return String(row['Remarks']||'').toUpperCase().includes('SECURITY'); }
 
-function formatFieldValue(value, defaultValue='N/A') {
+function formatFieldValue(value, defaultValue='-') {
     const v = String(value||'').trim(); return v === '' ? defaultValue : v;
 }
 
@@ -1172,12 +1266,12 @@ function filterNeftData(data, from, to, partyFilter, stateFilter) {
 // ==========================================
 function aggregateData(data, field) {
     const agg={}; let total=0;
-    data.forEach(row=>{ const k=formatFieldValue(row[field],'N/A'); const v=parseFloat((row['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; if(!isNaN(v)){total+=v; agg[k]=(agg[k]||0)+v;} });
+    data.forEach(row=>{ const k=formatFieldValue(row[field],'-'); const v=parseFloat((row['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; if(!isNaN(v)){total+=v; agg[k]=(agg[k]||0)+v;} });
     return { aggregatedArray:Object.keys(agg).map(k=>({key:k,value:agg[k]})).sort((a,b)=>b.value-a.value), totalValue:total };
 }
 function aggregateNeftData(data, fieldKey, amtKey) {
     const agg={}; let total=0;
-    data.forEach(row=>{ const k=formatFieldValue(row[fieldKey],'N/A'); const v=parseFloat(String(row[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0; if(!isNaN(v)){total+=v; agg[k]=(agg[k]||0)+v;} });
+    data.forEach(row=>{ const k=formatFieldValue(row[fieldKey],'-'); const v=parseFloat(String(row[amtKey]||'0').replace(/[^0-9.-]+/g,''))||0; if(!isNaN(v)){total+=v; agg[k]=(agg[k]||0)+v;} });
     return { aggregatedArray:Object.keys(agg).map(k=>({key:k,value:agg[k]})).sort((a,b)=>b.value-a.value), totalValue:total };
 }
 
@@ -1344,7 +1438,7 @@ function getChequeDocumentSectionsHtml(row) {
 function generateCheckCardHtml(row) {
     const v=(parseFloat((row['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0).toFixed(2);
     const s=getChequeStatus(row);
-    return `<div class="result-card"><div class="result-header"><h2>${row['Party Name']||'N/A'}</h2><div class="sr-ref">Chq No: ${row['Chq Number']}</div><div class="total-amount" style="background:none;border:none;color:${s.color};font-weight:700;"><span class="status-indicator ${s.class}"></span>${s.status}</div></div>${getChequeDocumentSectionsHtml(row)}</div>`;
+    return `<div class="result-card"><div class="result-header"><h2>${row['Party Name']||'-'}</h2><div class="sr-ref">Chq No: ${row['Chq Number']}</div><div class="total-amount" style="background:none;border:none;color:${s.color};font-weight:700;"><span class="status-indicator ${s.class}"></span>${s.status}</div></div>${getChequeDocumentSectionsHtml(row)}</div>`;
 }
 
 function generatePartyDateReportCard(row) {
@@ -1353,8 +1447,8 @@ function generatePartyDateReportCard(row) {
     return `<div class="summary-card"><div class="summary-header" onclick="toggleDetails('det-${id}',this.querySelector('.summary-toggle-btn'))">
         <div class="summary-header-item" style="flex:0 0 96px;"><div class="field-label">Chq Date</div><div class="field-value">${formatFieldValue(row['Chq Date'],'-')}</div></div>
         <div class="summary-header-item" style="flex:0 0 100px;"><div class="field-label">Recd Date</div><div class="field-value">${formatFieldValue(row['Received Date'],'-')}</div></div>
-        <div class="summary-header-item" style="flex:3;"><div class="field-label">Party</div><div class="field-value">${formatFieldValue(row['Party Name'],'N/A')}</div></div>
-        <div class="summary-header-item" style="flex:2;"><div class="field-label">Bank</div><div class="field-value">${formatFieldValue(row['Bank Name (Party)'],'N/A')}</div></div>
+        <div class="summary-header-item" style="flex:3;"><div class="field-label">Party</div><div class="field-value">${formatFieldValue(row['Party Name'],'-')}</div></div>
+        <div class="summary-header-item" style="flex:2;"><div class="field-label">Bank</div><div class="field-value">${formatFieldValue(row['Bank Name (Party)'],'-')}</div></div>
         <div class="summary-header-item" style="flex:1;text-align:right;"><div class="field-label">Chq No.</div><div class="field-value">${formatFieldValue(row['Chq Number'],'-')}</div></div>
         <div class="summary-header-item chq-val" style="flex:0 0 110px;"><div class="field-label">Value</div><div class="field-value">₹${v}</div></div>
         <div class="summary-header-item" style="flex:0 0 96px;"><div class="field-label">Status</div><div class="field-value" style="color:${s.color};font-weight:700;font-size:0.78rem;"><span class="status-indicator ${s.class}"></span>${s.status}</div></div>
@@ -1486,7 +1580,7 @@ function exportToCSV(data, filename) {
     const headers=Object.keys(data[0]);
     const rows=[headers.map(h=>`"${h}"`).join(',')];
     data.forEach(row=>{ rows.push(headers.map(h=>{ let v=String(row[h]||''); if(h.toLowerCase().includes('chq number'))return `="${v.replace(/"/g,'""')}"`; return `"${v.replace(/"/g,'""')}"`;}).join(',')); });
-    const blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
+    const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8;'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${filename}.csv`; a.style.visibility='hidden';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
@@ -1892,11 +1986,11 @@ const todayNeft = filterNeftData(allNeft, fromDate, toDate, '');
 
         // Party aggregation (for cheque mini-list)
         const chqPartyMap = {};
-        todayChq.forEach(r => { const p = r['Party Name']||'N/A'; const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; chqPartyMap[p]=(chqPartyMap[p]||0)+v; });
+        todayChq.forEach(r => { const p = r['Party Name']||'-'; const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0; chqPartyMap[p]=(chqPartyMap[p]||0)+v; });
         const chqPartyTop = Object.entries(chqPartyMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
 
         const neftPartyMap = {};
-        todayNeft.forEach(r => { const p = String(r[neftPartyKey]||'N/A'); const v = parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0; neftPartyMap[p]=(neftPartyMap[p]||0)+v; });
+        todayNeft.forEach(r => { const p = String(r[neftPartyKey]||'-'); const v = parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0; neftPartyMap[p]=(neftPartyMap[p]||0)+v; });
         const neftPartyTop = Object.entries(neftPartyMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
 
         // Day cards - group both by date (just one day here, but if range changes later this is ready)
@@ -2110,7 +2204,7 @@ const todayNeft = filterNeftData(allNeft, fromDate, toDate, '');
                                             <tbody>
                                                 ${dayChq.map(r => {
                                                     const v = parseFloat((r['Chq Value (₹)']||'0').replace(/[^0-9.-]+/g,''))||0;
-                                                    return `<tr><td>${(r['Party Name']||'N/A').substring(0,20)}</td><td>${(r['Bank Name (Party)']||'-').substring(0,14)}</td><td class="amt-cell">₹${v.toLocaleString('en-IN')}</td></tr>`;
+                                                    return `<tr><td>${(r['Party Name']||'-').substring(0,20)}</td><td>${(r['Bank Name (Party)']||'-').substring(0,14)}</td><td class="amt-cell">₹${v.toLocaleString('en-IN')}</td></tr>`;
                                                 }).join('')}
                                                 <tr style="border-top:1px solid rgba(255,255,255,0.12);">
                                                     <td colspan="2" style="color:rgba(165,180,252,0.8);font-weight:700;font-size:0.72rem;">Subtotal</td>
@@ -2128,7 +2222,7 @@ const todayNeft = filterNeftData(allNeft, fromDate, toDate, '');
                                             <tbody>
                                                 ${dayNeft.map(r => {
                                                     const v = parseFloat(String(r[neftAmtKey]||'0').replace(/[^0-9.-]+/g,''))||0;
-                                                    return `<tr><td>${String(r[neftPartyKey]||'N/A').substring(0,26)}</td><td class="amt-cell neft-amt">₹${v.toLocaleString('en-IN')}</td></tr>`;
+                                                    return `<tr><td>${String(r[neftPartyKey]||'-').substring(0,26)}</td><td class="amt-cell neft-amt">₹${v.toLocaleString('en-IN')}</td></tr>`;
                                                 }).join('')}
                                                 <tr style="border-top:1px solid rgba(255,255,255,0.12);">
                                                     <td style="color:rgba(103,232,249,0.8);font-weight:700;font-size:0.72rem;">Subtotal</td>
@@ -2819,6 +2913,7 @@ document.getElementById('bankValueForm').addEventListener('submit', async functi
         const rs=document.getElementById('resultsSection');
         if(!allBlank.length){rs.innerHTML='<div class="no-results">No blank cheques found.</div>';document.getElementById('exportBankBtn').style.display='none';return;}
         lastFilterResults=allBlank;
+        window._blankMaps={all:{},sec:{}}; allBlank.forEach(r=>{ const n=formatFieldValue(r['Party Name'],'Unknown'); (window._blankMaps.all[n]=window._blankMaps.all[n]||[]).push(r); if(isSecurityCheque(r))(window._blankMaps.sec[n]=window._blankMaps.sec[n]||[]).push(r); });
         const uniqParties=new Set(allBlank.map(r=>r['Party Name']).filter(Boolean)).size;
         const summaryHtml=`<div class="blank-summary-grid">
             <div class="blank-summary-card" style="animation-delay:.05s;"><div class="bsc-icon">🏦</div><div class="bsc-value">${allBlank.length}</div><div class="bsc-label">Total Blank</div></div>
@@ -2888,8 +2983,8 @@ document.getElementById('depositForm').addEventListener('submit', async function
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;">
                     <div class="kpi-card kpi-total"><h4>🧾 Total Cheques</h4><div class="value">${tc}</div><div class="sub-value">${up} ${up===1?'party':'parties'}</div></div>
                     <div class="kpi-card kpi-average"><h4>💰 Total Value</h4><div class="value" style="font-size:clamp(.9rem,1.5vw,1.4rem);">₹${tv.toLocaleString('en-IN',{minimumFractionDigits:2})}</div><div class="sub-value">Avg ₹${avg.toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:0})}/chq</div></div>
-                    <div class="kpi-card kpi-peak"><h4>🏆 Highest</h4><div class="value" style="font-size:clamp(.9rem,1.5vw,1.4rem);">₹${(parseFloat(maxR['Chq Value (₹)'])||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</div><div class="sub-value">${maxR['Party Name']||'N/A'}</div></div>
-                    <div class="kpi-card kpi-neft"><h4>📅 Range</h4><div class="value" style="font-size:.9rem;">${dates[0]||'N/A'}</div><div class="sub-value">to ${dates[dates.length-1]||'N/A'}</div></div>
+                    <div class="kpi-card kpi-peak"><h4>🏆 Highest</h4><div class="value" style="font-size:clamp(.9rem,1.5vw,1.4rem);">₹${(parseFloat(maxR['Chq Value (₹)'])||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</div><div class="sub-value">${maxR['Party Name']||'-'}</div></div>
+                    <div class="kpi-card kpi-neft"><h4>📅 Range</h4><div class="value" style="font-size:.9rem;">${dates[0]||'-'}</div><div class="sub-value">to ${dates[dates.length-1]||'-'}</div></div>
                     ${extra}
                 </div>
             </div>
@@ -3061,6 +3156,7 @@ document.getElementById('aiAnalysisForm').addEventListener('submit', async funct
                 <span class="fy-badge">📅 ${from ? from+' → '+to : fy.label}</span>
             </div>
         </div>`;
+        html += buildMonthCards(chqData, neftData, neftDateKey, neftAmtKey, neftPartyKey);
         if (inclChq && inclNeft && combinedTotal > 0) {
             html += `<div class="kpi-container" style="margin:4px 16px 0;background:linear-gradient(135deg,#f5f3ff,#ecfeff);">
                 <div class="kpi-card kpi-combined"><h4>📊 Combined Total</h4><div class="value" data-target="${combinedTotal}">₹0</div><div class="sub-value">${chqData.length + neftData.length} total records</div></div>
@@ -3239,6 +3335,173 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 300);
 });
 
+</script>
+
+<button id="backTopBtn" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+(function(){
+  const num=t=>{const n=parseFloat(String(t).replace(/[₹,\s]/g,''));return isNaN(n)?null:n;};
+  const dt=t=>{const m=String(t).trim().match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);return m?new Date(m[3].length==2?'20'+m[3]:m[3],m[2]-1,m[1]).getTime():null;};
+  function enhance(tbl){
+    if(tbl.dataset.enh||!tbl.tBodies[0]||tbl.tBodies[0].rows.length<2||tbl.querySelector('td[colspan]'))return;
+    tbl.dataset.enh=1;
+    const box=tbl.closest('.product-table-container')||tbl;
+    const f=document.createElement('div');
+    f.innerHTML='<input class="tbl-filter no-print" placeholder="🔎 Filter rows..."><span class="tbl-count no-print"></span>';
+    box.parentNode.insertBefore(f,box);
+    const inp=f.firstChild,cnt=f.lastChild,rows=()=>[...tbl.tBodies[0].rows];
+    const upd=()=>{const r=rows(),v=r.filter(x=>x.style.display!=='none').length;cnt.textContent=inp.value?v+' / '+r.length+' rows':r.length+' rows';};
+    inp.oninput=()=>{const q=inp.value.toLowerCase();rows().forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none');upd();};
+    upd();
+    [...tbl.tHead.rows[0].cells].forEach((th,i)=>{
+      th.title='Click to sort';
+      th.onclick=()=>{
+        const asc=!th.classList.contains('sort-asc');
+        tbl.querySelectorAll('th').forEach(x=>x.classList.remove('sort-asc','sort-desc'));
+        th.classList.add(asc?'sort-asc':'sort-desc');
+        const key=r=>{const t=(r.cells[i]?r.cells[i].textContent:'').trim();if(t===''||t==='-')return[3,0];const d=dt(t);if(d!==null)return[0,d];const n=num(t);return n!==null?[0,n]:[1,t.toLowerCase()];};
+        const arr=rows().sort((a,b)=>{const x=key(a),y=key(b);if(x[0]!==y[0])return x[0]-y[0];if(x[0]===3)return 0;const c=x[1]<y[1]?-1:x[1]>y[1]?1:0;return asc?c:-c;});
+        arr.forEach(r=>tbl.tBodies[0].appendChild(r));
+      };
+    });
+  }
+  const run=()=>document.querySelectorAll('table.product-table').forEach(enhance);
+  new MutationObserver(run).observe(document.body,{childList:true,subtree:true});run();
+  addEventListener('scroll',()=>{document.getElementById('backTopBtn').style.display=scrollY>400?'block':'none';},{passive:true});
+})();
+</script>
+
+<script>
+/* ---------- shared helpers ---------- */
+const _inr=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:0});
+const _amt=v=>parseFloat(String(v||'0').replace(/[^0-9.-]+/g,''))||0;
+function _ts(s){ if(!s)return null; s=String(s).trim(); let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/); if(m)return new Date(m[3].length==2?'20'+m[3]:m[3],m[2]-1,m[1]).getTime(); const d=Date.parse(s); return isNaN(d)?null:d; }
+function _mk(s){ const t=_ts(s); if(t===null)return null; const d=new Date(t); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+const _MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const _ml=k=>_MN[+k.slice(5)-1]+' '+k.slice(0,4);
+const _esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function _fk(keys,pats){ for(const p of pats){const f=keys.find(k=>k.toUpperCase().includes(p.toUpperCase())); if(f)return f;} return null; }
+
+/* ---------- month summary cards + top parties (AI tab) ---------- */
+function buildMonthCards(chqData,neftData,nDate,nAmt,nParty){
+  const M={};
+  const add=(k,t,v)=>{ if(!k)return; const o=M[k]||(M[k]={chq:0,neft:0,n:0}); o[t]+=v; o.n++; };
+  chqData.forEach(r=>add(_mk(r['Deposited Date']||r['Chq Date']),'chq',_amt(r['Chq Value (₹)'])));
+  if(nAmt&&nDate) neftData.forEach(r=>add(_mk(r[nDate]),'neft',_amt(r[nAmt])));
+  const keys=Object.keys(M).sort(); if(!keys.length)return '';
+  const tot=k=>M[k].chq+M[k].neft, vals=keys.map(tot), mx=Math.max(...vals), mn=Math.min(...vals);
+  let h='<div class="mc-wrap"><div class="mc-title">🗓️ Month-wise Summary</div><div class="mc-grid">';
+  keys.forEach((k,i)=>{ const o=M[k],t=tot(k),pv=i?tot(keys[i-1]):null;
+    let d='<div class="mc-d" style="color:#94a3b8">-</div>';
+    if(pv){ const c=pv?((t-pv)/pv*100):0; d=`<div class="mc-d ${c>=0?'mc-up':'mc-dn'}">${c>=0?'▲':'▼'} ${Math.abs(c).toFixed(1)}% vs prev</div>`; }
+    h+=`<div class="mc-card ${keys.length>1&&t===mx?'best':keys.length>1&&t===mn?'low':''}"><div class="mc-m">${_ml(k)}</div><div class="mc-v">${_inr(t)}</div><div class="mc-r"><span>🏦 ${_inr(o.chq)}</span><span>🏧 ${_inr(o.neft)}</span></div><div class="mc-r"><span>${o.n} entries</span></div>${d}</div>`; });
+  h+='</div>';
+  const P={}; const ap=(n,v)=>{ if(!n||n==='-')return; const o=P[n]||(P[n]={v:0,n:0}); o.v+=v; o.n++; };
+  chqData.forEach(r=>ap(r['Party Name'],_amt(r['Chq Value (₹)'])));
+  if(nAmt&&nParty) neftData.forEach(r=>ap(String(r[nParty]||'').trim(),_amt(r[nAmt])));
+  const top=Object.entries(P).sort((a,b)=>b[1].v-a[1].v).slice(0,10);
+  if(top.length){ h+='<div class="mc-title" style="margin-top:14px">🏆 Top 10 Parties <small style="font-weight:500;color:#64748b">(click a name for ledger)</small></div><div class="product-table-container"><table class="product-table"><thead><tr><th>#</th><th>Party</th><th>Entries</th><th>Total</th></tr></thead><tbody>'
+    +top.map((x,i)=>`<tr><td>${i+1}</td><td>${_esc(x[0])}</td><td>${x[1].n}</td><td style="text-align:right;font-weight:700">${_inr(x[1].v)}</td></tr>`).join('')+'</tbody></table></div>'; }
+  return h+'</div>';
+}
+
+/* ---------- party ledger ---------- */
+let _lg=null,_lgT=0,_lgRows=[];
+async function _lgLoad(){
+  if(_lg&&Date.now()-_lgT<300000)return _lg;
+  const sid=document.getElementById('sheetId').value.trim();
+  const chq=await fetchSheetData(sid); let neft=[],nk={};
+  try{ neft=await fetchNeftData(); if(neft.length){const k=Object.keys(neft[0]); nk={d:_fk(k,['date'])||'date',p:_fk(k,['party','customer','client','name'])||'party',a:_fk(k,['amount','value','₹','amt'])||'amount',s:_fk(k,['state'])}; } }catch(e){}
+  const parties=new Set(); chq.forEach(r=>r['Party Name']&&parties.add(r['Party Name'].trim())); neft.forEach(r=>r[nk.p]&&parties.add(String(r[nk.p]).trim()));
+  _lg={chq,neft,nk,parties,lower:[...parties].map(x=>[x,x.toUpperCase()])}; _lgT=Date.now(); return _lg;
+}
+function _resolveParty(txt){ if(!_lg)return null; txt=txt.trim(); if(txt.length<4||_lg.parties.has(txt))return _lg.parties.has(txt)?txt:null; const u=txt.toUpperCase(),m=_lg.lower.filter(x=>x[1].startsWith(u)); return m.length===1?m[0][0]:null; }
+async function _oldOpenLedger(name){
+  const pn=document.getElementById('ledgerPanel'); document.getElementById('lgTitle').textContent='📒 '+name; document.getElementById('lgBody').innerHTML='<p>Loading…</p>'; pn.classList.add('open');
+  try{
+    const L=await _lgLoad(),U=name.toUpperCase(),rows=[];
+    L.chq.forEach(r=>{ if((r['Party Name']||'').trim().toUpperCase()===U) rows.push({Date:r['Deposited Date']||r['Chq Date']||'-',Type:'Cheque',Reference:r['Chq Number']||'-',Bank:r['Deposited Bank (Our Bank)']||r['Bank Name (Party)']||'-',State:r['State']||'-',Amount:_amt(r['Chq Value (₹)'])}); });
+    L.neft.forEach(r=>{ if(String(r[L.nk.p]||'').trim().toUpperCase()===U) rows.push({Date:r[L.nk.d]||'-',Type:'Bank Receipt',Status:'RECEIVED',Reference:'-',Bank:'-',State:(L.nk.s&&r[L.nk.s])||'-',Amount:_amt(r[L.nk.a])}); });
+    rows.sort((a,b)=>(_ts(b.Date)||0)-(_ts(a.Date)||0)); _lgRows=rows;
+    const c=rows.filter(r=>r.Type==='Cheque'),n=rows.filter(r=>r.Type!=='Cheque'),sum=a=>a.reduce((x,r)=>x+r.Amount,0);
+    const mm={}; rows.forEach(r=>{const k=_mk(r.Date); if(k)mm[k]=(mm[k]||0)+r.Amount;});
+    const mk=Object.keys(mm).sort().slice(-12),mx=Math.max(1,...mk.map(k=>mm[k]));
+    document.getElementById('lgBody').innerHTML=
+     `<div class="lg-kpis"><div class="lg-kpi"><b>${_inr(sum(c))}</b><span>Cheques (${c.length})</span></div><div class="lg-kpi"><b>${_inr(sum(n))}</b><span>Receipts (${n.length})</span></div><div class="lg-kpi"><b>${_inr(sum(rows))}</b><span>Total (${rows.length})</span></div></div>`
+     +(mk.length?'<div class="lg-bars"><b style="font-size:.78rem">Last 12 active months</b>'+mk.map(k=>`<div class="lg-bar"><span style="width:62px">${_ml(k)}</span><i style="width:${Math.max(2,mm[k]/mx*60)}%"></i><span>${_inr(mm[k])}</span></div>`).join('')+'</div>':'')
+     +(rows.length?`<table class="lg-tbl"><thead><tr><th>Date</th><th>Type</th><th>Ref</th><th>Bank / State</th><th>Amount</th></tr></thead><tbody>`+rows.map(r=>`<tr><td>${_esc(r.Date)}</td><td>${r.Type}</td><td><span style="padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:700;color:#fff;background:${({DEPOSITED:'#10b981',PENDING:'#f59e0b',RETURNED:'#ef4444',REPRESENTED:'#8b5cf6',BLANK:'#06b6d4',RECEIVED:'#0891b2'})[r.Status]||'#64748b'}">${r.Status}</span></td><td>${_esc(r.Reference)}</td><td>${_esc(r.Bank!=='-'?r.Bank:r.State)}</td><td class="r">${_inr(r.Amount)}</td></tr>`).join('')+'</tbody></table>':'<p>No transactions found.</p>');
+  }catch(e){ document.getElementById('lgBody').innerHTML='<p style="color:#dc2626">'+_esc(e.message)+'</p>'; }
+}
+const _cand='td,h2,.field-value,.sub-value';
+document.addEventListener('mouseover',e=>{ const t=e.target.closest(_cand); if(!t||t.closest('#ledgerPanel')||t.children.length>1||t.classList.contains('ledger-link'))return; if(_lg&&_resolveParty(t.textContent)){t.classList.add('ledger-link');t.title='Click to open party ledger';} });
+document.addEventListener('click',async e=>{ const t=e.target.closest(_cand); if(!t||t.closest('#ledgerPanel')||t.closest('th')||t.children.length>1)return; const tx=t.textContent.trim(); if(!tx||tx.length<4||/^[₹\d\s.,\/-]+$/.test(tx))return;
+  if(!_lg){ if(!t.closest('.product-table,.db-mini-table,.result-card,.summary-header-item'))return; try{await _lgLoad();}catch(_){return;} }
+  const pn=_resolveParty(tx); if(pn)openLedger(pn); });
+
+/* ---------- date presets ---------- */
+(function(){
+  const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const P={ 'Today':()=>{const t=new Date();return[t,t];},
+    'Last 7 Days':()=>{const t=new Date(),f=new Date();f.setDate(t.getDate()-6);return[f,t];},
+    'This Month':()=>{const t=new Date();return[new Date(t.getFullYear(),t.getMonth(),1),t];},
+    'Last Month':()=>{const t=new Date();return[new Date(t.getFullYear(),t.getMonth()-1,1),new Date(t.getFullYear(),t.getMonth(),0)];},
+    'This Quarter (FY)':()=>{const t=new Date(),m=t.getMonth(),q=m>=3?3+Math.floor((m-3)/3)*3:0;return[new Date(t.getFullYear(),q,1),t];},
+    'This FY':()=>{const t=new Date(),y=t.getMonth()>=3?t.getFullYear():t.getFullYear()-1;return[new Date(y,3,1),t];},
+    'Last FY':()=>{const t=new Date(),y=(t.getMonth()>=3?t.getFullYear():t.getFullYear()-1)-1;return[new Date(y,3,1),new Date(y+1,2,31)];} };
+  const pairs=[]; document.querySelectorAll('form').forEach(f=>{const d=f.querySelectorAll('input[type=date]'); if(d.length===2)pairs.push(d);});
+  const a=document.getElementById('dashboardFromDate'),b=document.getElementById('dashboardToDate'); if(a&&b&&!a.closest('form'))pairs.push([a,b]);
+  pairs.forEach(([f,t])=>{ const row=document.createElement('div'); row.className='preset-row no-print';
+    Object.keys(P).forEach(n=>{ const bt=document.createElement('button'); bt.type='button'; bt.textContent=n; bt.onclick=()=>{const r=P[n]();f.value=iso(r[0]);t.value=iso(r[1]);[f,t].forEach(x=>{x.dispatchEvent(new Event('input',{bubbles:true}));x.dispatchEvent(new Event('change',{bubbles:true}));});}; row.appendChild(bt); });
+    const host=t.closest('.form-group')||t.parentNode; host.parentNode.insertBefore(row,host.nextSibling); });
+})();
+</script>
+
+<script>
+async function initLedgerTab(){
+  try{ const L=await _lgLoad(); const dl=document.getElementById('lgParties'); if(dl&&!dl.children.length) dl.innerHTML=[...L.parties].sort().map(p=>`<option value="${_esc(p)}">`).join(''); }catch(e){}
+}
+async function renderLedger(name,from,to,type){
+  const rs=document.getElementById('resultsSection'); rs.className='results-section'; rs.innerHTML='<div class="no-results">Loading ledger…</div>';
+  try{
+    const L=await _lgLoad(),U=name.trim().toUpperCase(),rows=[],stf=(document.getElementById('lgStatus')||{}).value||'';
+    const f=from?new Date(from).getTime():null,t=to?new Date(to).getTime()+86399999:null;
+    const ok=d=>{const x=_ts(d); if(x===null)return !f&&!t; return (!f||x>=f)&&(!t||x<=t);};
+    if(type!=='Bank Receipt') L.chq.forEach(r=>{ const d=r['Chq Date']||r['Deposited Date']; if((r['Party Name']||'').trim().toUpperCase()===U&&ok(d)) { const st=getChequeStatus(r).status; if(!stf||st===stf) rows.push({Date:d||'-',Type:'Cheque',Status:st,Reference:r['Chq Number']||'-',Bank:r['Deposited Bank (Our Bank)']||r['Bank Name (Party)']||'-',State:r['State']||'-',Amount:_amt(r['Chq Value (₹)'])}); } });
+    if(type!=='Cheque'&&!stf) L.neft.forEach(r=>{ if(String(r[L.nk.p]||'').trim().toUpperCase()===U&&ok(r[L.nk.d])) rows.push({Date:r[L.nk.d]||'-',Type:'Bank Receipt',Status:'RECEIVED',Reference:'-',Bank:'-',State:(L.nk.s&&r[L.nk.s])||'-',Amount:_amt(r[L.nk.a])}); });
+    rows.sort((a,b)=>(_ts(b.Date)||0)-(_ts(a.Date)||0)); _lgRows=rows;
+    if(!rows.length){ rs.innerHTML='<div class="no-results">No transactions found for this party.</div>'; document.getElementById('lgExportBtn').style.display='none'; return; }
+    const c=rows.filter(r=>r.Type==='Cheque'),n=rows.filter(r=>r.Type!=='Cheque'),sum=a=>a.reduce((x,r)=>x+r.Amount,0);
+    const mm={}; rows.forEach(r=>{const k=_mk(r.Date); if(k)mm[k]=(mm[k]||0)+r.Amount;});
+    const mk=Object.keys(mm).sort(),mx=Math.max(1,...mk.map(k=>mm[k]));
+    const kp=(v,l,c)=>`<div class="mc-card" style="border-top-color:${c}"><div class="mc-m">${l}</div><div class="mc-v">${v}</div></div>`;
+    rs.innerHTML=`<div class="mc-wrap"><div class="mc-title" style="font-size:1.05rem">📒 ${_esc(name)}</div>
+     <div class="mc-grid">${kp(_inr(sum(rows)),'Total ('+rows.length+' entries)','#6366f1')}${kp(_inr(sum(c)),'Cheques ('+c.length+')','#4f46e5')}${kp(_inr(sum(n)),'Bank Receipts ('+n.length+')','#0891b2')}${kp(_esc(rows[0].Date),'Last Transaction','#059669')}</div>
+     <div class="mc-title" style="margin-top:14px">📊 Cheque Status</div><div class="mc-grid">${[['DEPOSITED','✅ Deposited','#10b981'],['PENDING','⏳ Pending','#f59e0b'],['RETURNED','↩️ Returned','#ef4444'],['REPRESENTED','🔁 Represented','#8b5cf6']].map(([k,l,col])=>{const a=c.filter(r=>r.Status===k);return (k==='REPRESENTED'&&!a.length)?'':kp(_inr(sum(a)),l+' ('+a.length+')',col);}).join('')}</div>
+     <div class="mc-title" style="margin-top:14px">🗓️ Month-wise</div><div class="lg-bars">${mk.map(k=>`<div class="lg-bar"><span style="width:64px">${_ml(k)}</span><i style="width:${Math.max(2,mm[k]/mx*55)}%"></i><span>${_inr(mm[k])}</span></div>`).join('')}</div>
+     <div class="mc-title">📄 Transactions</div><div class="product-table-container"><table class="product-table"><thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Reference</th><th>Bank</th><th>State</th><th>Amount</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${_esc(r.Date)}</td><td>${r.Type}</td><td><span style="padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:700;color:#fff;background:${({DEPOSITED:'#10b981',PENDING:'#f59e0b',RETURNED:'#ef4444',REPRESENTED:'#8b5cf6',BLANK:'#06b6d4',RECEIVED:'#0891b2'})[r.Status]||'#64748b'}">${r.Status}</span></td><td>${_esc(r.Reference)}</td><td>${_esc(r.Bank)}</td><td>${_esc(r.State)}</td><td style="text-align:right;font-weight:700">${_inr(r.Amount)}</td></tr>`).join('')}</tbody></table></div></div>`;
+    document.getElementById('lgExportBtn').style.display='block';
+  }catch(e){ rs.innerHTML='<div class="no-results" style="color:#dc2626">'+_esc(e.message)+'</div>'; }
+}
+document.getElementById('ledgerForm').addEventListener('submit',e=>{ e.preventDefault(); renderLedger(document.getElementById('lgParty').value,document.getElementById('lgFrom').value,document.getElementById('lgTo').value,document.getElementById('lgType').value); });
+document.getElementById('lgExportBtn').addEventListener('click',()=>exportToCSV(_lgRows.map(r=>({...r,Amount:String(r.Amount)})),'party_ledger'));
+async function openLedger(name){
+  activateTab('ledgerTab'); await initLedgerTab();
+  document.getElementById('lgParty').value=name; document.getElementById('lgFrom').value=''; document.getElementById('lgTo').value='';
+  renderLedger(name,'','',''); 
+}
+</script>
+
+<script>
+document.addEventListener('click',e=>{
+  const row=e.target.closest('.condensed-party-row'); if(!row||!window._blankMaps)return;
+  const nx=row.nextElementSibling;
+  if(nx&&nx.classList.contains('party-detail')){ nx.remove(); row.classList.remove('open'); return; }
+  const name=row.querySelector('.party-name-condensed').textContent.replace(/^[▸▾]\s*/,'').trim();
+  const list=(row.classList.contains('security-row')?_blankMaps.sec:_blankMaps.all)[name]||[];
+  const d=document.createElement('div'); d.className='party-detail';
+  d.innerHTML=list.length?`<table class="lg-tbl"><thead><tr><th>#</th><th>Chq No.</th><th>Chq Date</th><th>Party Bank</th><th>Type</th><th>Remarks</th><th>Received</th></tr></thead><tbody>`+list.map((r,i)=>`<tr><td>${i+1}</td><td>${_esc(r['Chq Number']||'-')}</td><td>${_esc(r['Chq Date']||'-')}</td><td>${_esc(r['Bank Name (Party)']||'-')}</td><td>${isSecurityCheque(r)?'🔒 Security':'Regular'}</td><td>${_esc(r['Remarks']||'-')}</td><td>${_esc(r['Received Date']||'-')}</td></tr>`).join('')+'</tbody></table>':'<div style="padding:10px">No details.</div>';
+  row.after(d); row.classList.add('open');
+});
 </script>
 </body>
 </html>

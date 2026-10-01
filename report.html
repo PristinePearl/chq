@@ -480,6 +480,7 @@
 /* === ENHANCEMENTS === */
 .product-table-container{max-height:70vh;overflow:auto}
 .product-table thead th{position:sticky;top:0;z-index:2;cursor:pointer;user-select:none}
+.product-table.no-sort thead th{cursor:default;user-select:text;-webkit-user-select:text}
 .product-table thead th.sort-asc::after{content:" ▲";font-size:.65rem}
 .product-table thead th.sort-desc::after{content:" ▼";font-size:.65rem}
 .product-table tbody tr:nth-child(even){background:rgba(148,163,184,.08)}
@@ -3346,13 +3347,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if(tbl.dataset.enh||!tbl.tBodies[0]||tbl.tBodies[0].rows.length<2||tbl.querySelector('td[colspan]'))return;
     tbl.dataset.enh=1;
     const box=tbl.closest('.product-table-container')||tbl;
+    const rows=()=>[...tbl.tBodies[0].rows];
+    const dr=document.getElementById('depositsReport');
+    if(!(dr&&dr.classList.contains('active'))){
     const f=document.createElement('div');
     f.innerHTML='<input class="tbl-filter no-print" placeholder="🔎 Filter rows..."><span class="tbl-count no-print"></span>';
     box.parentNode.insertBefore(f,box);
-    const inp=f.firstChild,cnt=f.lastChild,rows=()=>[...tbl.tBodies[0].rows];
+    const inp=f.firstChild,cnt=f.lastChild;
     const upd=()=>{const r=rows(),v=r.filter(x=>x.style.display!=='none').length;cnt.textContent=inp.value?v+' / '+r.length+' rows':r.length+' rows';};
     inp.oninput=()=>{const q=inp.value.toLowerCase();rows().forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none');upd();};
     upd();
+    }
+    if(dr&&dr.classList.contains('active')){tbl.classList.add('no-sort');return;}
     [...tbl.tHead.rows[0].cells].forEach((th,i)=>{
       th.title='Click to sort';
       th.onclick=()=>{
